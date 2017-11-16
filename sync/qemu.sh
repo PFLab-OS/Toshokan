@@ -1,5 +1,7 @@
 #!/bin/bash
+
 cd
+
 qemu-system-aarch64 \
     -smp 2 \
     -m 1024 \
