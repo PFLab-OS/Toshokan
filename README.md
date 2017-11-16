@@ -37,10 +37,17 @@ On another local terminal,
 
 ```shell
 $ vagrant ssh
-$ ssh arm
+$ ssh -p 2222 vagrant@localhost
 ```
 
 or after [SSH is configured],
+
+```shell
+$ vagrant ssh
+$ ssh arm
+```
+
+or
 
 ```shell
 $ ssh -F .ssh_config arm
