@@ -1,5 +1,58 @@
-# Usage
+## System
 
-1. Execute `vagrant ssh` and then `~/sync/qemu.sh`.
-1. Wait until `Cloud-init v. X.Y.Z finished at ...` appers. You cannot login with username and password.
-1. On another terminal, execute `vagrant ssh` and then `~/sync/aarch64.sh` to login to AArch64 emulator.
+```
++-------+    +- VirtualBox ---------+
+|       |    |           +- QEMU -+ |
+| Local | -> | Ubuntu -> |  ARM   | |
+|       |    |           | Ubuntu | |
++-------+    |           +--------+ |
+             +----------------------+
+```
+
+## Build VirtualBox VM
+
+```shell
+$ vagrant up
+```
+
+## Start QEMU
+
+```shell
+$ vagrant ssh
+$ ~/sync/qemu.sh
+```
+
+or after [SSH is configured],
+
+```shell
+$ ssh -F .ssh_config default '~/sync/qemu.sh'
+```
+
+Wait until `Cloud-init v. X.Y.Z finished at ...` appers.
+You cannot login with username and password.
+
+## Login to ARM Ubuntu on QEMU
+
+On another local terminal,
+
+```shell
+$ vagrant ssh
+$ ssh arm
+```
+
+or after [SSH is configured],
+
+```shell
+$ ssh -F .ssh_config arm
+```
+
+## Configure SSH
+
+After [starting QEMU],
+
+```shell
+$ ./setup_ssh.sh
+```
+
+[SSH is configured]: #configure-ssh
+[starting QEMU]: #start-qemu
