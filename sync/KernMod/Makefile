@@ -1,4 +1,4 @@
-obj-m := hello.o
+obj-m := cpu_hotplug.o
 KERN = $(shell uname -r)
 
 .PHONY: all clean
