@@ -14,7 +14,7 @@ define make_wrapper
 	)
 endef
 
-.PHONY: all qemu qemu-telnet
+.PHONY: all qemu arm-sync
 
 all:
 	@echo nop
@@ -22,3 +22,5 @@ all:
 qemu:
 	$(call make_wrapper,qemu)
 
+arm-sync:
+	$(call make_wrapper,arm-sync)
