@@ -1,7 +1,5 @@
-.PHONY: qemu qemu-telnet
+.PHONY: qemu
 
 qemu:
-	bash sync/run_arm.sh qemu
+	bash sync/qemu.sh
 
-qemu-telnet:
-	bash sync/run_arm.sh telnet

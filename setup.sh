@@ -8,7 +8,7 @@
 # 1. avoiding multiple provisioning, and
 # 2. determining wheter execution environment is host or VirtualBox guest VM
 #    (in Makefile)
-test -f /etc/vagrant_setup && exit
+test -f /etc/arm_devenv_guest && exit
 
 # Speedup apt
 sudo sed -i'~' -E "s@http://(..\.)?(archive|security)\.ubuntu\.com/ubuntu@http://linux.yz.yamagata-u.ac.jp/pub/linux/ubuntu-archive/@g" /etc/apt/sources.list
@@ -40,4 +40,4 @@ cloud-localds --disk-format qcow2 cloud.img cloud.txt
 # Backup image
 cp ubuntu-16.04-server-cloudimg-arm64-uefi1.img ubuntu-16.04-server-cloudimg-arm64-uefi1.img.orig
 
-sudo sh -c 'date > /etc/vagrant_setup'
+sudo sh -c 'date > /etc/arm_devenv_guest'

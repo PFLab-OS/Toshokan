@@ -1,7 +1,7 @@
 include common.mk
 
 define make_wrapper
-	$(if $(shell if [ -e /etc/vagrant_setup ]; then echo "guest"; fi), \
+	$(if $(shell if [ -e /etc/arm_devenv_guest ]; then echo "guest"; fi), \
 	  # VirtualBox guest VM
 	  $(MAKE) -f $(RULE_FILE) $(1), \
 	  # Host
@@ -22,5 +22,3 @@ all:
 qemu:
 	$(call make_wrapper,qemu)
 
-qemu-telnet:
-	$(call make_wrapper,qemu-telnet)

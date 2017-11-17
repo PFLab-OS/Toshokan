@@ -1,12 +1,10 @@
 #!/bin/bash
 
-# Note: `pkill qemu` されるので、このスクリプトのファイル名に `qemu` をいれると動かない。
-
 telnet_addr=127.0.0.1
 telnet_port=12345
 
 kill_qemu() {
-    if pgrep qemu > /dev/null; then
+    if pgrep -f qemu-system-aarch64 > /dev/null; then
         pkill -KILL qemu
     fi
 }
@@ -34,16 +32,8 @@ start_qemu() {
         -virtfs local,path=./sync,mount_tag=arm-sync,security_model=none
 }
 
-case "$1" in
-"qemu")
-    kill_qemu
-    start_qemu
-    ;;
-"telnet")
-    telnet $telnet_addr $telnet_port
-    kill_qemu
-    ;;
-*)
-    echo "Invalid usege"
-    exit 1
-esac
+kill_qemu
+start_qemu &
+sleep 0.2
+telnet $telnet_addr $telnet_port
+kill_qemu
