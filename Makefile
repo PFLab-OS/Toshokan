@@ -14,7 +14,10 @@ define make_wrapper
 	)
 endef
 
-.PHONY: qemu qemu-telnet
+.PHONY: all qemu qemu-telnet
+
+all:
+	@echo nop
 
 qemu:
 	$(call make_wrapper,qemu)
