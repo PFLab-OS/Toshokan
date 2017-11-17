@@ -14,7 +14,7 @@ define make_wrapper
 	)
 endef
 
-.PHONY: all qemu arm-sync
+.PHONY: all qemu arm-sync help
 
 all:
 	@echo nop
@@ -24,3 +24,6 @@ qemu:
 
 arm-sync:
 	$(call make_wrapper,arm-sync)
+
+help:
+	@grep '^[^.#[:space:]].*:' Makefile
