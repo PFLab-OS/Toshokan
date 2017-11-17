@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# Note: `pkill qemu` されるので、このスクリプトのファイル名に `qemu` をいれると動かない。
+
 telnet_addr=127.0.0.1
 telnet_port=12345
 
@@ -34,14 +36,14 @@ start_qemu() {
 
 case "$1" in
 "qemu")
-    kill_qemu 
+    kill_qemu
     start_qemu
     ;;
 "telnet")
-    telnet $telnet_addr $telnet_port 
+    telnet $telnet_addr $telnet_port
     kill_qemu
     ;;
 *)
-    echo "Invalid usege" 
+    echo "Invalid usege"
     exit 1
 esac
