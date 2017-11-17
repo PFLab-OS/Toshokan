@@ -3,9 +3,7 @@ include common.mk
 define make_wrapper
 	$(if $(shell if [ -e /etc/vagrant_setup ]; then echo "guest"; fi), \
 	  # VirtualBox guest VM
-	  cd /vagrant/; \
 	  $(MAKE) -f $(RULE_FILE) $(1), \
-
 	  # Host
 	  $(if $(shell ssh -F .ssh_config default "exit"; \
 	  		if [ $$? != 0 ]; then echo "no-guest"; fi), \
@@ -16,7 +14,10 @@ define make_wrapper
 	)
 endef
 
-.PHONY: qemu
+.PHONY: qemu qemu-telnet
 
 qemu:
 	$(call make_wrapper,qemu)
+
+qemu-telnet:
+	$(call make_wrapper,qemu-telnet)

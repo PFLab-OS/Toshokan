@@ -55,7 +55,7 @@ $ ssh -F .ssh_config arm
 
 ## Configure SSH
 
-After [starting QEMU],
+After [starting QEMU], on local terminal,
 
 ```shell
 $ ./setup_ssh.sh
