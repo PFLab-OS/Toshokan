@@ -22,7 +22,7 @@ all:
 qemu:
 	$(call make_wrapper,qemu)
 
-arm-sync:
+arm-sync: # tentative
 	$(call make_wrapper,arm-sync)
 
 help:
