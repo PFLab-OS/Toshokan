@@ -12,4 +12,11 @@ sudo DEBIAN_FRONTEND=noninteractive apt -qq install -y \
 
 sudo sed -i "s/127.0.0.1 localhost/127.0.0.1 localhost ubuntu/" /etc/hosts
 
+# Restrict amount of memory Linux can recognize and use.
+# Total amount should be specified in `qemu.sh`.
+sudo sed -i -e \
+    '/^GRUB_CMDLINE_LINUX_DEFAULT=/s/"$/ mem=2048M"/' \
+    /etc/default/grub
+sudo update-grub
+
 sudo sh -c 'date > /etc/arm_qemu_guest'

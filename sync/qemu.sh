@@ -16,7 +16,7 @@ start_qemu() {
 
     qemu-system-aarch64 \
         -smp 2 \
-        -m 1024 \
+        -m 4096M \
         -M virt \
         -cpu cortex-a57 \
         -bios $uefi_file \
@@ -28,8 +28,7 @@ start_qemu() {
         -device virtio-net-device,netdev=user0 \
         -netdev user,id=user0 \
         -redir tcp:2222::22 \
-        -monitor telnet:$telnet_addr:$telnet_port,server,nowait \
-        -virtfs local,path=./sync,mount_tag=arm-sync,security_model=none
+        -monitor telnet:$telnet_addr:$telnet_port,server,nowait
 }
 
 kill_qemu
