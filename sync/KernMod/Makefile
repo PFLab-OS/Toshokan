@@ -1,4 +1,5 @@
 obj-m := depftom.o
+depftom-objs := main.o cpu_hotplug.o deploy_data.o
 KERN = $(shell uname -r)
 
 .PHONY: all clean
