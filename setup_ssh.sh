@@ -30,7 +30,6 @@ scp -F .ssh_config $tmp default:~/.ssh/config
 
 # Local -> ARM Ubuntu on QEMU
 scp -F .ssh_config ~/.ssh/id_rsa.pub default:~/id_rsa.pub.local
-## scp does not work?
 ssh -F .ssh_config default "cat ~/id_rsa.pub.local | ssh arm 'cat >> ~/.ssh/authorized_keys'; rm id_rsa.pub.local"
 
 cat >> .ssh_config << EOT
