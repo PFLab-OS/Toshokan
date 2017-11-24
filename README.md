@@ -28,6 +28,12 @@ or after [SSH is configured],
 $ ssh -F .ssh_config default '~/sync/qemu.sh'
 ```
 
+or
+
+```shell
+$ make qemu
+```
+
 Wait until `Cloud-init v. X.Y.Z finished at ...` appers.
 You cannot login with username and password.
 
@@ -53,11 +59,6 @@ or
 $ ssh -F .ssh_config arm
 ```
 
-## Provision ARM Ubuntu
-
-After first login to ARM Ubuntu, execute `~/sync/arm_provision.sh` to provision.
-Then please logout and login back.
-
 ## Configure SSH
 
 After [starting QEMU], on local terminal,
@@ -65,6 +66,23 @@ After [starting QEMU], on local terminal,
 ```shell
 $ ./setup_ssh.sh
 ```
+
+## Provision ARM Ubuntu
+
+After first login to ARM Ubuntu, execute `~/sync/arm_provision.sh` to provision.
+Then please logout and login back.
+
+## Sync files between local and ARM Ubuntu
+
+A command
+
+```shell
+$ make arm-sync
+```
+
+... synchonizes `sync` directory between local environment and ARM Ubuntu on QEMU.
+
+This way is tentative. The sharing will be automated in the future.
 
 [SSH is configured]: #configure-ssh
 [starting QEMU]: #start-qemu
