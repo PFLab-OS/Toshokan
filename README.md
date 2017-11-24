@@ -53,6 +53,11 @@ or
 $ ssh -F .ssh_config arm
 ```
 
+## Provision ARM Ubuntu
+
+After first login to ARM Ubuntu, execute `~/sync/arm_provision.sh` to provision.
+Then please logout and login back.
+
 ## Configure SSH
 
 After [starting QEMU], on local terminal,
