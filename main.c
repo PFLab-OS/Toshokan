@@ -6,6 +6,8 @@
 #include <linux/cdev.h>
 #include <linux/slab.h>
 #include <linux/uaccess.h>
+#include <asm/realmode.h>
+#include <asm/uv/uv.h>
 
 #include "common.h"
 #include "cpu_hotplug.h"
@@ -20,10 +22,38 @@ static int depftom_dev_major;
 static struct cdev cdev_st;
 static struct file_operations depftom_fops;
 
+static dma_addr_t paddr;
+static const size_t buf_size = 4096;
+
+static int start_cpu(int unpluged_cpu) {
+  int apicid;
+  int boot_error;
+    
+  apicid = apic->cpu_present_to_apicid(unpluged_cpu);
+
+  if (get_uv_system_type() != UV_NON_UNIQUE_APIC) {
+    smpboot_setup_warm_reset_vector(paddr);
+  }
+  
+  preempt_disable();
+
+  /*
+   * Wake up AP by INIT, INIT, STARTUP sequence.
+   */
+  boot_error = wakeup_secondary_cpu_via_init(apicid, paddr);
+
+  preempt_enable();
+
+  return boot_error;
+}
+
 static int __init depftom_init(void)
 {
   int ret;
   dev_t depftom_dev;
+  uint32_t __iomem* io_addr;
+  uint8_t buf[] = {0xFA, 0xF4, 0xF4, 0xFA};
+  static const size_t bin_size = sizeof(buf) / sizeof(buf[0]);
 
   pr_info("depftom_init: init\n");
 
@@ -44,7 +74,41 @@ static int __init depftom_init(void)
   }
 
   pr_info("depftom_init: please run 'mknod /dev/depftom c %d 0'\n", depftom_dev_major);
-  
+
+  for (paddr = 0x1000; paddr < 0x100000; paddr += buf_size) {
+    int i = 0;
+    int flag = 0;
+    io_addr = ioremap(paddr, buf_size);
+    if (io_addr == 0) {
+      continue;
+    }
+    if (io_addr[0] == FRIEND_LOADER_TRAMPOLINE_SIGNATURE) {
+      for (i = 1; i < (buf_size / sizeof(uint32_t)); i++) {
+      	if (io_addr[i] != 0) {
+      	  break;
+      	}
+      }
+      if (i == buf_size / sizeof(uint32_t)) {
+      	flag = 1;
+      }
+    }
+    iounmap(io_addr);
+    if (flag == 1) {
+      break;
+    }
+  }
+
+  if (paddr == 0x100000) {
+    pr_warn("depftom_init: no trampoline space\n");
+    return -1;
+  }
+
+  io_addr = ioremap(paddr, buf_size);
+
+  memcpy_toio(io_addr, buf, bin_size);
+    
+  iounmap(io_addr);
+
   // Unplug CPU
   ret = cpu_unplug();
   if (ret < 0) {
@@ -54,7 +118,10 @@ static int __init depftom_init(void)
     pr_info("depftom_init: cpu %d down\n", ret);
   }
 
-  return 0;
+  pr_info("depftom_init: start cpu from %llx\n", paddr);
+  ret = start_cpu(ret);
+
+  return ret;
 }
 
 static void __exit depftom_exit(void)
