@@ -1,6 +1,5 @@
 #include <linux/cpu.h>
 #include <linux/types.h>
-#include <asm/apic.h>
 
 #include "cpu_hotplug.h"
 
