@@ -6,6 +6,8 @@
 #include <linux/cdev.h>
 #include <linux/slab.h>
 #include <linux/uaccess.h>
+#include <linux/sysfs.h>
+#include <linux/interrupt.h>
 #include <asm/io.h>
 
 #include "common.h"
@@ -16,6 +18,10 @@ MODULE_DESCRIPTION("Deploy file to physical memory");
 MODULE_LICENSE("GPL v2");
 
 #define DEVNAME "depftom"
+
+extern void depftom_up(unsigned long);
+
+DECLARE_TASKLET(cpu_up_tasklet, depftom_up, 0);
 
 static int depftom_dev_major;
 static struct cdev cdev_st;
@@ -131,6 +137,9 @@ static uint8_t bin[] = {
 
 static const size_t bin_size = sizeof(bin) / sizeof(bin[0]);
 
+extern struct ctl_table sysctl_table[];
+static struct ctl_table_header *sysctl_header;
+
 static int __init depftom_init(void)
 {
   int ret;
@@ -156,27 +165,21 @@ static int __init depftom_init(void)
 
   pr_info("depftom_init: please run 'mknod /dev/depftom c %d 0'\n", depftom_dev_major);
 
+  if ((sysctl_header = register_sysctl_table(sysctl_table)) == NULL) {
+    pr_warn("depftom_init: failed to register sysctl table\n");
+    return -1;
+  }
+
   if (alloc_trampoline_region(&region) < 0) {
     pr_warn("depftom_init: no trampoline space\n");
     return -1;
   }
 
   memcpy(region.vaddr, bin, bin_size);
-    
-  // Unplug CPU
-  ret = cpu_unplug();
-  if (ret < 0) {
-    pr_warn("depftom_init: cpu_unplug failed: %d\n", ret);
-    return -1;
-  } else {
-    pr_info("depftom_init: cpu %d down\n", ret);
-  }
 
-  // TODO : sysctlで1を書き込まれたら起動する、みたいな形に変更する事
-  pr_info("depftom_init: start cpu from %llx\n", region.paddr);
-  ret = start_cpu(ret, &region);
-
-  return ret;
+  depftom_up(0);
+  
+  return 0;
 }
 
 static void __exit depftom_exit(void)
@@ -188,12 +191,31 @@ static void __exit depftom_exit(void)
     pr_info("depftom_exit: cpu %d up\n", ret);
   }
 
+  tasklet_kill(&cpu_up_tasklet);
+  
   cdev_del(&cdev_st);
   unregister_chrdev_region(MKDEV(depftom_dev_major, 0), 1);
+
+  unregister_sysctl_table(sysctl_header);
 
   free_trampoline_region(&region);
 
   pr_info("depftom_exit: exit\n");
+}
+
+void depftom_up(unsigned long dummy) {
+  // Unplug CPU
+  int unplugged_cpu = cpu_unplug();
+  if (unplugged_cpu < 0) {
+    pr_warn("depftom_up: cpu_unplug failed: %d\n", unplugged_cpu);
+  } else {
+    pr_info("depftom_up: cpu %d down\n", unplugged_cpu);
+    if (start_cpu(unplugged_cpu, &region) == 0) {
+      pr_info("depftom_up: starting cpu from %llx\n", region.paddr);
+    } else {
+      pr_warn("depftom_up: failed to start cpu\n");
+    }
+  }
 }
 
 static int depftom_dev_open(struct inode *inode, struct file *filep)
@@ -236,6 +258,26 @@ static struct file_operations depftom_fops = {
   .open      = depftom_dev_open,
   .release   = depftom_dev_release,
   .write     = depftom_dev_write,
+};
+
+static uint32_t cpu_up_flag = 0;
+
+static int proc_doflag(struct ctl_table *table, int write, void __user *buffer, size_t *lenp, loff_t *ppos) {
+  int ret = proc_dointvec(table, write, buffer, lenp, ppos);
+  if (write && cpu_up_flag == 1) {
+    // TODO
+    // tasklet_schedule(&cpu_up_tasklet);
+  }
+  return ret;
+}
+
+struct ctl_table sysctl_table[] = {
+  { .procname     = "depftom",
+    .data         = &cpu_up_flag,
+    .maxlen       = sizeof(cpu_up_flag),
+    .mode         = 0644,
+    .proc_handler = &proc_doflag },
+  { }
 };
 
 module_init(depftom_init);
