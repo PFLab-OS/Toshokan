@@ -148,7 +148,7 @@ static ssize_t boot_sysfs_write(
     size_t count)
 {
     if (cpu_start(region.paddr) == 0) {
-        pr_info("depftom: starting cpu from %llx\n", region.paddr);
+        pr_info("depftom: starting cpu from 0x%llx\n", region.paddr);
     } else {
         pr_warn("depftom: failed to start cpu\n");
     }
