@@ -25,7 +25,7 @@ static struct file_operations depftom_fops = {
     .write = depftom_dev_write,
 };
 
-int /* __init */ depftom_dev_init(void)
+int __init depftom_dev_init(void)
 {
     int ret = alloc_chrdev_region(&depftom_dev_id, 0, MINOR_COUNT, DEV_NAME);
     if (ret < 0) {
@@ -55,21 +55,13 @@ void __exit depftom_dev_exit(void)
 
 static int depftom_dev_open(struct inode* inode, struct file* filep)
 {
-    (void)inode;
-    (void)filep;
-
     pr_info("depftom_dev: open\n");
-
     return 0;
 }
 
 static int depftom_dev_release(struct inode* inode, struct file* filep)
 {
-    (void)inode;
-    (void)filep;
-
     pr_info("depftom_dev: release\n");
-
     return 0;
 }
 

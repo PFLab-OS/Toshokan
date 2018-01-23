@@ -8,7 +8,7 @@
 static int unpluged_cpu = -1;
 static void select_unplug_cpu(void);
 
-int cpu_unplug(void)
+int __init cpu_unplug(void)
 {
     int ret;
 

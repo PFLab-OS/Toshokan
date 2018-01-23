@@ -1,6 +1,8 @@
 #include <linux/interrupt.h>
 #include <linux/kernel.h>
+#include <linux/kobject.h>
 #include <linux/module.h>
+#include <linux/sysfs.h>
 
 #include "cpu_hotplug.h"
 #include "depftom_dev.h"
@@ -9,17 +11,40 @@
 MODULE_DESCRIPTION("Deploy file to physical memory");
 MODULE_LICENSE("GPL v2");
 
+// Trampoline region
 struct trampoline_region {
     phys_addr_t paddr;
     uint32_t* vaddr;
 };
 static struct trampoline_region region;
 
-static int /* __init */ alloc_trampoline_region(struct trampoline_region* region);
+static int __init alloc_trampoline_region(struct trampoline_region* region);
 static void __exit free_trampoline_region(struct trampoline_region* region);
 
-static void depftom_up(unsigned long);
-// DECLARE_TASKLET(cpu_up_tasklet, depftom_up, 0);
+// Sysfs for start booting friend core
+static struct kobject* boot_sysfs_kobj;
+
+static ssize_t boot_sysfs_read(
+    struct kobject* kobj,
+    struct kobj_attribute* attr,
+    char* buf);
+
+static ssize_t boot_sysfs_write(
+    struct kobject* kobj,
+    struct kobj_attribute* attr,
+    const char* buf,
+    size_t count);
+
+static struct kobj_attribute boot_sysfs_attr
+    = __ATTR(boot, 0664, boot_sysfs_read, boot_sysfs_write);
+
+static struct attribute* boot_sysfs_attrs[] = {
+    &boot_sysfs_attr.attr,
+    NULL,
+};
+static struct attribute_group boot_sysfs_attr_group = {
+    .attrs = boot_sysfs_attrs,
+};
 
 static uint8_t bin[] = {
     0x00, 0x00, 0x84, 0xd2,  // mov x0, 0x2000
@@ -33,18 +58,11 @@ static uint8_t bin[] = {
 
 static const size_t bin_size = sizeof(bin) / sizeof(bin[0]);
 
-// extern struct ctl_table sysctl_table[];
-// static struct ctl_table_header* sysctl_header;
-
-static int /* __init */ depftom_init(void)
+static int __init depftom_init(void)
 {
-    pr_info("depftom_init: init\n");
+    int ret;
 
-    // Sysctl
-    // if ((sysctl_header = register_sysctl_table(sysctl_table)) == NULL) {
-    //     pr_warn("depftom_init: failed to register sysctl table\n");
-    //     return -1;
-    // }
+    pr_info("depftom_init: init\n");
 
     // Trampoline region
     if (alloc_trampoline_region(&region) < 0) {
@@ -53,9 +71,31 @@ static int /* __init */ depftom_init(void)
     }
     memcpy(region.vaddr, bin, bin_size);
 
+    // Device for storing program
     depftom_dev_init();
 
-    depftom_up(0);
+    // Sysfs for start booting friend core
+    boot_sysfs_kobj = kobject_create_and_add("boot", &THIS_MODULE->mkobj.kobj);
+    if (!boot_sysfs_kobj) {
+        pr_warn("depftom_init: kobject_create_and_add failed");
+        return -1;
+    }
+
+    ret = sysfs_create_group(boot_sysfs_kobj, &boot_sysfs_attr_group);
+    if (ret != 0) {
+        kobject_put(boot_sysfs_kobj);
+        pr_warn("depftom_init: sysfs_create_group failed: %d\n", ret);
+        return -1;
+    }
+
+    // Unplug friend core
+    ret = cpu_unplug();
+    if (ret < 0) {
+        pr_warn("depftom_init: cpu_unplug failed: %d\n", ret);
+        return -1;
+    }
+
+    pr_info("depftom_init: cpu %d down\n", ret);
 
     return 0;
 }
@@ -69,18 +109,16 @@ static void __exit depftom_exit(void)
         pr_info("depftom_exit: cpu %d up\n", ret);
     }
 
-    // tasklet_kill(&cpu_up_tasklet);
+    kobject_put(boot_sysfs_kobj);
 
     depftom_dev_exit();
-
-    // unregister_sysctl_table(sysctl_header);
 
     free_trampoline_region(&region);
 
     pr_info("depftom_exit: exit\n");
 }
 
-static int /* __init */ alloc_trampoline_region(struct trampoline_region* region)
+static int __init alloc_trampoline_region(struct trampoline_region* region)
 {
     if (__friend_loader_buf[0] != FRIEND_LOADER_TRAMPOLINE_SIGNATURE) {
         pr_warn("alloc_trampoline_region: signature does not match\n");
@@ -95,53 +133,28 @@ static int /* __init */ alloc_trampoline_region(struct trampoline_region* region
 
 static void __exit free_trampoline_region(struct trampoline_region* region) {}
 
-void depftom_up(unsigned long dummy)
+static ssize_t boot_sysfs_read(
+    struct kobject* kobj,
+    struct kobj_attribute* attr,
+    char* buf)
 {
-    int unplugged_cpu = cpu_unplug();
-
-    if (unplugged_cpu < 0) {
-        pr_warn("depftom_up: cpu_unplug failed: %d\n", unplugged_cpu);
-        return;
-    }
-
-    pr_info("depftom_up: cpu %d down\n", unplugged_cpu);
-
-    if (cpu_start(region.paddr) == 0) {
-        pr_info("depftom_up: starting cpu from %llx\n", region.paddr);
-    } else {
-        pr_warn("depftom_up: failed to start cpu\n");
-    }
-
-    (void)dummy;
+    return scnprintf(buf, PAGE_SIZE, "%s\n", "boot_sysfs: read");
 }
 
-// Sysctl
-// static uint32_t cpu_up_flag = 0;
+static ssize_t boot_sysfs_write(
+    struct kobject* kobj,
+    struct kobj_attribute* attr,
+    const char* buf,
+    size_t count)
+{
+    if (cpu_start(region.paddr) == 0) {
+        pr_info("depftom: starting cpu from %llx\n", region.paddr);
+    } else {
+        pr_warn("depftom: failed to start cpu\n");
+    }
 
-// static int proc_doflag(
-//     struct ctl_table* table, int write, void __user* buffer,
-//     size_t* lenp, loff_t* ppos)
-// {
-//     int ret = proc_dointvec(table, write, buffer, lenp, ppos);
-//
-//     if (write && cpu_up_flag == 1) {
-//         // TODO
-//         // tasklet_schedule(&cpu_up_tasklet);
-//     }
-//
-//     return ret;
-// }
-
-// struct ctl_table sysctl_table[] = {
-//     {
-//         .procname = "depftom",
-//         .data = &cpu_up_flag,
-//         .maxlen = sizeof(cpu_up_flag),
-//         .mode = 0644,
-//         .proc_handler = &proc_doflag,
-//     },
-//     {},
-// };
+    return (ssize_t)count;
+}
 
 module_init(depftom_init);
 module_exit(depftom_exit);
