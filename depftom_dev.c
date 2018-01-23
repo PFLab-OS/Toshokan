@@ -55,13 +55,13 @@ void __exit depftom_dev_exit(void)
 
 static int depftom_dev_open(struct inode* inode, struct file* filep)
 {
-    pr_info("depftom_dev: open\n");
+    pr_debug("depftom_dev: open\n");
     return 0;
 }
 
 static int depftom_dev_release(struct inode* inode, struct file* filep)
 {
-    pr_info("depftom_dev: release\n");
+    pr_debug("depftom_dev: release\n");
     return 0;
 }
 

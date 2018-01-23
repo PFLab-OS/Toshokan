@@ -1,7 +1,7 @@
 #pragma once
 
-#include <linux/init.h>   // __init
-#include <linux/types.h>  // phys_addr_t
+#include <linux/init.h>
+#include <linux/types.h>
 
 // Unplug CPU.
 // Returns unpluged CPU number, or negative number on error.

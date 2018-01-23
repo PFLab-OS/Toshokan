@@ -11,9 +11,11 @@ KERN_SRC=$HOME/Linux-HiKey960/linux-friend/ make
 sudo insmod depftom.ko
 
 dev_id=$(cat /proc/devices | grep depftom | cut -d ' ' -f 1)
-sudo mknod /dev/depftom c $dev_id 0
+if [ ! -e /dev/depftom ]; then
+    sudo mknod /dev/depftom c $dev_id 0
+fi
 
-if [ $# -gt 1 ]; then
+if [ $# -eq 1 ]; then
     cat $1 | sudo dd of=/dev/depftom
 fi
 

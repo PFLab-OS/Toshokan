@@ -8,7 +8,7 @@
 #include "depftom_dev.h"
 #include "deploy_data.h"
 
-MODULE_DESCRIPTION("Deploy file to physical memory");
+MODULE_DESCRIPTION("Friend Loader");
 MODULE_LICENSE("GPL v2");
 
 // Trampoline region
@@ -110,9 +110,7 @@ static void __exit depftom_exit(void)
     }
 
     kobject_put(boot_sysfs_kobj);
-
     depftom_dev_exit();
-
     free_trampoline_region(&region);
 
     pr_info("depftom_exit: exit\n");
