@@ -15,11 +15,11 @@ struct trampoline_region {
 };
 static struct trampoline_region region;
 
-static int alloc_trampoline_region(struct trampoline_region* region);
-static void free_trampoline_region(struct trampoline_region* region);
+static int /* __init */ alloc_trampoline_region(struct trampoline_region* region);
+static void __exit free_trampoline_region(struct trampoline_region* region);
 
 static void depftom_up(unsigned long);
-DECLARE_TASKLET(cpu_up_tasklet, depftom_up, 0);
+// DECLARE_TASKLET(cpu_up_tasklet, depftom_up, 0);
 
 static uint8_t bin[] = {
     0x00, 0x00, 0x84, 0xd2,  // mov x0, 0x2000
@@ -33,29 +33,27 @@ static uint8_t bin[] = {
 
 static const size_t bin_size = sizeof(bin) / sizeof(bin[0]);
 
-extern struct ctl_table sysctl_table[];
-static struct ctl_table_header* sysctl_header;
+// extern struct ctl_table sysctl_table[];
+// static struct ctl_table_header* sysctl_header;
 
-static int depftom_init(void)
+static int /* __init */ depftom_init(void)
 {
     pr_info("depftom_init: init\n");
 
-    pr_info("depftom_init: please run 'mknod /dev/depftom c %d 0'\n",
-        depftom_dev_major);
-
     // Sysctl
-    if ((sysctl_header = register_sysctl_table(sysctl_table)) == NULL) {
-        pr_warn("depftom_init: failed to register sysctl table\n");
-        return -1;
-    }
+    // if ((sysctl_header = register_sysctl_table(sysctl_table)) == NULL) {
+    //     pr_warn("depftom_init: failed to register sysctl table\n");
+    //     return -1;
+    // }
 
     // Trampoline region
     if (alloc_trampoline_region(&region) < 0) {
         pr_warn("depftom_init: no trampoline space\n");
         return -1;
     }
-
     memcpy(region.vaddr, bin, bin_size);
+
+    depftom_dev_init();
 
     depftom_up(0);
 
@@ -71,18 +69,18 @@ static void __exit depftom_exit(void)
         pr_info("depftom_exit: cpu %d up\n", ret);
     }
 
-    tasklet_kill(&cpu_up_tasklet);
+    // tasklet_kill(&cpu_up_tasklet);
 
     depftom_dev_exit();
 
-    unregister_sysctl_table(sysctl_header);
+    // unregister_sysctl_table(sysctl_header);
 
     free_trampoline_region(&region);
 
     pr_info("depftom_exit: exit\n");
 }
 
-static int alloc_trampoline_region(struct trampoline_region* region)
+static int /* __init */ alloc_trampoline_region(struct trampoline_region* region)
 {
     if (__friend_loader_buf[0] != FRIEND_LOADER_TRAMPOLINE_SIGNATURE) {
         pr_warn("alloc_trampoline_region: signature does not match\n");
@@ -95,7 +93,7 @@ static int alloc_trampoline_region(struct trampoline_region* region)
     return 0;
 }
 
-static void free_trampoline_region(struct trampoline_region* region) {}
+static void __exit free_trampoline_region(struct trampoline_region* region) {}
 
 void depftom_up(unsigned long dummy)
 {
@@ -118,32 +116,32 @@ void depftom_up(unsigned long dummy)
 }
 
 // Sysctl
-static uint32_t cpu_up_flag = 0;
+// static uint32_t cpu_up_flag = 0;
 
-static int proc_doflag(
-    struct ctl_table* table, int write, void __user* buffer,
-    size_t* lenp, loff_t* ppos)
-{
-    int ret = proc_dointvec(table, write, buffer, lenp, ppos);
+// static int proc_doflag(
+//     struct ctl_table* table, int write, void __user* buffer,
+//     size_t* lenp, loff_t* ppos)
+// {
+//     int ret = proc_dointvec(table, write, buffer, lenp, ppos);
+//
+//     if (write && cpu_up_flag == 1) {
+//         // TODO
+//         // tasklet_schedule(&cpu_up_tasklet);
+//     }
+//
+//     return ret;
+// }
 
-    if (write && cpu_up_flag == 1) {
-        // TODO
-        // tasklet_schedule(&cpu_up_tasklet);
-    }
-
-    return ret;
-}
-
-struct ctl_table sysctl_table[] = {
-    {
-        .procname = "depftom",
-        .data = &cpu_up_flag,
-        .maxlen = sizeof(cpu_up_flag),
-        .mode = 0644,
-        .proc_handler = &proc_doflag,
-    },
-    {},
-};
+// struct ctl_table sysctl_table[] = {
+//     {
+//         .procname = "depftom",
+//         .data = &cpu_up_flag,
+//         .maxlen = sizeof(cpu_up_flag),
+//         .mode = 0644,
+//         .proc_handler = &proc_doflag,
+//     },
+//     {},
+// };
 
 module_init(depftom_init);
 module_exit(depftom_exit);

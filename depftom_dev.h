@@ -1,6 +1,7 @@
 #pragma once
 
-extern int depftom_dev_major;
+#include <linux/module.h>
 
-int depftom_dev_init(void);
-void depftom_dev_exit(void);
+int /* __init */ depftom_dev_init(void);
+
+void __exit depftom_dev_exit(void);
