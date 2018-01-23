@@ -10,7 +10,6 @@
 #include <linux/interrupt.h>
 #include <asm/io.h>
 
-#include "common.h"
 #include "cpu_hotplug.h"
 #include "deploy_data.h"
 

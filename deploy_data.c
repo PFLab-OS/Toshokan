@@ -1,7 +1,6 @@
 #include <asm/io.h>
 #include <linux/kernel.h>
 
-#include "common.h"
 #include "deploy_data.h"
 
 struct deployment_info {
