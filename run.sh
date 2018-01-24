@@ -13,9 +13,8 @@ if [ ! -e /dev/depftom ]; then
     sudo mknod /dev/depftom c $dev_id 0
 fi
 
-if [ $# -eq 1 ]; then
-    cat $1 | sudo dd of=/dev/depftom
-fi
+python3 ./create_prog_file.py
+cat ./prog.bin | sudo dd of=/dev/depftom
 
 set +x
 
