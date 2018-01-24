@@ -6,8 +6,6 @@
 
 set -e
 
-KERN_SRC=$HOME/Linux-HiKey960/linux-friend/ make
-
 sudo insmod depftom.ko
 
 dev_id=$(cat /proc/devices | grep depftom | cut -d ' ' -f 1)

@@ -26,6 +26,8 @@ static struct file_operations depftom_fops = {
     .llseek = generic_file_llseek,
 };
 
+static char* write_buf;
+
 int __init depftom_dev_init(void)
 {
     int ret = alloc_chrdev_region(&depftom_dev_id, 0, MINOR_COUNT, DEV_NAME);
@@ -45,11 +47,19 @@ int __init depftom_dev_init(void)
         "depftom_init: please run 'mknod /dev/depftom c %d 0'\n",
         MAJOR(depftom_dev_id));
 
+    write_buf = (char*)kmalloc(KMALLOC_MAX_SIZE, GFP_KERNEL);
+    if (write_buf == NULL) {
+        pr_warn("depftom_dev_init: failed to allocate buf\n");
+        return -ENOSPC;
+    }
+
     return 0;
 }
 
 void __exit depftom_dev_exit(void)
 {
+    kfree(write_buf);
+
     cdev_del(&depftom_chardev);
     unregister_chrdev_region(depftom_dev_id, MINOR_COUNT);
 }
@@ -69,24 +79,26 @@ static int depftom_dev_release(struct inode* inode, struct file* filep)
 static ssize_t depftom_dev_write(
     struct file* filep, const char __user* buf, size_t count, loff_t* offset)
 {
-    char* tmp_buf = (char*)kmalloc(count, GFP_KERNEL);
-    if (tmp_buf == NULL) {
-        return -ENOSPC;
-    }
+    size_t written_size = 0;
+    size_t size;
 
-    if (copy_from_user(tmp_buf, buf, count)) {
-        kfree(tmp_buf);
-        return -EFAULT;
-    }
+    while (written_size < count) {
+        size = min(count - written_size, KMALLOC_MAX_SIZE);
 
-    if (deploy_data(tmp_buf, count, filep->f_pos) < 0) {
-        pr_warn("depftom: deploy_data failed\n");
-        kfree(tmp_buf);
-        return -EFBIG;
+        if (copy_from_user(write_buf, buf + written_size, size)) {
+            pr_warn("depftom: copy_from_user failed\n");
+            return -EFAULT;
+        }
+
+        if (deploy_data(write_buf, size, filep->f_pos + written_size) < 0) {
+            pr_warn("depftom: deploy_data failed\n");
+            return -EFBIG;
+        }
+
+        written_size += size;
     }
 
     *offset += count;
-    kfree(tmp_buf);
 
     return count;
 }

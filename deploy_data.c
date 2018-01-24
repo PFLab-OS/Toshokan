@@ -9,7 +9,7 @@ int deploy_data(const char* data, size_t size, loff_t offset)
 {
     // XXX: mem=2GでLinuxが起動していると仮定
     phys_addr_t phys_addr_start = 0xba6fc000;
-    phys_addr_t phys_addr_end = 0xbf6bffff;
+    phys_addr_t phys_addr_end = 0xbf6bffff;  // size = 0x04fc4000 ~= 19MB
 
     if (phys_addr_start + offset + size > phys_addr_end) {
         pr_warn("deploy_data: file size too large\n");
