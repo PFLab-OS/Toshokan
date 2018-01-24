@@ -4,21 +4,12 @@
 #include <linux/module.h>
 #include <linux/sysfs.h>
 
+#include "common.h"
 #include "cpu_hotplug.h"
 #include "depftom_dev.h"
 
 MODULE_DESCRIPTION("Friend Loader");
 MODULE_LICENSE("GPL v2");
-
-// Trampoline region
-struct trampoline_region {
-    phys_addr_t paddr;
-    uint32_t* vaddr;
-};
-static struct trampoline_region region;
-
-static int __init alloc_trampoline_region(struct trampoline_region* region);
-static void __exit free_trampoline_region(struct trampoline_region* region);
 
 // Sysfs for start booting friend core
 static struct kobject* boot_sysfs_kobj;
@@ -45,30 +36,11 @@ static struct attribute_group boot_sysfs_attr_group = {
     .attrs = boot_sysfs_attrs,
 };
 
-static uint8_t bin[] = {
-    0x00, 0x00, 0x84, 0xd2,  // mov x0, 0x2000
-    0x60, 0xfe, 0xbf, 0xf2,  // movk x0, 0xfff3, lsl 16
-    0x21, 0x08, 0x80, 0x52,  // mov w1, 65
-    0x01, 0x00, 0x00, 0x39,  // strb w1, [x0]
-    // loop:
-    0x5f, 0x20, 0x03, 0xd5,  // wfe
-    0xff, 0xff, 0xff, 0x17,  // b loop;
-};
-
-static const size_t bin_size = sizeof(bin) / sizeof(bin[0]);
-
 static int __init depftom_init(void)
 {
     int ret;
 
     pr_info("depftom_init: init\n");
-
-    // Trampoline region
-    if (alloc_trampoline_region(&region) < 0) {
-        pr_warn("depftom_init: no trampoline space\n");
-        return -1;
-    }
-    memcpy(region.vaddr, bin, bin_size);
 
     // Device for storing program
     depftom_dev_init();
@@ -110,25 +82,9 @@ static void __exit depftom_exit(void)
 
     kobject_put(boot_sysfs_kobj);
     depftom_dev_exit();
-    free_trampoline_region(&region);
 
     pr_info("depftom_exit: exit\n");
 }
-
-static int __init alloc_trampoline_region(struct trampoline_region* region)
-{
-    if (__friend_loader_buf[0] != FRIEND_LOADER_TRAMPOLINE_SIGNATURE) {
-        pr_warn("alloc_trampoline_region: signature does not match\n");
-        return -1;
-    }
-
-    region->paddr = __pa_symbol(__friend_loader_buf);
-    region->vaddr = __friend_loader_buf;
-
-    return 0;
-}
-
-static void __exit free_trampoline_region(struct trampoline_region* region) {}
 
 static ssize_t boot_sysfs_read(
     struct kobject* kobj,
@@ -144,10 +100,10 @@ static ssize_t boot_sysfs_write(
     const char* buf,
     size_t count)
 {
-    if (cpu_start(region.paddr) == 0) {
-        pr_info("depftom: starting cpu from 0x%llx\n", region.paddr);
+    if (cpu_start(DEPLOY_PHYS_ADDR_START) == 0) {
+        pr_info("depftom: starting cpu from 0x%lx\n", DEPLOY_PHYS_ADDR_START);
     } else {
-        pr_warn("depftom: failed to start cpu\n");
+        pr_warn("depftom: cpu_start failed\n");
     }
 
     return (ssize_t)count;
