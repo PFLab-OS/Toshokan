@@ -6,7 +6,6 @@
 
 #include "cpu_hotplug.h"
 #include "depftom_dev.h"
-#include "deploy_data.h"
 
 MODULE_DESCRIPTION("Friend Loader");
 MODULE_LICENSE("GPL v2");

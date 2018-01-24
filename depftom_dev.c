@@ -23,6 +23,7 @@ static struct file_operations depftom_fops = {
     .open = depftom_dev_open,
     .release = depftom_dev_release,
     .write = depftom_dev_write,
+    .llseek = generic_file_llseek,
 };
 
 int __init depftom_dev_init(void)
