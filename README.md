@@ -9,7 +9,7 @@
 ### TL; DR
 
 ```console
-$ ./run.sh
+$ KERN_SRC=<linux kernel source directory> ./run.sh
 ```
 
 ### Step by step
@@ -17,7 +17,7 @@ $ ./run.sh
 Build & install.
 
 ```console
-$ KERN_SRC=<XXX> make
+$ KERN_SRC=<linux kernel source directory> make
 $ sudo insmod depftom.ko
 ```
 
