@@ -2,7 +2,7 @@
 
 // File deployment
 // XXX: mem=2GでLinuxが起動していると仮定
-#define DEPLOY_PHYS_ADDR_START 0xba6fc000UL
+#define DEPLOY_PHYS_ADDR_START 0xba700000UL  // 0xba6fc000UL
 #define DEPLOY_PHYS_ADDR_END 0xbf6bffffUL
 #define DEPLOY_PHYS_MEM_SIZE (DEPLOY_PHYS_ADDR_END - DEPLOY_PHYS_ADDR_START)
 
