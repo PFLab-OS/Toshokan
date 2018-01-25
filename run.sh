@@ -6,6 +6,7 @@
 
 set -e
 
+make
 sudo insmod depftom.ko
 
 dev_id=$(cat /proc/devices | grep depftom | cut -d ' ' -f 1)
