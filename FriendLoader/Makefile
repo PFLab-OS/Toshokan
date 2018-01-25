@@ -1,5 +1,5 @@
-obj-m := depftom.o
-depftom-objs := main.o depftom_dev.o cpu_hotplug.o deploy_data.o
+obj-m := friend_loader.o
+friend_loader-objs := main.o cpu_hotplug.o deploy.o deploy_dev.o
 
 ifndef KERN_SRC
 $(error define KERN_SRC)

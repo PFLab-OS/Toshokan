@@ -15,13 +15,18 @@ $ make
 $ ./main [ELF file] <output img file>
 ```
 
+Default `output img file` is `img.bin`.
+
 ### 2. Build & Install Friend Loader
 
 #### TL; DR
 
 ```console
+$ cd FriendLoader
 $ KERN_SRC=<linux kernel source directory> ./run.sh <img file>
 ```
+
+`img file` is deployed if specified.
 
 #### Step by step
 
@@ -31,27 +36,28 @@ $ KERN_SRC=<linux kernel source directory> ./run.sh <img file>
 Build & insmod.
 
 ```console
+$ cd FriendLoader
 $ KERN_SRC=<linux kernel source directory> make
-$ sudo insmod depftom.ko
+$ sudo insmod friend_loader.ko
 ```
 
-Create `/dev/depftom`.
+Create `/dev/friend_loader`.
 
 ```console
-$ sudo mknod /dev/depftom c $(cat /proc/devices | grep depftom | cut -d ' ' -f 1) 0
+$ sudo mknod /dev/friend_loader c $(cat /proc/devices | grep friend_loader | cut -d ' ' -f 1) 0
 ```
 
 Deploy file to physical memory.
 
 ```console
-$ cat file | sudo dd of=/dev/depftom
+$ cat [file] | sudo dd of=/dev/friend_loader
 ```
 </details>
 
 ### 3. Boot the Friend Core
 
 ```console
-$ echo 1 | sudo tee /sys/module/depftom/boot/boot
+$ echo 1 | sudo tee /sys/module/friend_loader/boot/boot
 ```
 
 ## TODO
