@@ -14,12 +14,13 @@ if [ ! -e /dev/depftom ]; then
     sudo mknod /dev/depftom c $dev_id 0
 fi
 
-python3 ./create_prog_file.py
-cat ./prog.bin | sudo dd of=/dev/depftom
+if [ $# -eq 1 ]; then
+    cat $1 | sudo dd of=/dev/depftom
+fi
 
 set +x
 
-echo << EOF
+cat << EOF
 # Run the following command to boot the friend core.
 $ echo 1 | sudo tee /sys/module/depftom/boot/boot
 EOF
