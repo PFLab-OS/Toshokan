@@ -7,7 +7,7 @@
 
 ## Usage
 
-### Convert ELF File to Friend Process Image
+### 1. Convert ELF File to Friend Process Image
 
 ```console
 $ cd ELFtoImg
@@ -15,7 +15,7 @@ $ make
 $ ./main [ELF file] <output img file>
 ```
 
-### Build & Install Friend Loader
+### 2. Build & Install Friend Loader
 
 #### TL; DR
 
@@ -24,6 +24,9 @@ $ KERN_SRC=<linux kernel source directory> ./run.sh <img file>
 ```
 
 #### Step by step
+
+<details>
+<summary> Expand </summary>
 
 Build & insmod.
 
@@ -43,8 +46,9 @@ Deploy file to physical memory.
 ```console
 $ cat file | sudo dd of=/dev/depftom
 ```
+</details>
 
-### Boot the Friend Core
+### 3. Boot the Friend Core
 
 ```console
 $ echo 1 | sudo tee /sys/module/depftom/boot/boot
