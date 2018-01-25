@@ -2,17 +2,31 @@
 #include "time.h"
 #include "uart.h"
 
-void c_entry(void)
+// volatile uint32_t* const SHARED_MEM_PTR = (uint32_t*)0x1177000;
+
+#define BENCHMARK_LOOP_NUM 256
+
+void c_main(void)
 {
-    while (true) {
-        print_str("Hello, world!\n");
+    const uint32_t freq = syscounter_freq();
+    print_fmt("freq = %u\n", (uint64_t)freq);
 
-        uint32_t freq = current_freq();
-        print_fmt("Clock freq = %u\n", freq);
+    for (int i = 0; i < BENCHMARK_LOOP_NUM; i++) {
+        uint64_t cnt = 0;
+        const uint64_t end = syscounter_val() + freq;
 
-        uint64_t time = current_time();
-        print_fmt("Clock current = %u\n", time);
+        while (true) {
+            const uint64_t current = syscounter_val();
+            if (current > end)
+                break;
 
-        wait_usec(1000 * 1000);
+            cnt++;
+        }
+
+        print_fmt("cnt = %u\n", cnt);
     }
+
+    print_str("done\n");
 }
+
+void c_entry(void) { c_main(); }

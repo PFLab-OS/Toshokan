@@ -5,17 +5,20 @@ volatile unsigned int* const UART0_PTR = (unsigned int*)0xfff32000;
 
 void print_char(char c)
 {
-    *UART0_PTR = (unsigned int)c;
     if (c == '\n')
         print_char('\r');
+
+    int r = 1000;
+    while (r--)
+        ;
+
+    *UART0_PTR = (unsigned int)c;
 }
 
 void print_str(const char* str)
 {
-    while (*str != '\0') {
-        print_char(*str);
-        str++;
-    }
+    while (*str)
+        print_char(*str++);
 }
 
 static char digits[] = "0123456789abcdef";

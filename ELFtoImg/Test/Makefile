@@ -1,4 +1,4 @@
-CFLAGS = -Wall -Wextra -Wconversion -pie -fPIE -static
+CFLAGS = -Wall -Wextra -Wconversion -O2 -pie -fPIE -static
 
 main.elf: kernel.ld startup.o main.o uart.o time.o
 	ld -T$^ -o $@
