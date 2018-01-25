@@ -1,8 +1,14 @@
 #pragma once
 
-volatile unsigned int* const UART0_PTR;
+void print_char(char c);
+void print_str(const char* str);
 
-void print_char(char);
-void print_str(const char*);
-
-void print_int(int);
+/*
+ * Supports
+ * - %d (int)
+ * - %u (uint64_t)
+ * - %x (uint64_t)
+ * - %b (uint64_t)
+ * - %s
+ */
+void print_fmt(const char* fmt, ...);
