@@ -1,5 +1,5 @@
 #include <asm/realmode.h>
-#include "trampoline.h"
+#include "trampoline_loader.h"
 
 static const size_t buf_size = 0x1000;
 

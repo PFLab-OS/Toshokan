@@ -2,7 +2,7 @@
 #include <asm/uv/uv.h>
 
 #include "cpu_hotplug.h"
-#include "trampoline.h"
+#include "trampoline_loader.h"
 
 static int unpluged_cpu = -1;
 static void select_unplug_cpu(void);
