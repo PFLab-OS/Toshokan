@@ -100,7 +100,7 @@ static ssize_t boot_sysfs_write(
     const char* buf,
     size_t count)
 {
-    if (cpu_start(DEPLOY_PHYS_ADDR_START) == 0) {
+    if (cpu_start() == 0) {
         pr_info("friend_loader: starting cpu from 0x%lx\n", DEPLOY_PHYS_ADDR_START);
     } else {
         pr_warn("friend_loader: cpu_start failed\n");

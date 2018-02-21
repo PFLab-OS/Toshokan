@@ -18,9 +18,6 @@ if [ $# -eq 1 ]; then
     cat $1 | sudo dd of=/dev/friend_loader
 fi
 
-set +x
+#set +x
 
-cat << EOF
-# Run the following command to boot the friend core.
-$ echo 1 | sudo tee /sys/module/friend_loader/boot/boot
-EOF
+echo 1 | sudo tee /sys/module/friend_loader/boot/boot

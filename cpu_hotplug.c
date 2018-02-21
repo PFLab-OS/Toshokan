@@ -23,17 +23,24 @@ int __init cpu_unplug(void)
     return unpluged_cpu;
 }
 
-int cpu_start(phys_addr_t entry_point)
+static uint8_t bin[] = {0xFA, 0xF4, 0xF4, 0xFA};
+
+int cpu_start()
 {
   int apicid;
   int boot_error;
-  dma_addr_t paddr;
 
   if (unpluged_cpu == -1) {
     return -1;
   }
 
   if (trampoline_region_alloc(&tregion) < 0) {
+    return -1;
+  }
+
+  pr_info("friend_loader: allocate trampoline region at 0x%llx\n", tregion.paddr);
+
+  if (trampoline_region_init(&tregion, bin, sizeof(bin) / sizeof(bin[0])) < 0) {
     return -1;
   }
 
@@ -48,7 +55,7 @@ int cpu_start(phys_addr_t entry_point)
   /*
    * Wake up AP by INIT, INIT, STARTUP sequence.
    */
-  boot_error = wakeup_secondary_cpu_via_init(apicid, paddr);
+  boot_error = wakeup_secondary_cpu_via_init(apicid, tregion.paddr);
 
   preempt_enable();
 
@@ -67,8 +74,6 @@ int __exit cpu_replug(void)
 
 static void select_unplug_cpu(void)
 {
-    // TODO: 環境・状況によって適切なCPUを選ぶ。
-    //       現在はCPUが8つあることを仮定し、決め打ちでCPU7をunplugしている。
-
-    unpluged_cpu = 7;
+  // TODO
+    unpluged_cpu = 1;
 }

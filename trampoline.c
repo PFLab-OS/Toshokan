@@ -20,6 +20,20 @@ int trampoline_region_alloc(struct trampoline_region *region) {
   return -1;
 }
 
+static uint8_t jmp_bin[] = {0xeb, 0x06, 0x66, 0x90};
+
+int trampoline_region_init(struct trampoline_region *region, uint8_t *bin, size_t bin_size) {
+  if (bin_size >= 0x4088) {
+    return -1;
+  }
+
+  memcpy(region->vaddr, jmp_bin, 4);
+  
+  memcpy(region->vaddr + 2, bin, bin_size);
+
+  return 0;
+}
+
 void trampoline_region_free(struct trampoline_region *region) {
   iounmap(region->vaddr);
 }
