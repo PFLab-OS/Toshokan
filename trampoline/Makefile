@@ -1,4 +1,4 @@
-OBJS := entry.o main.o
+OBJS := entry.o
 
 CXXFLAGS := -Os -nostdinc -ffreestanding -fno-builtin -fomit-frame-pointer -fno-exceptions -fno-asynchronous-unwind-tables -fno-unwind-tables -fpic -fPIC
 LDFLAGS := -Os -nostdlib -pie

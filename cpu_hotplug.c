@@ -1,6 +1,7 @@
 #include <linux/cpu.h>
 #include <asm/uv/uv.h>
 
+#include "common.h"
 #include "cpu_hotplug.h"
 #include "trampoline_loader.h"
 
@@ -23,8 +24,6 @@ int __init cpu_unplug(void)
     return unpluged_cpu;
 }
 
-static uint8_t bin[] = {0xFA, 0xF4, 0xF4, 0xFA};
-
 int cpu_start()
 {
   int apicid;
@@ -40,7 +39,7 @@ int cpu_start()
 
   pr_info("friend_loader: allocate trampoline region at 0x%llx\n", tregion.paddr);
 
-  if (trampoline_region_init(&tregion, bin, sizeof(bin) / sizeof(bin[0])) < 0) {
+  if (trampoline_region_init(&tregion, DEPLOY_PHYS_ADDR_START, DEPLOY_PHYS_ADDR_END) < 0) {
     return -1;
   }
 

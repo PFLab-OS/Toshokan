@@ -5,7 +5,7 @@ ifndef KERN_SRC
 $(error define KERN_SRC)
 endif
 
-.PHONY: all clean
+.PHONY: all clean trampoline/bin.o
 
 all: trampoline/bin.o
 	$(MAKE) -C $(KERN_SRC) M=$(PWD) modules

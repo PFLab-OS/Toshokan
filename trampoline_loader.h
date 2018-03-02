@@ -6,7 +6,7 @@ struct trampoline_region {
 };
 
 int trampoline_region_alloc(struct trampoline_region *region);
-int trampoline_region_init(struct trampoline_region *region, uint8_t *bin, size_t bin_size);
+int trampoline_region_init(struct trampoline_region *region, dma_addr_t phys_addr_start, dma_addr_t phys_addr_end);
 void trampoline_region_free(struct trampoline_region *region);
 
 
