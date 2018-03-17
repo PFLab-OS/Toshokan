@@ -9,9 +9,12 @@
  * region_offset + 0x04: FRIEND_LOADER_TRAMPOLINE_SIGNATURE
  * region_offset + 0x08: region_offset
  * region_offset + 0x10: phys_addr_start
- * region_offset + 0x18: phys_addr_end
+ * region_offset + 0x18: reserved
  * region_offset + 0x20: entry of trampoline bin
- * region_offset + 0x1000: end of trampoline region
+ * region_offset + 0x1000: end of trampoline bin
+ * region_offset + 0x1000 - 0x2000: PML4T
+ * region_offset + 0x2000 - 0x3000: PDPT
+ * region_offset + 0x3000 - 0x4000: reserved
  *
  * trampoline binary should be loaded at "region_offset + 0x08".
  */
@@ -45,32 +48,38 @@ int trampoline_region_alloc(struct trampoline_region *region) {
 }
 
 int trampoline_region_init(struct trampoline_region *region, dma_addr_t phys_addr_start, dma_addr_t phys_addr_end) {
-  extern uint8_t _binary_trampoline_bin_start[];
-  extern uint8_t _binary_trampoline_bin_end[];
-  extern uint8_t _binary_trampoline_bin_size[];
-  size_t binary_trampoline_bin_size = (size_t)_binary_trampoline_bin_size;
+  extern uint8_t _binary_boot_trampoline_bin_start[];
+  extern uint8_t _binary_boot_trampoline_bin_end[];
+  extern uint8_t _binary_boot_trampoline_bin_size[];
+  size_t binary_boot_trampoline_bin_size = (size_t)_binary_boot_trampoline_bin_size;
 
   uint64_t *vaddr64 = (uint64_t *)region->vaddr;
   
   memcpy(region->vaddr, jmp_bin, sizeof(jmp_bin) / sizeof(jmp_bin[0]));
 
-  if (buf_size - 8 < binary_trampoline_bin_size) {
+  if (buf_size - 8 < binary_boot_trampoline_bin_size) {
     return -1;
   }
 
-  if (_binary_trampoline_bin_start + binary_trampoline_bin_size
-      != _binary_trampoline_bin_end) {
+  if (_binary_boot_trampoline_bin_start + binary_boot_trampoline_bin_size
+      != _binary_boot_trampoline_bin_end) {
     // invalid state
     return -1;
   }
 
   // copy trampoline binary to trampoline region + 8 byte
-  memcpy(region->vaddr + 8 / (sizeof(*region->vaddr)), _binary_trampoline_bin_start, binary_trampoline_bin_size);
+  memcpy(region->vaddr + 8 / (sizeof(*region->vaddr)), _binary_boot_trampoline_bin_start, binary_boot_trampoline_bin_size);
+
+  if ((DEPLOY_PHYS_ADDR_START & (1 * 1024 * 1024 * 1024 - 1)) != 0) {
+    // should be aligned to 1GB boundary
+    // because of using 1GB huge page
+    return -1;
+  }
 
   // initialize trampoline header
   vaddr64[1] = region->paddr;
   vaddr64[2] = DEPLOY_PHYS_ADDR_START;
-  vaddr64[3] = DEPLOY_PHYS_ADDR_END;
+  vaddr64[3] = 0;
 
   return 0;
 }

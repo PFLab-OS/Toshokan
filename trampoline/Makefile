@@ -1,15 +1,18 @@
-OBJS := entry.o
+BOOTOBJS := bootentry.o
 
-CXXFLAGS := -Os -nostdinc -ffreestanding -fno-builtin -fomit-frame-pointer -fno-exceptions -fno-asynchronous-unwind-tables -fno-unwind-tables -fpic -fPIC
-LDFLAGS := -Os -nostdlib -pie
+FLAGS := -Os -nostdinc -ffreestanding -fno-builtin -fomit-frame-pointer -fno-exceptions -fno-asynchronous-unwind-tables -fno-unwind-tables
+CXXFLAGS := $(FLAGS)
+CFLAGS := $(FLAGS)
+ASFLAGS := -Os
+LDFLAGS := -Os -nostdlib
 
 default: bin.o
 
-bin.o: trampoline.bin
+bin.o: boot_trampoline.bin
 	objcopy -I binary -O elf64-x86-64 -B i386:x86-64 $^ $@
 
-trampoline.bin: $(OBJS)
-	ld $(LDFLAGS) -Ttrampoline.ld $^ -o $@
+boot_trampoline.bin: $(BOOTOBJS)
+	ld $(LDFLAGS) -Tboot_trampoline.ld $^ -o $@
 
 clean:
-	-rm *.o trampoline.bin
+	-rm *.o boot_trampoline.bin
