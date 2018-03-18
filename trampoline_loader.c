@@ -1,5 +1,4 @@
 #include <asm/realmode.h>
-#include "common.h"
 #include "trampoline_loader.h"
 
 /*
@@ -70,7 +69,7 @@ int trampoline_region_init(struct trampoline_region *region, dma_addr_t phys_add
   // copy trampoline binary to trampoline region + 8 byte
   memcpy(region->vaddr + 8 / (sizeof(*region->vaddr)), _binary_boot_trampoline_bin_start, binary_boot_trampoline_bin_size);
 
-  if ((DEPLOY_PHYS_ADDR_START & (1 * 1024 * 1024 * 1024 - 1)) != 0) {
+  if ((phys_addr_start & (1 * 1024 * 1024 * 1024 - 1)) != 0) {
     // should be aligned to 1GB boundary
     // because of using 1GB huge page
     return -1;
@@ -78,7 +77,7 @@ int trampoline_region_init(struct trampoline_region *region, dma_addr_t phys_add
 
   // initialize trampoline header
   vaddr64[1] = region->paddr;
-  vaddr64[2] = DEPLOY_PHYS_ADDR_START;
+  vaddr64[2] = phys_addr_start;
   vaddr64[3] = 0;
 
   return 0;
