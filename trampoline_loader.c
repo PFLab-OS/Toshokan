@@ -1,5 +1,6 @@
 #include <asm/realmode.h>
 #include "trampoline_loader.h"
+#include "deploy.h"
 
 /*
  * format of trampoline region
@@ -19,19 +20,20 @@
  */
 
 static uint8_t jmp_bin[] = {0xeb, 0x1e, 0x66, 0x90}; // jmp 0x20; xchg %ax, &ax
-static const size_t buf_size = 0x1000;
+static const size_t trampoline_buf_align = 0x1000;
+static const size_t trampoline_buf_size = 0x4000;
 
 int trampoline_region_alloc(struct trampoline_region *region) {
   dma_addr_t tpaddr;
   uint32_t* io_addr;
   
   // search signature
-  for (tpaddr = 0x1000; tpaddr < 0x100000; tpaddr += buf_size) {
+  for (tpaddr = 0x1000; tpaddr < 0x100000; tpaddr += trampoline_buf_align) {
     if (tpaddr >= 0xA0000 && tpaddr <= 0xBF000) {
       // this area is reserved. (ref. Multiprocessor Specification)
       continue;
     }
-    io_addr = ioremap(tpaddr, buf_size);
+    io_addr = ioremap(tpaddr, trampoline_buf_size);
     if (io_addr == 0) {
       continue;
     }
@@ -56,7 +58,7 @@ int trampoline_region_init(struct trampoline_region *region, dma_addr_t phys_add
   
   memcpy(region->vaddr, jmp_bin, sizeof(jmp_bin) / sizeof(jmp_bin[0]));
 
-  if (buf_size - 8 < binary_boot_trampoline_bin_size) {
+  if (0x1000 - 8 < binary_boot_trampoline_bin_size) {
     return -1;
   }
 
@@ -69,6 +71,7 @@ int trampoline_region_init(struct trampoline_region *region, dma_addr_t phys_add
   // copy trampoline binary to trampoline region + 8 byte
   memcpy(region->vaddr + 8 / (sizeof(*region->vaddr)), _binary_boot_trampoline_bin_start, binary_boot_trampoline_bin_size);
 
+  // check address
   if ((phys_addr_start & (1 * 1024 * 1024 * 1024 - 1)) != 0) {
     // should be aligned to 1GB boundary
     // because of using 1GB huge page
@@ -79,6 +82,12 @@ int trampoline_region_init(struct trampoline_region *region, dma_addr_t phys_add
   vaddr64[1] = region->paddr;
   vaddr64[2] = phys_addr_start;
   vaddr64[3] = 0;
+
+  // make copy of trampoline region at deploy area
+  deploy((const char *)region->vaddr, binary_boot_trampoline_bin_size + 8, region->paddr);
+  deploy((const char *)region->vaddr, binary_boot_trampoline_bin_size + 8, 0);
+
+  memset(region->vaddr + 0x1000 / sizeof(*region->vaddr), 0, 0x2000); // clear PML4T & PDPT
 
   return 0;
 }

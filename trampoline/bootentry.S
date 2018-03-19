@@ -33,10 +33,11 @@ entry:
 	movl $0, (0x1004)
 
 	// setup PDPT
-	movl $0, %eax
+	movl (phys_addr_start), %eax
 	orl  $(PRESENT_BIT | WRITE_BIT | USER_BIT | HUGEPAGE_BIT), %eax
 	movl %eax, (0x2000)
-	movl $0, (0x2004)
+  movl (phys_addr_start + 4), %eax
+	movl %eax, (0x2004)
 
 	// load cr3
 	movl %edi, %cr3
@@ -62,19 +63,38 @@ entry:
 	andl $(~(1 << 30 | 1 << 29)), %eax
 	movl %eax, %cr0
 
+  // We enabled paging.
+  // CPU will keep running this code, but the physical address of it is changed.
+  // physical address: (phys_addr) + (region_addr) + %rip
+  // linear address: (region_addr) + %rip  # as 16bit segmentation is valid
+
 	// setup gdt
-	movl (region_addr), %eax
-	addl %eax, (gdtr_ptr)
+  movl (region_addr), %edx
+	addl %edx, (gdt_desc_ptr)
 	lgdtl gdtr
-	
-	movl (region_addr), %ebx
-	leal stop(%ebx), %ebx
-  movl %ebx, (tmp)
-	ljmpl *(tmp)
+
+  // jump to start
+  movl $start, (gdtr_ptr)
+	ljmpl *(gdtr_ptr)
 
 stop:	
 	hlt
 	jmp stop
+
+  .code64
+  .extern trampoline_main
+start:
+  // Now we use gdt_desc (64bit segmentation)
+  // physical address: (phys_addr) + %rip
+  // linear address: %rip
+  
+  // TODO Issue #1
+  // relocate page tables and gdt descriptors
+
+  // use 0x1000-0x2000 for stack
+  movq $0x2000, %rsp
+  
+  jmp trampoline_main
 
 	.balign 8
 gdt_desc:
@@ -87,9 +107,9 @@ gdt_desc:
 	.word 0
 gdtr:
 	.word 8*4 - 1
-gdtr_ptr:	
+gdt_desc_ptr:	
 	.quad gdt_desc
 
-tmp:
+gdtr_ptr:
 	.long 0
 	.long 0x10
