@@ -15,4 +15,4 @@ fi
 
 #set +x
 
-echo 1 | tee /sys/module/friend_loader/parameters/boot
+echo 1 > /sys/module/friend_loader/parameters/boot
