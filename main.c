@@ -6,35 +6,10 @@
 
 #include "common.h"
 #include "cpu_hotplug.h"
-#include "deploy_dev.h"
+#include "deploy_interface.h"
 
 MODULE_DESCRIPTION("Friend Loader");
 MODULE_LICENSE("GPL v2");
-
-// Sysfs for start booting friend core
-static struct kobject* boot_sysfs_kobj;
-
-static ssize_t boot_sysfs_read(
-    struct kobject* kobj,
-    struct kobj_attribute* attr,
-    char* buf);
-
-static ssize_t boot_sysfs_write(
-    struct kobject* kobj,
-    struct kobj_attribute* attr,
-    const char* buf,
-    size_t count);
-
-static struct kobj_attribute boot_sysfs_attr
-    = __ATTR(boot, 0664, boot_sysfs_read, boot_sysfs_write);
-
-static struct attribute* boot_sysfs_attrs[] = {
-    &boot_sysfs_attr.attr,
-    NULL,
-};
-static struct attribute_group boot_sysfs_attr_group = {
-    .attrs = boot_sysfs_attrs,
-};
 
 static int __init friend_loader_init(void)
 {
@@ -43,21 +18,7 @@ static int __init friend_loader_init(void)
     pr_info("friend_loader_init: init\n");
 
     // Device for storing program
-    deploy_dev_init();
-
-    // Sysfs for start booting friend core
-    boot_sysfs_kobj = kobject_create_and_add("boot", &THIS_MODULE->mkobj.kobj);
-    if (!boot_sysfs_kobj) {
-        pr_warn("friend_loader_init: kobject_create_and_add failed");
-        return -1;
-    }
-
-    ret = sysfs_create_group(boot_sysfs_kobj, &boot_sysfs_attr_group);
-    if (ret != 0) {
-        kobject_put(boot_sysfs_kobj);
-        pr_warn("friend_loader_init: sysfs_create_group failed: %d\n", ret);
-        return -1;
-    }
+    deploy_interface_init();
 
     // Unplug friend core
     ret = cpu_unplug();
@@ -80,34 +41,30 @@ static void __exit friend_loader_exit(void)
         pr_info("friend_loader_exit: cpu %d up\n", ret);
     }
 
-    kobject_put(boot_sysfs_kobj);
-    deploy_dev_exit();
+    deploy_interface_exit();
 
     pr_info("friend_loader_exit: exit\n");
 }
 
-static ssize_t boot_sysfs_read(
-    struct kobject* kobj,
-    struct kobj_attribute* attr,
-    char* buf)
-{
-    return scnprintf(buf, PAGE_SIZE, "%s\n", "boot_sysfs: read");
-}
+static int boot_flag_set(const char *val, struct kernel_param *kp) {
+  int n = 0, ret;
 
-static ssize_t boot_sysfs_write(
-    struct kobject* kobj,
-    struct kobj_attribute* attr,
-    const char* buf,
-    size_t count)
-{
+  ret = kstrtoint(val, 10, &n);
+  if (ret != 0 || n < 0 || n > 2)
+    return -EINVAL;
+
+  if (n == 1) {
     if (cpu_start() == 0) {
         pr_info("friend_loader: starting cpu from 0x%lx\n", DEPLOY_PHYS_ADDR_START);
     } else {
         pr_warn("friend_loader: cpu_start failed\n");
     }
-
-    return (ssize_t)count;
+  }
+  
+  return param_set_int(val, kp);
 }
 
+static int boot = 0;
 module_init(friend_loader_init);
 module_exit(friend_loader_exit);
+module_param_call(boot, boot_flag_set, param_get_int, &boot, 0644);
