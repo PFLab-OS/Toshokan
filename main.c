@@ -7,6 +7,7 @@
 #include "common.h"
 #include "cpu_hotplug.h"
 #include "deploy_interface.h"
+#include "call_interface.h"
 
 MODULE_DESCRIPTION("Friend Loader");
 MODULE_LICENSE("GPL v2");
@@ -17,8 +18,8 @@ static int __init friend_loader_init(void)
 
     pr_info("friend_loader_init: init\n");
 
-    // Device for storing program
     deploy_interface_init();
+    call_interface_init();
 
     // Unplug friend core
     ret = cpu_unplug();
@@ -41,6 +42,7 @@ static void __exit friend_loader_exit(void)
         pr_info("friend_loader_exit: cpu %d up\n", ret);
     }
 
+    call_interface_exit();
     deploy_interface_exit();
 
     pr_info("friend_loader_exit: exit\n");

@@ -4,27 +4,35 @@
 #include "common.h"
 #include "deploy.h"
 
-static void write_phys_mem(phys_addr_t addr, const void* data, size_t size);
-
 int deploy(const char* data, size_t size, loff_t offset)
 {
-    if (DEPLOY_PHYS_ADDR_START + offset + size > DEPLOY_PHYS_ADDR_END) {
-        pr_warn("deploy: file size too large\n");
-        return -1;
-    }
+  void __iomem *io_addr;
+  phys_addr_t addr = DEPLOY_PHYS_ADDR_START + offset;
+  if (addr + size > DEPLOY_PHYS_ADDR_END) {
+    pr_warn("deploy: file size too large\n");
+    return -1;
+  }
 
-    write_phys_mem(DEPLOY_PHYS_ADDR_START + offset, data, size);
-    // pr_debug("deploy: deployed to physical memory [%llx - %llx] (%zu)\n",
-    //     DEPLOY_PHYS_ADDR_START + offset,
-    //     DEPLOY_PHYS_ADDR_START + offset + size,
-    //     size);
+  io_addr = ioremap(addr, size);
+  memcpy_toio(io_addr, data, size);
+  iounmap(io_addr);
 
-    return 0;
+  return 0;
 }
 
-static void write_phys_mem(phys_addr_t addr, const void* data, size_t size)
+int deploy_zero(size_t size, loff_t offset)
 {
-    void __iomem* io_addr = ioremap(addr, size);
-    memcpy_toio(io_addr, data, size);
-    iounmap(io_addr);
+  void __iomem *io_addr;
+  phys_addr_t addr = DEPLOY_PHYS_ADDR_START + offset;
+  if (addr + size > DEPLOY_PHYS_ADDR_END) {
+    pr_warn("deploy: file size too large\n");
+    return -1;
+  }
+
+  io_addr = ioremap(addr, size);
+  memset_io(io_addr, 0, size);
+  iounmap(io_addr);
+
+  return 0;
 }
+

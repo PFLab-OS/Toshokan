@@ -4,6 +4,7 @@
 #include "common.h"
 #include "cpu_hotplug.h"
 #include "trampoline_loader.h"
+#include "deploy.h"
 
 static int unpluged_cpu = -1;
 static void select_unplug_cpu(void);
@@ -42,6 +43,10 @@ int cpu_start()
   if (trampoline_region_init(&tregion, DEPLOY_PHYS_ADDR_START, DEPLOY_PHYS_ADDR_END) < 0) {
     return -1;
   }
+
+  // zero clear call interfaces
+  deploy_zero(0x1000, 0x1000);
+  deploy_zero(0x1000, 0x2000);
 
   apicid = apic->cpu_present_to_apicid(unpluged_cpu);
 
