@@ -24,7 +24,7 @@ static const size_t trampoline_buf_align = 0x1000;
 static const size_t trampoline_buf_size = 0x4000;
 
 int trampoline_region_alloc(struct trampoline_region *region) {
-  dma_addr_t tpaddr;
+  phys_addr_t tpaddr;
   uint32_t* io_addr;
   
   // search signature
@@ -33,7 +33,7 @@ int trampoline_region_alloc(struct trampoline_region *region) {
       // this area is reserved. (ref. Multiprocessor Specification)
       continue;
     }
-    io_addr = ioremap(tpaddr, trampoline_buf_size);
+    io_addr = __va(tpaddr);
     if (io_addr == 0) {
       continue;
     }
@@ -43,12 +43,11 @@ int trampoline_region_alloc(struct trampoline_region *region) {
       region->vaddr = io_addr;
       return 0;
     }
-    iounmap(io_addr);
   }
   return -1;
 }
 
-int trampoline_region_init(struct trampoline_region *region, dma_addr_t phys_addr_start, dma_addr_t phys_addr_end) {
+int trampoline_region_init(struct trampoline_region *region, phys_addr_t phys_addr_start, phys_addr_t phys_addr_end) {
   extern uint8_t _binary_boot_trampoline_bin_start[];
   extern uint8_t _binary_boot_trampoline_bin_end[];
   extern uint8_t _binary_boot_trampoline_bin_size[];
