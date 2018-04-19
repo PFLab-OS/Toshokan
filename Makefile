@@ -1,9 +1,6 @@
 obj-m := friend_loader.o
 friend_loader-objs := main.o cpu_hotplug.o deploy.o deploy_interface.o call_interface.o trampoline_loader.o trampoline/bin.o
-
-ifndef KERN_SRC
-$(error define KERN_SRC)
-endif
+KERN_SRC ?= /lib/modules/$(shell uname -r)/build
 
 .PHONY: all clean trampoline/bin.o
 
