@@ -25,7 +25,7 @@ static int __init friend_loader_init(void)
     ret = cpu_unplug();
     if (ret < 0) {
         pr_warn("friend_loader_init: cpu_unplug failed: %d\n", ret);
-        return -1;
+        return 0;
     }
 
     pr_info("friend_loader_init: cpu %d down\n", ret);

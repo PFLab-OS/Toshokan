@@ -1,18 +1,14 @@
-#!/bin/bash
+#!/bin/bash -xeu
 
 # Usage: run.sh <file>
 #
 # `file` is deployed if specified.
 
-set -e
-
-# make
-insmod friend_loader.ko
+make all
+sudo insmod friend_loader.ko
 
 if [ $# -eq 1 ]; then
-    dd if=$1 of=/sys/module/friend_loader/deploy/content
+    sudo dd if=$1 of=/sys/module/friend_loader/deploy/content
 fi
 
-#set +x
-
-echo 1 > /sys/module/friend_loader/parameters/boot
+sudo sh -c "echo 1 > /sys/module/friend_loader/parameters/boot"

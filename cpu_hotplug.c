@@ -7,7 +7,7 @@
 #include "deploy.h"
 
 static int unpluged_cpu = -1;
-static void select_unplug_cpu(void);
+static int select_unplug_cpu(void);
 
 static struct trampoline_region tregion;
 
@@ -15,7 +15,10 @@ int __init cpu_unplug(void)
 {
     int ret;
 
-    select_unplug_cpu();
+    ret = select_unplug_cpu();
+    if (ret < 0) {
+      return ret;
+    }
 
     ret = cpu_down(unpluged_cpu);
     if (ret < 0) {
@@ -76,8 +79,13 @@ int __exit cpu_replug(void)
     return unpluged_cpu;
 }
 
-static void select_unplug_cpu(void)
+static int select_unplug_cpu(void)
 {
   // TODO
-    unpluged_cpu = 1;
+  unpluged_cpu = 1;
+  if (!cpu_present(unpluged_cpu)) {
+    pr_warn("select_unplug_cpu: no hotpluggable CPU\n");
+    return -1;
+  }
+  return 0;
 }
