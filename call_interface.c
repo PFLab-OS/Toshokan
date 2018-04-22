@@ -82,11 +82,6 @@ void __exit call_interface_exit(void)
 {
     kobject_put(call_sysfs_kobj);
 }
-
-static int call_open(struct inode *inode, struct file *filp)
-{
-  return 0;
-}
   
 static int call_h2f_mmap(struct file *filep, struct kobject *kobj, struct bin_attribute *attr,
 		    struct vm_area_struct *vma)
@@ -99,7 +94,7 @@ static int call_h2f_mmap(struct file *filep, struct kobject *kobj, struct bin_at
   
   if (remap_pfn_range(vma,
                       vma->vm_start,
-                      (DEPLOY_PHYS_ADDR_START + 0x1000) >> PAGE_SHIFT,
+                      (DEPLOY_PHYS_ADDR_START + 0x2000) >> PAGE_SHIFT,
                       vma->vm_end - vma->vm_start,
                       vma->vm_page_prot)) {
     return -EAGAIN;
@@ -119,7 +114,7 @@ static int call_f2h_mmap(struct file *filep, struct kobject *kobj, struct bin_at
   
   if (remap_pfn_range(vma,
                       vma->vm_start,
-                      (DEPLOY_PHYS_ADDR_START + 0x2000) >> PAGE_SHIFT,
+                      (DEPLOY_PHYS_ADDR_START + 0x3000) >> PAGE_SHIFT,
                       vma->vm_end - vma->vm_start,
                       vma->vm_page_prot)) {
     return -EAGAIN;

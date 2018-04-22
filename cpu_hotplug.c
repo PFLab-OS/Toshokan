@@ -47,9 +47,11 @@ int cpu_start()
     return -1;
   }
 
-  // zero clear call interfaces
-  deploy_zero(0x1000, 0x1000);
-  deploy_zero(0x1000, 0x2000);
+  // zero clear regions
+  // 0x1000-0x2000: stack
+  // 0x2000-0x3000: h2f
+  // 0x3000-0x4000: f2h
+  deploy_zero(0x3000, 0x1000);
 
   apicid = apic->cpu_present_to_apicid(unpluged_cpu);
 
