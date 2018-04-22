@@ -20,14 +20,13 @@ int main(int argc, char **argv) {
     return -1;
   }
 
-  set_type(h2f, 1);
+  send_signal(h2f, 1);
 
-  while(get_type(h2f) == 0) {
-    asm volatile("":::"memory");
-  }
-
-  while(get_type(f2h) == 1) {
-    asm volatile("":::"memory");
+  wait_new_signal(f2h);
+  
+  if (get_type(f2h) != 1) {
+    printf("test: failed\n");
+    return -1;
   }
 
   printf("test: OK\n");

@@ -20,18 +20,12 @@ int main(int argc, char **argv) {
     return -1;
   }
 
-  set_type(h2f, 2);
-
-  while(get_type(h2f) != 0) {
-    asm volatile("":::"memory");
-  }
+  send_signal(h2f, 2);
 
   char string[100];
   int offset = 0;
   while(true) {
-    while(get_type(f2h) == 0) {
-      asm volatile("":::"memory");
-    }
+    wait_new_signal(f2h);
   
     if (get_type(f2h) != 2) {
       printf("test: failed\n");

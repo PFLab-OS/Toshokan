@@ -18,3 +18,17 @@ void read(char *channel, int offset, uint8_t &data) {
 void write(char *channel, int offset, uint8_t data) {
   channel[offset + 4] = data;
 }
+
+void wait_new_signal(char *channel) {
+  while(get_type(channel) == 0) {
+    asm volatile("":::"memory");
+  }
+}
+
+void send_signal(char *channel, int32_t type) {
+  set_type(channel, type);
+
+  while(get_type(channel) != 0) {
+    asm volatile("":::"memory");
+  }
+}
