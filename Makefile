@@ -9,6 +9,9 @@ callback: callback.cc
 print: print.cc
 	g++ $(CXXFLAGS) print.cc
 
+exec_bin: exec_bin.cc
+	g++ $(CXXFLAGS) exec_bin.cc
+
 stop:
 	-sudo rmmod friend_loader.ko
 
@@ -25,6 +28,9 @@ test:
 	sudo ./a.out
 	make reset
 	make print
+	sudo ./a.out
+	make reset
+	make exec_bin
 	sudo ./a.out
 	make stop
 	@echo "All tests have successfully finished!"

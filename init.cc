@@ -13,15 +13,15 @@ int main(int argc, char **argv) {
     return -1;
   }
 
-  char *h2f = static_cast<char *>(mmap(nullptr, PAGE_SIZE, PROT_READ|PROT_WRITE, MAP_SHARED, configfd_h2f, 0));
-  char *f2h = static_cast<char *>(mmap(nullptr, PAGE_SIZE, PROT_READ|PROT_WRITE, MAP_SHARED, configfd_f2h, 0));
-  if (h2f == MAP_FAILED || f2h == MAP_FAILED) {
+  char *h2f_address = static_cast<char *>(mmap(nullptr, PAGE_SIZE, PROT_READ|PROT_WRITE, MAP_SHARED, configfd_h2f, 0));
+  char *f2h_address = static_cast<char *>(mmap(nullptr, PAGE_SIZE, PROT_READ|PROT_WRITE, MAP_SHARED, configfd_f2h, 0));
+  if (h2f_address == MAP_FAILED || f2h_address == MAP_FAILED) {
     perror("mmap operation failed");
     return -1;
   }
 
   for(int i = 0; i < 4096; i++) {
-    if (h2f[i] != 0 || f2h[i] != 0) {
+    if (h2f_address[i] != 0 || f2h_address[i] != 0) {
       printf("test: failed\n");
       return 0;
     }

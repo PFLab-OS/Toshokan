@@ -13,28 +13,30 @@ int main(int argc, char **argv) {
     return -1;
   }
 
-  char *h2f = static_cast<char *>(mmap(nullptr, PAGE_SIZE, PROT_READ|PROT_WRITE, MAP_SHARED, configfd_h2f, 0));
-  char *f2h = static_cast<char *>(mmap(nullptr, PAGE_SIZE, PROT_READ|PROT_WRITE, MAP_SHARED, configfd_f2h, 0));
-  if (h2f == MAP_FAILED || f2h == MAP_FAILED) {
+  char *h2f_address = static_cast<char *>(mmap(nullptr, PAGE_SIZE, PROT_READ|PROT_WRITE, MAP_SHARED, configfd_h2f, 0));
+  char *f2h_address = static_cast<char *>(mmap(nullptr, PAGE_SIZE, PROT_READ|PROT_WRITE, MAP_SHARED, configfd_f2h, 0));
+  if (h2f_address == MAP_FAILED || f2h_address == MAP_FAILED) {
     perror("mmap operation failed");
     return -1;
   }
+  F2H f2h(f2h_address);
+  H2F h2f(h2f_address);
 
-  send_signal(h2f, 2);
+  h2f.SendSignal(2);
 
   char string[100];
   int offset = 0;
   while(true) {
-    wait_new_signal(f2h);
-  
-    if (get_type(f2h) != 2) {
+    f2h.WaitNewSignal();
+
+    if (f2h.GetType() != 2) {
       printf("test: failed\n");
       return -1;
     }
     
     uint8_t data;
-    read(f2h, 0, data);
-    set_type(f2h, 0);
+    f2h.Read(0, data);
+    f2h.SetType(0);
 
     if (offset == 100) {
       printf("test: failed\n");
