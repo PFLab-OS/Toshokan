@@ -75,6 +75,7 @@ entry:
 	movl $start, (gdtr_ptr)
 	ljmpl *(gdtr_ptr)
 
+
 stop:	
 	hlt
 	jmp stop
