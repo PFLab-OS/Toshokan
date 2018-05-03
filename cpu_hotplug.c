@@ -11,13 +11,18 @@ static int select_unplug_cpu(void);
 
 static struct trampoline_region tregion;
 
-int __init cpu_unplug(void)
+int cpu_unplug(void)
 {
     int ret;
 
     ret = select_unplug_cpu();
     if (ret < 0) {
       return ret;
+    }
+
+    if (!cpu_online(unpluged_cpu) || !cpu_is_hotpluggable(unpluged_cpu)) {
+      pr_warn("friend_loader: cpu %d is not online and hotpluggable.\n", unpluged_cpu);
+      return -1;
     }
 
     ret = cpu_down(unpluged_cpu);
@@ -74,6 +79,10 @@ int cpu_start()
 int __exit cpu_replug(void)
 {
     int ret = cpu_up(unpluged_cpu);
+  if (unpluged_cpu < 0) {
+    return -1;
+  }
+  
     if (ret < 0) {
         return ret;
     }

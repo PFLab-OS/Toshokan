@@ -14,52 +14,65 @@ MODULE_LICENSE("GPL v2");
 
 static int __init friend_loader_init(void)
 {
-    int ret;
+  int ret;
 
-    pr_info("friend_loader_init: init\n");
+  pr_info("friend_loader_init: init\n");
 
-    deploy_interface_init();
-    call_interface_init();
+  deploy_interface_init();
+  call_interface_init();
 
-    // Unplug friend core
-    ret = cpu_unplug();
-    if (ret < 0) {
-        pr_warn("friend_loader_init: cpu_unplug failed: %d\n", ret);
-        return 0;
-    }
-
-    pr_info("friend_loader_init: cpu %d down\n", ret);
-
+  // Unplug friend core
+  ret = cpu_unplug();
+  if (ret < 0) {
+    pr_warn("friend_loader_init: cpu_unplug failed: %d\n", ret);
     return 0;
+  } else {
+    pr_info("friend_loader_init: cpu %d down\n", ret);
+    return 0;
+  }
 }
 
 static void __exit friend_loader_exit(void)
 {
-    int ret = cpu_replug();
-    if (ret < 0) {
-        pr_warn("friend_loader_exit: cpu_replug failed: %d\n", ret);
-    } else {
-        pr_info("friend_loader_exit: cpu %d up\n", ret);
-    }
+  int ret = cpu_replug();
+  if (ret < 0) {
+    pr_warn("friend_loader_exit: cpu_replug failed: %d\n", ret);
+  } else {
+    pr_info("friend_loader_exit: cpu %d up\n", ret);
+  }
 
-    call_interface_exit();
-    deploy_interface_exit();
+  call_interface_exit();
+  deploy_interface_exit();
 
-    pr_info("friend_loader_exit: exit\n");
+  pr_info("friend_loader_exit: exit\n");
 }
 
 static int boot_flag_set(const char *val, struct kernel_param *kp) {
   int n = 0, ret;
 
   ret = kstrtoint(val, 10, &n);
-  if (ret != 0 || n < 0 || n > 2)
+  if (ret != 0 || n < 0 || n > 1)
     return -EINVAL;
 
   if (n == 1) {
     if (cpu_start() == 0) {
-        pr_info("friend_loader: starting cpu from 0x%lx\n", DEPLOY_PHYS_ADDR_START);
+      pr_info("friend_loader: starting cpu from 0x%lx\n", DEPLOY_PHYS_ADDR_START);
     } else {
-        pr_warn("friend_loader: cpu_start failed\n");
+      pr_warn("friend_loader: cpu_start failed\n");
+    }
+  } else if (n == 0) {
+    int ret = cpu_replug();
+    if (ret < 0) {
+      pr_warn("friend_loade_exit: cpu_replug failed: %d\n", ret);
+    } else {
+      pr_info("friend_loade_exit: cpu %d up\n", ret);
+    }
+    
+    ret = cpu_unplug();
+    if (ret < 0) {
+      pr_warn("friend_loader: cpu_unplug failed: %d\n", ret);
+    } else {
+      pr_info("friend_loader: cpu %d down\n", ret);
     }
   }
   

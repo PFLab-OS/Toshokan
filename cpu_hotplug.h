@@ -5,7 +5,7 @@
 
 // Unplug CPU.
 // Returns unpluged CPU number, or negative number on error.
-int __init cpu_unplug(void);
+int cpu_unplug(void);
 
 int cpu_start(void);
 
