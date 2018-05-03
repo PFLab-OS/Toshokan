@@ -2,9 +2,8 @@
 
 ## Requirements
 
-* Run on HiKey960
 * Add `mem=2G` to the Linux boot parameter
-
+<!--
 ## Usage
 
 ### 1. Convert ELF File to Friend Process Image
@@ -65,3 +64,4 @@ $ echo 1 | sudo tee /sys/module/friend_loader/boot/boot
 *
 *
 *
+-->
