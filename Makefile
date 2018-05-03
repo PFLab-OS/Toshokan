@@ -13,13 +13,9 @@ exec_bin: exec_bin.cc
 	g++ $(CXXFLAGS) $^ -o $@
 
 test:
-	cd ../FriendLoader; ./run.sh load; ./run.sh run
-	make init; sudo ./init
-	cd ../FriendLoader; ./run.sh restart
-	make callback; sudo ./callback
-	cd ../FriendLoader; ./run.sh restart
-	make print; sudo ./print
-	cd ../FriendLoader; ./run.sh restart
-	#make exec_bin; sudo ./exec_bin
-	cd ../FriendLoader; ./run.sh unload
+	cd ../FriendLoader; ./run.sh load;
+	make init; ./test.sh ./init
+	make callback; ./test.sh ./callback
+	make print; ./test.sh ./print
+	#make exec_bin; ./test.sh ./exec_bin
 	@echo "All tests have successfully finished!"
