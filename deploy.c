@@ -4,8 +4,7 @@
 #include "common.h"
 #include "deploy.h"
 
-int deploy(const char* data, size_t size, loff_t offset)
-{
+int deploy(const char *data, size_t size, loff_t offset) {
   void __iomem *io_addr;
   phys_addr_t addr = DEPLOY_PHYS_ADDR_START + offset;
   if (addr + size > DEPLOY_PHYS_ADDR_END) {
@@ -20,8 +19,7 @@ int deploy(const char* data, size_t size, loff_t offset)
   return 0;
 }
 
-int deploy_zero(size_t size, loff_t offset)
-{
+int deploy_zero(size_t size, loff_t offset) {
   void __iomem *io_addr;
   phys_addr_t addr = DEPLOY_PHYS_ADDR_START + offset;
   if (addr + size > DEPLOY_PHYS_ADDR_END) {
@@ -35,4 +33,3 @@ int deploy_zero(size_t size, loff_t offset)
 
   return 0;
 }
-

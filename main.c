@@ -4,16 +4,15 @@
 #include <linux/module.h>
 #include <linux/sysfs.h>
 
+#include "call_interface.h"
 #include "common.h"
 #include "cpu_hotplug.h"
 #include "deploy_interface.h"
-#include "call_interface.h"
 
 MODULE_DESCRIPTION("Friend Loader");
 MODULE_LICENSE("GPL v2");
 
-static int __init friend_loader_init(void)
-{
+static int __init friend_loader_init(void) {
   int ret;
 
   pr_info("friend_loader_init: init\n");
@@ -32,8 +31,7 @@ static int __init friend_loader_init(void)
   }
 }
 
-static void __exit friend_loader_exit(void)
-{
+static void __exit friend_loader_exit(void) {
   int ret = cpu_replug();
   if (ret < 0) {
     pr_warn("friend_loader_exit: cpu_replug failed: %d\n", ret);
@@ -56,7 +54,8 @@ static int boot_flag_set(const char *val, struct kernel_param *kp) {
 
   if (n == 1) {
     if (cpu_start() == 0) {
-      pr_info("friend_loader: starting cpu from 0x%lx\n", DEPLOY_PHYS_ADDR_START);
+      pr_info("friend_loader: starting cpu from 0x%lx\n",
+              DEPLOY_PHYS_ADDR_START);
     } else {
       pr_warn("friend_loader: cpu_start failed\n");
     }
@@ -67,7 +66,7 @@ static int boot_flag_set(const char *val, struct kernel_param *kp) {
     } else {
       pr_info("friend_loade_exit: cpu %d up\n", ret);
     }
-    
+
     ret = cpu_unplug();
     if (ret < 0) {
       pr_warn("friend_loader: cpu_unplug failed: %d\n", ret);
@@ -75,7 +74,7 @@ static int boot_flag_set(const char *val, struct kernel_param *kp) {
       pr_info("friend_loader: cpu %d down\n", ret);
     }
   }
-  
+
   return param_set_int(val, kp);
 }
 

@@ -5,38 +5,30 @@ void panic();
 
 class Channel {
 public:
-  int32_t GetType() {
-    return *((int32_t *)_address);
-  }
-  void SetType(int32_t type) {
-    *((int32_t *)_address) = type;
-  }
-  void Read(int offset, uint8_t &data) {
-    data = _address[offset + 4];
-  }
-  void Write(int offset, uint8_t data) {
-    _address[offset + 4] = data;
-  }
+  int32_t GetType() { return *((int32_t *)_address); }
+  void SetType(int32_t type) { *((int32_t *)_address) = type; }
+  void Read(int offset, uint8_t &data) { data = _address[offset + 4]; }
+  void Write(int offset, uint8_t data) { _address[offset + 4] = data; }
   void WriteString(const char *str) {
-    while(true) {
-      while(GetType() != 0) {
-	asm volatile("pause":::"memory");
+    while (true) {
+      while (GetType() != 0) {
+        asm volatile("pause" ::: "memory");
       }
 
       Write(0, *str);
-  
+
       SetType(2);
-    
+
       if (*str == '\0') {
-	break;
+        break;
       }
-    
+
       str++;
     }
   }
   void WaitNewSignal() {
-    while(GetType() == 0) {
-      asm volatile("pause":::"memory");
+    while (GetType() == 0) {
+      asm volatile("pause" ::: "memory");
     }
   }
   int SendSignal(int32_t type) {
@@ -46,29 +38,25 @@ public:
     }
     SetType(type);
 
-    while((rval = GetType()) != type) {
-      asm volatile("pause":::"memory");
+    while ((rval = GetType()) != type) {
+      asm volatile("pause" ::: "memory");
     }
     return rval;
   }
+
 protected:
-  Channel() {
-  }
+  Channel() {}
   char *_address;
 };
 
 class H2F : public Channel {
 public:
-  H2F() {
-    _address = (char *)0x2000;
-  }
+  H2F() { _address = (char *)0x2000; }
 };
 
 class F2H : public Channel {
 public:
-  F2H() {
-    _address = (char *)0x3000;
-  }
+  F2H() { _address = (char *)0x3000; }
 };
 
 // callback test
@@ -84,13 +72,11 @@ void print(H2F &h2f, F2H &f2h) {
 }
 
 // execute binary
-void exec_bin(H2F &h2f, F2H &f2h) {
-  h2f.SetType(-1);
-}
+void exec_bin(H2F &h2f, F2H &f2h) { h2f.SetType(-1); }
 
 void do_signal(H2F &h2f) {
   F2H f2h;
-  switch(h2f.GetType()) {
+  switch (h2f.GetType()) {
   case 0:
     panic();
   case 1:
@@ -99,7 +85,7 @@ void do_signal(H2F &h2f) {
   case 2:
     print(h2f, f2h);
     break;
-  case 3: 
+  case 3:
     exec_bin(h2f, f2h);
     break;
   }
@@ -113,7 +99,7 @@ extern "C" void trampoline_main() {
 }
 
 void panic() {
-  while(true) {
+  while (true) {
     asm volatile("cli;hlt;nop;");
   }
 }
