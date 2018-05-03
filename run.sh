@@ -27,18 +27,31 @@ if [ $# -ge 1 ]; then
 	    fi
 	    ;;
 	"run" )
+	    if [ `lsmod | grep friend_loader | wc -l` -eq 0 ]; then
+		make all
+		sudo insmod friend_loader.ko
+	    fi
 	    sudo sh -c "echo 1 > /sys/module/friend_loader/parameters/boot"
 	    ;;
 	"stop" )
-	    sudo sh -c "echo 0 > /sys/module/friend_loader/parameters/boot"
+	    if [ `lsmod | grep friend_loader | wc -l` -ge 1 ]; then
+		sudo sh -c "echo 0 > /sys/module/friend_loader/parameters/boot"
+	    fi
 	    ;;
 	"restart" )
-	    sudo sh -c "echo 0 > /sys/module/friend_loader/parameters/boot"
+	    if [ `lsmod | grep friend_loader | wc -l` -ge 1 ]; then
+		sudo sh -c "echo 0 > /sys/module/friend_loader/parameters/boot"
+	    else
+		make all
+		sudo insmod friend_loader.ko
+	    fi
 	    sudo sh -c "echo 1 > /sys/module/friend_loader/parameters/boot"
 	    ;;
 	"unload" )
-	    sudo sh -c "echo 0 > /sys/module/friend_loader/parameters/boot"
-	    sudo rmmod friend_loader.ko
+	    if [ `lsmod | grep friend_loader | wc -l` -ge 1 ]; then
+		sudo sh -c "echo 0 > /sys/module/friend_loader/parameters/boot"
+		sudo rmmod friend_loader.ko
+	    fi
 	    ;;
     esac
 fi
