@@ -8,23 +8,35 @@
 #include "common.h"
 #include "cpu_hotplug.h"
 #include "deploy_interface.h"
+#include "debug_mem.h"
 
 MODULE_DESCRIPTION("Friend Loader");
 MODULE_LICENSE("GPL v2");
+MODULE_AUTHOR("Shinichi Awamoto<sap.pcmail@gmail.com>");
 
 static int __init friend_loader_init(void) {
   int ret;
 
   pr_info("friend_loader_init: init\n");
 
-  deploy_interface_init();
-  call_interface_init();
+  if (deploy_interface_init() < 0) {
+    pr_err("friend_loader_init: failed to init deploy interface\n");
+  }
+  
+  if (call_interface_init() < 0) {
+    pr_err("friend_loader_init: failed to init call interface\n");
+  }
+  
+  if (debugmem_init() < 0) {
+    pr_err("friend_loader_init: failed to init debugmem\n");
+    return -1;
+  }
 
   // Unplug friend core
   ret = cpu_unplug();
   if (ret < 0) {
     pr_warn("friend_loader_init: cpu_unplug failed: %d\n", ret);
-    return 0;
+    return -1;
   } else {
     pr_info("friend_loader_init: cpu %d down\n", ret);
     return 0;
@@ -39,6 +51,7 @@ static void __exit friend_loader_exit(void) {
     pr_info("friend_loader_exit: cpu %d up\n", ret);
   }
 
+  debugmem_exit();
   call_interface_exit();
   deploy_interface_exit();
 

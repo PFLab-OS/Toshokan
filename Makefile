@@ -1,5 +1,5 @@
 obj-m := friend_loader.o
-friend_loader-objs := main.o cpu_hotplug.o deploy.o deploy_interface.o call_interface.o trampoline_loader.o trampoline/bin.o
+friend_loader-objs := main.o cpu_hotplug.o deploy.o deploy_interface.o call_interface.o debug_mem.o trampoline_loader.o trampoline/bin.o
 KERN_SRC ?= /lib/modules/$(shell uname -r)/build
 
 .PHONY: all clean trampoline/bin.o
