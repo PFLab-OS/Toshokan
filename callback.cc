@@ -24,9 +24,7 @@ int main(int argc, char **argv) {
 
   h2f.SendSignal(1);
 
-  f2h.WaitNewSignal();
-
-  if (f2h.GetType() != 1) {
+  if (f2h.WaitNewSignal() != 1) {
     printf("test: failed\n");
     return -1;
   }

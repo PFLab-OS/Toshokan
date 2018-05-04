@@ -27,16 +27,14 @@ int main(int argc, char **argv) {
   char string[100];
   int offset = 0;
   while(true) {
-    f2h.WaitNewSignal();
-
-    if (f2h.GetType() != 2) {
+    if (f2h.WaitNewSignal() != 2) {
       printf("test: failed\n");
       return -1;
     }
     
     uint8_t data;
     f2h.Read(0, data);
-    f2h.SetType(0);
+    f2h.Return(0);
 
     if (offset == 100) {
       printf("test: failed\n");
