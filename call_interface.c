@@ -4,6 +4,7 @@
 
 #include "call_interface.h"
 #include "common.h"
+#include "memory.h"
 
 static struct kobject *call_sysfs_kobj;
 
@@ -82,7 +83,7 @@ static int call_h2f_mmap(struct file *filep, struct kobject *kobj,
   vma->vm_ops = &mmap_vm_ops;
 
   if (remap_pfn_range(vma, vma->vm_start,
-                      (DEPLOY_PHYS_ADDR_START + 0x2000) >> PAGE_SHIFT,
+                      (DEPLOY_PHYS_ADDR_START + kMemoryMapH2f) >> PAGE_SHIFT,
                       vma->vm_end - vma->vm_start, vma->vm_page_prot)) {
     return -EAGAIN;
   }
@@ -100,7 +101,7 @@ static int call_f2h_mmap(struct file *filep, struct kobject *kobj,
   vma->vm_ops = &mmap_vm_ops;
 
   if (remap_pfn_range(vma, vma->vm_start,
-                      (DEPLOY_PHYS_ADDR_START + 0x3000) >> PAGE_SHIFT,
+                      (DEPLOY_PHYS_ADDR_START + kMemoryMapF2h) >> PAGE_SHIFT,
                       vma->vm_end - vma->vm_start, vma->vm_page_prot)) {
     return -EAGAIN;
   }

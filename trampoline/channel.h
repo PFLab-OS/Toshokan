@@ -1,6 +1,7 @@
 #pragma once
 
 #include "type.h"
+#include "memory.h"
 
 class Channel {
 public:
@@ -79,10 +80,10 @@ protected:
 
 class H2F : public Channel {
 public:
-  H2F() { _address = (char *)0x2000; }
+  H2F() { _address = reinterpret_cast<char *>(MemoryMap::kH2f); }
 };
 
 class F2H : public Channel {
 public:
-  F2H() { _address = (char *)0x3000; }
+  F2H() { _address = reinterpret_cast<char *>(MemoryMap::kF2h); }
 };

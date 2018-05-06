@@ -1,7 +1,5 @@
-#define PRESENT_BIT  (1<<0)
-#define WRITE_BIT    (1<<1)
-#define USER_BIT     (1<<2)
-#define HUGEPAGE_BIT (1<<7)
+#define ASM_FILE
+#include "memory.h"	
 	
 	.section ".text.boot"
 	.code16
@@ -23,21 +21,21 @@ entry:
 	//
 	// setup paging
 	//
-	movl (region_addr), %edi
-	leal 0x1000(%edi), %edi
+	movl (region_addr), %edx
+	leal PML4T(%edx), %edi
 	
 	// setup PML4T
-	leal 0x1000(%edi), %eax
+	leal PDPT(%edx), %eax
 	orl  $(PRESENT_BIT | WRITE_BIT | USER_BIT), %eax
-	movl %eax, (0x1000)
-	movl $0, (0x1004)
+	movl %eax, (PML4T)
+	movl $0, (PML4T + 4)
 
 	// setup PDPT
 	movl (phys_addr_start), %eax
 	orl  $(PRESENT_BIT | WRITE_BIT | USER_BIT | HUGEPAGE_BIT), %eax
-	movl %eax, (0x2000)
-  movl (phys_addr_start + 4), %eax
-	movl %eax, (0x2004)
+	movl %eax, (PDPT)
+	movl (phys_addr_start + 4), %eax
+	movl %eax, (PDPT + 4)
 
 	// load cr3
 	movl %edi, %cr3
@@ -63,38 +61,37 @@ entry:
 	andl $(~(1 << 30 | 1 << 29)), %eax
 	movl %eax, %cr0
 
-  // We enabled paging.
-  // CPU will keep running this code, but the physical address of it is changed.
-  // physical address: (phys_addr) + (region_addr) + %rip
-  // linear address: (region_addr) + %rip  # as 16bit segmentation is valid
+	// We enabled paging.
+	// CPU will keep running this code, but the physical address is changed.
+	// physical address: (phys_addr) + (region_addr) + %rip
+	// linear address: (region_addr) + %rip  # as 16bit segmentation is valid
 
 	// setup gdt
-  movl (region_addr), %edx
+	movl (region_addr), %edx
 	addl %edx, (gdt_desc_ptr)
 	lgdtl gdtr
 
-  // jump to start
-  movl $start, (gdtr_ptr)
+	// jump to start
+	movl $start, (gdtr_ptr)
 	ljmpl *(gdtr_ptr)
 
 stop:	
 	hlt
 	jmp stop
 
-  .code64
-  .extern trampoline_main
+.code64
+.extern trampoline_main
 start:
-  // Now we use gdt_desc (64bit segmentation)
-  // physical address: (phys_addr) + %rip
-  // linear address: %rip
-  
-  // TODO Issue #1
-  // relocate page tables and gdt descriptors
+	// Now we use gdt_desc (64bit segmentation)
+	// physical address: (phys_addr) + %rip
+	// linear address: %rip
+	  
+	// TODO Issue #1
+	// relocate page tables and gdt descriptors
 
-  // use 0x1000-0x2000 for stack
-  movq $0x2000, %rsp
-  
-  jmp trampoline_main
+	movq $STACK_BOTTOM, %rsp
+	  
+	jmp trampoline_main
 
 	.balign 8
 gdt_desc:
