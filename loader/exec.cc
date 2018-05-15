@@ -27,6 +27,11 @@ int main(int argc, char **argv) {
     return -1;
   }
 
+  if (f2h.WaitNewSignal() != 1) {
+    printf("test: failed\n");
+    return -1;
+  }
+
   printf("test: OK\n");
     
   close(configfd_h2f);
