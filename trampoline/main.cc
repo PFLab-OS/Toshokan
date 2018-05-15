@@ -16,7 +16,10 @@ void print(H2F &h2f, F2H &f2h) {
 }
 
 // execute binary
-void exec_bin(H2F &h2f, F2H &f2h) { h2f.Return(-1); }
+void exec_bin(H2F &h2f, F2H &f2h) {
+  h2f.Return(0);
+  f2h.SendSignal(1);
+}
 
 void rw_memory(H2F &h2f, F2H &f2h) {
   static const uint32_t kRead = 0;
@@ -46,7 +49,9 @@ void rw_memory(H2F &h2f, F2H &f2h) {
   h2f.Return(0);
 }
 
-void do_signal(H2F &h2f) {
+void get_eflags(H2F &h2f, F2H &f2h) {
+  h2f.Return(0);
+  f2h.SendSignal(5);
 }
 
 extern "C" void trampoline_main() {
@@ -67,6 +72,9 @@ extern "C" void trampoline_main() {
       break;
     case 4:
       rw_memory(h2f, f2h);
+      break;
+    case 5:
+      get_eflags(h2f, f2h);
       break;
     }
   }

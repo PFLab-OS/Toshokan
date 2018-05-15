@@ -98,12 +98,14 @@ gdt_desc:
 	// null descriptor
 	.quad 0
 	.quad 0
-	.quad 0x00209a0000000000  // code descriptor
-	.quad 0x0000920000000000  // data descriptor
+	.quad 0x00209a0000000000  // kernel code descriptor
+	.quad 0x0000920000000000  // kernel data descriptor
+	.quad 0x0020fa0000000000  // user code descriptor
+	.quad 0x0000f20000000000  // user data descriptor
 
 	.word 0
 gdtr:
-	.word 8*4 - 1
+	.word 8*6 - 1
 gdt_desc_ptr:	
 	.quad gdt_desc
 
