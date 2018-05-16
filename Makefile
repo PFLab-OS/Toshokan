@@ -11,10 +11,7 @@ callback: callback.cc
 print: print.cc
 	g++ -iquote . $(CXXFLAGS) $^ -o $@
 
-loader/exec: loader/exec.cc
-	g++ -iquote . $(CXXFLAGS) $^ -o $@
-
-mem_rw: mem_rw.cc
+memrw: memrw.cc
 	g++ -iquote . $(CXXFLAGS) $^ -o $@
 
 test:
@@ -22,7 +19,11 @@ test:
 	make init; ./test.sh ./init
 	make callback; ./test.sh ./callback
 	make print; ./test.sh ./print
-	make mem_rw; ./test.sh ./mem_rw
-	make loader/exec; ./test.sh ./loader/exec
+	make memrw; ./test.sh ./memrw
+	make -C loader test
 	cd ../FriendLoader; ./run.sh unload
 	@echo "All tests have successfully finished!"
+
+clean:
+	-rm init callback print memrw
+	make -C loader clean

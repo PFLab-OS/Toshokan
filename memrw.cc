@@ -7,6 +7,7 @@
 #include <string.h>
 #include <assert.h>
 #include "channel.h"
+#include "memrw.h"
 
 int test_invalid(F2H &f2h, H2F &h2f) {
   static const uint32_t kInvalid = 2;
@@ -51,8 +52,8 @@ int test_of_reading_signature(F2H &f2h, H2F &h2f) {
 
 int test_of_rw(F2H &f2h, H2F &h2f) {
   static const uint32_t kRead = 0;
-  static const uint32_t kWrite = 1;
   static const uint64_t address = 1024 * 1024;
+  MemoryWriter mw(h2f, address);
   uint8_t *h2f_buf = h2f.GetRawPtr<uint8_t>() + 2048 / sizeof(uint8_t);
 
   // generate random data
@@ -62,12 +63,8 @@ int test_of_rw(F2H &f2h, H2F &h2f) {
     buf[i] = rand() % 0xFF;
   }
 
-  h2f.Write(0, kWrite);
-  h2f.Write(8, address);
-
-  memcpy(h2f_buf, buf, 2048);
-
-  assert(h2f.SendSignal(4) == 0);
+  mw.Copy(buf, 2048);
+  mw.Do();
 
   h2f.Clear();
 

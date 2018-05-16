@@ -13,3 +13,6 @@ raw_bin.o: raw.bin
 
 test:
 	make exec; cd ..; ./test.sh ./loader/exec
+
+clean:
+	-rm exec raw.bin raw_bin.o

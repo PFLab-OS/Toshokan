@@ -3,7 +3,19 @@
 #include <fcntl.h>
 #include <sys/mman.h>
 #include <unistd.h>
+#include <assert.h>
 #include "channel.h"
+
+void deploy() {
+  extern uint8_t _binary_raw_bin_start[];
+  extern uint8_t _binary_raw_bin_end[];
+  extern uint8_t _binary_raw_bin_size[];
+  size_t binary_raw_bin_size = reinterpret_cast<size_t>(_binary_raw_bin_size);
+  assert(_binary_raw_bin_start + binary_raw_bin_size == _binary_raw_bin_end);
+  for(uint8_t *addr = _binary_raw_bin_start; addr < _binary_raw_bin_end; addr++) {
+    
+  }
+}
 
 int main(int argc, char **argv) {
   int configfd_h2f = open("/sys/module/friend_loader/call/h2f", O_RDWR);
@@ -22,12 +34,14 @@ int main(int argc, char **argv) {
   F2H f2h(f2h_address);
   H2F h2f(h2f_address);
 
+  deploy();
+  
   if (h2f.SendSignal(3) != 0) {
     printf("test: failed\n");
     return -1;
   }
 
-  if (f2h.WaitNewSignal() != 1) {
+  /*  if (f2h.WaitNewSignal() != 1)*/ {
     printf("test: failed\n");
     return -1;
   }
