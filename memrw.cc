@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
+#include "test.h"
 #include "channel.h"
 #include "memrw.h"
 
@@ -118,20 +119,21 @@ int main(int argc, char **argv) {
   H2F h2f(h2f_address);
 
   if (test_invalid(f2h, h2f) != 0) {
-    printf("test: failed\n");
+    show_result(false);
     return -1;
   }
 
   if (test_of_reading_signature(f2h, h2f) != 0) {
-    printf("test: failed\n");
+    show_result(false);
     return -1;
   }
 
   if (test_of_rw(f2h, h2f) != 0) {
-    printf("test: failed\n");
+    show_result(false);
     return -1;
   }
   
+  show_result(true);
   
   close(configfd_h2f);
   close(configfd_f2h);

@@ -3,6 +3,7 @@
 #include <fcntl.h>
 #include <sys/mman.h>
 #include <unistd.h>
+#include "test.h"
 #include "channel.h"
 
 int main(int argc, char **argv) {
@@ -25,11 +26,11 @@ int main(int argc, char **argv) {
   h2f.SendSignal(1);
 
   if (f2h.WaitNewSignal() != 1) {
-    printf("test: failed\n");
+    show_result(false);
     return -1;
   }
 
-  printf("test: OK\n");
+  show_result(true);
   
   close(configfd_h2f);
   close(configfd_f2h);

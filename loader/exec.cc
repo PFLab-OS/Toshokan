@@ -4,6 +4,7 @@
 #include <sys/mman.h>
 #include <unistd.h>
 #include <assert.h>
+#include "test.h"
 #include "channel.h"
 
 void deploy() {
@@ -37,17 +38,17 @@ int main(int argc, char **argv) {
   deploy();
   
   if (h2f.SendSignal(3) != 0) {
-    printf("test: failed\n");
+    show_result(false);
     return -1;
   }
 
   /*  if (f2h.WaitNewSignal() != 1)*/ {
-    printf("test: failed\n");
+    show_result(false);
     return -1;
   }
 
-  printf("test: OK\n");
-    
+  show_result(true);
+
   close(configfd_h2f);
   close(configfd_f2h);
   return 0;

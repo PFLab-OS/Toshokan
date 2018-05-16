@@ -3,6 +3,7 @@
 #include <fcntl.h>
 #include <sys/mman.h>
 #include <unistd.h>
+#include "test.h"
 #include "channel.h"
 
 int main(int argc, char **argv) {
@@ -28,7 +29,7 @@ int main(int argc, char **argv) {
   int offset = 0;
   while(true) {
     if (f2h.WaitNewSignal() != 2) {
-      printf("test: failed\n");
+      show_result(false);
       return -1;
     }
     
@@ -37,7 +38,7 @@ int main(int argc, char **argv) {
     f2h.Return(0);
 
     if (offset == 100) {
-      printf("test: failed\n");
+      show_result(false);
       return -1;
     }
     
@@ -50,9 +51,9 @@ int main(int argc, char **argv) {
   }
 
   if (strcmp("abc\n", string) == 0) {
-    printf("test: OK\n");
+    show_result(true);
   } else {
-    printf("test: failed\n");
+    show_result(false);
     return -1;
   }
   

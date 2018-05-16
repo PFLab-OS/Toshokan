@@ -3,6 +3,7 @@
 #include <fcntl.h>
 #include <sys/mman.h>
 #include <unistd.h>
+#include "test.h"
 #include "channel.h"
 
 int main(int argc, char **argv) {
@@ -22,12 +23,12 @@ int main(int argc, char **argv) {
 
   for(int i = 0; i < 4096; i++) {
     if (h2f_address[i] != 0 || f2h_address[i] != 0) {
-      printf("test: failed\n");
+      show_result(false);
       return 0;
     }
   }
 
-  printf("test: OK\n");
+  show_result(true);
   
   close(configfd_h2f);
   close(configfd_f2h);
