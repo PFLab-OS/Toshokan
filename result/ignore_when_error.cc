@@ -6,6 +6,7 @@ int main(int argc, char **argv) {
   if (!r.IsError()) {
     return 1;
   }
-  r.IgnoreError();
+  // do error handling
+  r.IgnoreError(); // must IgnoreError() after you finished error handling
   return 0;
 }

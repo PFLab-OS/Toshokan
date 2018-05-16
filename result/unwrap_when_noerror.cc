@@ -3,6 +3,6 @@
 
 int main(int argc, char **argv) {
   Result<bool> r(true);
-  r.IgnoreError();
+  r.Unwrap(); // must Unwrap() when noerror
   return 0;
 }
