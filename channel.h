@@ -1,5 +1,6 @@
 #pragma once
 #include <stdint.h>
+#include <stdlib.h>
 
 #define PAGE_SIZE     4096
 
@@ -17,7 +18,12 @@ public:
   T *GetRawPtr() {
     return reinterpret_cast<T *>(_address);
   }
-  void Clear() {
+  void Reserve() {
+    if (_reserved) {
+      fprintf(stderr, "Channel: error: already reserved\n");
+      exit(255);
+    }
+    _reserved = true;
     for (unsigned int i = 0; i < 4096 / sizeof(uint64_t); i++) {
       reinterpret_cast<uint64_t *>(_address)[i] = 0;
     }
@@ -29,7 +35,7 @@ public:
       SendSignal(2);
       
       if (*str == '\0') {
-	break;
+        break;
       }
 
       str++;
@@ -46,13 +52,20 @@ public:
     if (type == 0) {
       return 0;
     }
+    if (!_reserved) {
+      fprintf(stderr, "Channel: error: not reserved\n");
+      exit(255);
+    }
+    
     GetSignalTypeRef() = type;
 
     while (GetSignalTypeRef() != 0) {
       asm volatile("pause" ::: "memory");
     }
     
-    return GetReturnValueRef();
+    int rval = GetReturnValueRef();
+    _reserved = false;
+    return rval;
   }
   void Return(int32_t rval) {
     GetReturnValueRef() = rval;
@@ -77,6 +90,7 @@ protected:
   int32_t &GetReturnValueRef() {
     return reinterpret_cast<int32_t *>(_address)[1];
   }
+  bool _reserved = false;
 };
 
 class H2F : public Channel {

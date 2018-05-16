@@ -30,7 +30,7 @@ namespace MemoryAccessor {
   class Writer {
   public:
     Writer(Channel &ch, const uint64_t address, const DataSize size) : _ch(ch), _address(address), _size(size) {
-      _ch.Clear();
+      _ch.Reserve();
       _ch.Write(0, kSignatureWrite);
       _ch.Write(8, address);
     }

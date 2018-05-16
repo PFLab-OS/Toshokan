@@ -16,6 +16,7 @@ int test_DataSize() {
 
 int test_invalid(F2H &f2h, H2F &h2f) {
   static const uint32_t kInvalid = 2;
+  h2f.Reserve();
   h2f.Write(0, kInvalid);
   assert(h2f.SendSignal(4) < 0);
   return 0;
@@ -27,6 +28,8 @@ int test_of_reading_signature(F2H &f2h, H2F &h2f) {
   uint8_t *h2f_buf = h2f.GetRawPtr<uint8_t>() + 2048 / sizeof(uint8_t);
   const uint8_t signature[] = {0xeb, 0x1e, 0x66, 0x90, 0x6b, 0x72, 0x70, 0x4a};
 
+  h2f.Reserve();
+  
   h2f.Write(0, kRead);
   h2f.Write(8, address);
 
@@ -71,7 +74,7 @@ int test_of_rw(F2H &f2h, H2F &h2f) {
   mw.Copy(buf).Unwrap();
   mw.Do().Unwrap();
 
-  h2f.Clear();
+  h2f.Reserve();
 
   h2f.Write(0, kRead);
   h2f.Write(8, address);

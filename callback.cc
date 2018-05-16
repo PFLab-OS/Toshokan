@@ -23,6 +23,7 @@ int main(int argc, char **argv) {
   F2H f2h(f2h_address);
   H2F h2f(h2f_address);
 
+  h2f.Reserve();
   h2f.SendSignal(1);
 
   if (f2h.WaitNewSignal() != 1) {

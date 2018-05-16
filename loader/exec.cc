@@ -35,6 +35,8 @@ int main(int argc, char **argv) {
   F2H f2h(f2h_address);
   H2F h2f(h2f_address);
 
+  h2f.Reserve();
+
   deploy();
   
   if (h2f.SendSignal(3) != 0) {
