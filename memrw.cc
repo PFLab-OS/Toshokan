@@ -10,6 +10,10 @@
 #include "channel.h"
 #include "memrw.h"
 
+int test_DataSize() {
+  return 0; 
+}
+
 int test_invalid(F2H &f2h, H2F &h2f) {
   static const uint32_t kInvalid = 2;
   h2f.Write(0, kInvalid);
@@ -54,7 +58,7 @@ int test_of_reading_signature(F2H &f2h, H2F &h2f) {
 int test_of_rw(F2H &f2h, H2F &h2f) {
   static const uint32_t kRead = 0;
   static const uint64_t address = 1024 * 1024;
-  MemoryWriter mw(h2f, address);
+  MemoryAccessor::Writer mw(h2f, address, MemoryAccessor::DataSize::Create(2048).Unwrap());
   uint8_t *h2f_buf = h2f.GetRawPtr<uint8_t>() + 2048 / sizeof(uint8_t);
 
   // generate random data
@@ -64,8 +68,8 @@ int test_of_rw(F2H &f2h, H2F &h2f) {
     buf[i] = rand() % 0xFF;
   }
 
-  mw.Copy(buf, 2048);
-  mw.Do();
+  mw.Copy(buf).Unwrap();
+  mw.Do().Unwrap();
 
   h2f.Clear();
 
@@ -117,6 +121,11 @@ int main(int argc, char **argv) {
   }
   F2H f2h(f2h_address);
   H2F h2f(h2f_address);
+
+  if (test_DataSize() != 0) {
+    show_result(false);
+    return -1;
+  }
 
   if (test_invalid(f2h, h2f) != 0) {
     show_result(false);
