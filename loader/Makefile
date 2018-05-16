@@ -12,7 +12,7 @@ raw_bin.o: raw.bin
 	objcopy -I binary -O elf64-x86-64 -B i386:x86-64 $^ $@
 
 test:
-	make exec; cd ..; ./test.sh ./loader/exec
+	make exec; cd ..; ./test_hakase.sh ./loader/exec
 
 clean:
 	-rm exec raw.bin raw_bin.o
