@@ -12,46 +12,47 @@
 
 if [ $# -ge 1 ]; then
     case $1 in
-	"load" )
-	    if [ `lsmod | grep friend_loader | wc -l` -ge 1 ]; then
-		sudo rmmod friend_loader.ko
-	    fi
-	    make all
-	    sudo insmod friend_loader.ko
-	    ;;
-	"deploy" )
-	    if [ $# -ge 2 ]; then
-		sudo dd if=$2 of=/sys/module/friend_loader/deploy/content
-	    else
-		echo "error: needs 'file'!"
-	    fi
-	    ;;
-	"run" )
-	    if [ `lsmod | grep friend_loader | wc -l` -eq 0 ]; then
-		make all
-		sudo insmod friend_loader.ko
-	    fi
-	    sudo sh -c "echo 1 > /sys/module/friend_loader/parameters/boot"
-	    ;;
-	"stop" )
-	    if [ `lsmod | grep friend_loader | wc -l` -ge 1 ]; then
-		sudo sh -c "echo 0 > /sys/module/friend_loader/parameters/boot"
-	    fi
-	    ;;
-	"restart" )
-	    if [ `lsmod | grep friend_loader | wc -l` -ge 1 ]; then
-		sudo sh -c "echo 0 > /sys/module/friend_loader/parameters/boot"
-	    else
-		make all
-		sudo insmod friend_loader.ko
-	    fi
-	    sudo sh -c "echo 1 > /sys/module/friend_loader/parameters/boot"
-	    ;;
-	"unload" )
-	    if [ `lsmod | grep friend_loader | wc -l` -ge 1 ]; then
-		sudo sh -c "echo 0 > /sys/module/friend_loader/parameters/boot"
-		sudo rmmod friend_loader.ko
-	    fi
-	    ;;
+	      "load" )
+            uname -r | grep hakase > /dev/null 2>&1 || (echo "error: must be run on hakase kernel"; exit 1)
+	          if [ `lsmod | grep friend_loader | wc -l` -ge 1 ]; then
+		            sudo rmmod friend_loader.ko
+	          fi
+	          make all
+	          sudo insmod friend_loader.ko
+	          ;;
+	      "deploy" )
+	          if [ $# -ge 2 ]; then
+		            sudo dd if=$2 of=/sys/module/friend_loader/deploy/content
+	          else
+		            echo "error: needs 'file'!"
+	          fi
+	          ;;
+	      "run" )
+	          if [ `lsmod | grep friend_loader | wc -l` -eq 0 ]; then
+		            make all
+		            sudo insmod friend_loader.ko
+	          fi
+	          sudo sh -c "echo 1 > /sys/module/friend_loader/parameters/boot"
+	          ;;
+	      "stop" )
+	          if [ `lsmod | grep friend_loader | wc -l` -ge 1 ]; then
+		            sudo sh -c "echo 0 > /sys/module/friend_loader/parameters/boot"
+	          fi
+	          ;;
+	      "restart" )
+	          if [ `lsmod | grep friend_loader | wc -l` -ge 1 ]; then
+		            sudo sh -c "echo 0 > /sys/module/friend_loader/parameters/boot"
+	          else
+		            make all
+		            sudo insmod friend_loader.ko
+	          fi
+	          sudo sh -c "echo 1 > /sys/module/friend_loader/parameters/boot"
+	          ;;
+	      "unload" )
+	          if [ `lsmod | grep friend_loader | wc -l` -ge 1 ]; then
+		            sudo sh -c "echo 0 > /sys/module/friend_loader/parameters/boot"
+		            sudo rmmod friend_loader.ko
+	          fi
+	          ;;
     esac
 fi
