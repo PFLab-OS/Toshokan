@@ -1,11 +1,11 @@
 #!/bin/bash -e
 
-if [ $# -ge 1 ]; then
+if [ -f $2 ]; then
     pushd ../FriendLoader
     ./run.sh run
     popd
 
-    sudo $1
+    sudo ./test_library.sh $*
     rval=$?
     
     pushd ../FriendLoader
@@ -13,5 +13,5 @@ if [ $# -ge 1 ]; then
     popd
     exit $rval
 else
-    exit 1
+    ./test_library.sh $*
 fi

@@ -5,8 +5,8 @@ ABORT_TESTS = unwrap_when_error notchecked_when_noerror notchecked_when_error ig
 default: test
 
 test:
-	@$(foreach test, $(NORMAL_TESTS), rm -f $(test); g++ -iquote .. $(CXXFLAGS) $(test).cc -o $(test); ../test_library.sh ./$(test) 0; )
-	@$(foreach test, $(ABORT_TESTS), rm -f $(test); g++ -iquote .. $(CXXFLAGS) $(test).cc -o $(test); ../test_library.sh ./$(test) 1; )
+	@$(foreach test, $(NORMAL_TESTS), rm -f $(test); g++ -iquote .. $(CXXFLAGS) $(test).cc -o $(test); ../test_library.sh 0 ./$(test); )
+	@$(foreach test, $(ABORT_TESTS), rm -f $(test); g++ -iquote .. $(CXXFLAGS) $(test).cc -o $(test); ../test_library.sh 1 ./$(test); )
 
 clean:
 	-rm $(NORMAL_TESTS) $(ABORT_TESTS)

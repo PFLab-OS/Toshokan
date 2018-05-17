@@ -1,6 +1,7 @@
 #pragma once
 #include <stdlib.h>
 #include <assert.h>
+#include <stdio.h>
 
 template<class T>
 class Result {

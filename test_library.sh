@@ -1,11 +1,15 @@
 #!/bin/bash
-# arg1: binary file name
-# arg2: If crash test or not.
+# arg1: If crash test or not.
+# arg2: binary file name
+# arg3...: arguments
 
-if [ -f $1 ]; then
-    $1 > /dev/null 2>&1
+if [ -f $2 ]; then
+    crash_flag=$1
+    shift
+    echo $*
+    $* > /dev/null 2>&1
     ret=$?
-    if [ $2 = 0 ]; then
+    if [ $crash_flag = 0 ]; then
         if [ $ret -eq 0 ]; then
             mes=1
         else

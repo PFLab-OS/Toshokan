@@ -17,10 +17,10 @@ memrw: memrw.cc
 test:
 	make -C result test
 	cd ../FriendLoader; ./run.sh load;
-	make init; ./test_hakase.sh ./init
-	make callback; ./test_hakase.sh ./callback
-	make print; ./test_hakase.sh ./print
-	make memrw; ./test_hakase.sh ./memrw
+	make init; ./test_hakase.sh 0 ./init
+	make callback; ./test_hakase.sh 0 ./callback
+	make print; ./test_hakase.sh 0 ./print
+	make memrw; ./test_hakase.sh 0 ./memrw
 	make -C loader test
 	cd ../FriendLoader; ./run.sh unload
 	@echo "All tests have successfully finished!"
