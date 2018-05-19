@@ -1,5 +1,6 @@
 #!/bin/bash -e
 
+cd `dirname $0`
 if [ -f $2 ]; then
     pushd ../FriendLoader
     ./run.sh run

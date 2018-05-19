@@ -3,6 +3,7 @@
 # arg2: binary file name
 # arg3...: arguments
 
+cd `dirname $0`
 if [ -f $2 ]; then
     crash_flag=$1
     shift
@@ -28,6 +29,6 @@ if [ -f $2 ]; then
         echo -e "\e[31m$1: FAILED\e[m"
     fi
 else
-    echo -e "\e[31m$1: FAILED\e[m"
+    echo -e "\e[31m$2: FAILED\e[m"
 fi
    

@@ -65,3 +65,6 @@ Thumbs.db
 *.tmp
 # Vagrant specific
 .vagrant/
+
+# Project files
+*.bin

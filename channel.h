@@ -1,6 +1,7 @@
 #pragma once
 #include <stdint.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 #define PAGE_SIZE     4096
 
