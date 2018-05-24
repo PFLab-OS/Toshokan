@@ -14,5 +14,13 @@ bin.o: boot_trampoline.bin
 boot_trampoline.bin: $(BOOTOBJS)
 	ld $(LDFLAGS) -Tboot_trampoline.ld $^ -o $@
 
+check_bin_size: $(BOOTOBJS)
+	-$(eval tmpf := $(shell mktemp))
+	-$(eval tmpbin := $(shell mktemp))
+	@cat boot_trampoline.ld | sed -e "/^OUTPUT_FORMAT/d" > $(tmpf)
+	@ld $(LDFLAGS) -T$(tmpf) $^ -o $(tmpbin)
+	size -A -x $(tmpbin) 
+	@rm $(tmpf) $(tmpbin)
+
 clean:
 	-rm *.o boot_trampoline.bin
