@@ -1,5 +1,6 @@
-#include"type.h"
 #include "channel.h"
+#include "int.h"
+#include "trampoline.h"
 
 void panic();
 
@@ -54,9 +55,17 @@ void get_eflags(H2F &h2f, F2H &f2h) {
   f2h.SendSignal(5);
 }
 
+extern struct idt_entity {
+  uint32_t entry[4];
+} __attribute__((aligned(8))) idt_def[256];
+
 extern "C" void trampoline_main() {
   H2F h2f;
   F2H f2h;
+  Idt idt;
+  idt.SetupGeneric();
+  idt.SetupProc();
+
   while(true) {
     switch (h2f.WaitNewSignal()) {
     case 0:
