@@ -12,6 +12,9 @@ bin.o: boot_trampoline.bin
 	objcopy -I binary -O elf64-x86-64 -B i386:x86-64 $^ $@
 
 boot_trampoline.bin: $(BOOTOBJS)
+	@if [ $(shell make check_bin_size | grep Total | sed -e 's/Total//' | xargs -I{} printf "%d" {} ) -gt $(shell printf "%d" 0x1000) ]; then \
+	 echo "[Fatal Error] The trampoline size is too big!"; exit 1 ;\
+	fi	
 	ld $(LDFLAGS) -Tboot_trampoline.ld $^ -o $@
 
 check_bin_size: $(BOOTOBJS)
