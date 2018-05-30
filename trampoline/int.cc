@@ -17,26 +17,31 @@ extern "C" void handle_int(Regs *rs) {
 void Idt::SetupGeneric() {
   for (int i = 0; i < kIntVectorNum; i++) {
     uint8_t ist;
-    switch (i) {
-      case 8:
-        ist = 1;
-        break;
-      case 2:
-        ist = 2;
-        break;
-      case 1:
-      case 3:
-        ist = 3;
-        break;
-      case 18:
-        ist = 4;
-        break;
-      default:
-        ist = 5;
-        break;
-    };
+    // We don't use TSS and IST
+//    switch (i) {
+//      case 8:
+//        ist = 1;
+//        break;
+//      case 2:
+//        ist = 2;
+//        break;
+//      case 1:
+//      case 3:
+//        ist = 3;
+//        break;
+//      case 18:
+//        ist = 4;
+//        break;
+//      default:
+//        ist = 5;
+//        break;
+//    };
+    // mechanism of interrupt stack ref : SDM vol.3 6.14.4,5
+    ist = 0;
     SetGate(idt_vectors[i], i, 0, false, ist);
   }
+
+  // ref : SDM vol.2 LGDT/LIDT—Load Global/Interrupt Descriptor Table Register
   virt_addr idt_addr = reinterpret_cast<virt_addr>(idt_def);
   _idtr[0] = 0x10 * kIntVectorNum - 1;
   _idtr[1] = idt_addr & 0xffff;
@@ -58,23 +63,23 @@ void Idt::SetupProc() {
   asm volatile("sti;");
 }
 
-void Idt::SetGate(idt_callback gate, int vector, uint8_t dpl, bool trap,
-                  uint8_t ist) {
+void Idt::SetGate(idt_callback gate, int vector, uint8_t dpl, bool trap, uint8_t ist) {
+  // structure of IDT ref: SDM vol.3 Figure 6-7
   virt_addr vaddr = reinterpret_cast<virt_addr>(gate);
   uint32_t type = trap ? 0xF : 0xE;
   idt_def[vector].entry[0] = (vaddr & 0xFFFF) | (KERNEL_CS << 16);
   idt_def[vector].entry[1] = (vaddr & 0xFFFF0000) | (type << 8) |
-                             ((dpl & 0x3) << 13) | kIdtPresent; // | ist; TODO: using IST
+                             ((dpl & 0x3) << 13) | kIdtPresent | ist;
   idt_def[vector].entry[2] = vaddr >> 32;
   idt_def[vector].entry[3] = 0;
 
+
 }
 
-int Idt::SetIntCallback(int_callback callback, void *arg,
-                        EoiType eoi) {
+int Idt::SetIntCallback(int_callback callback, void *arg, EoiType eoi) {
   kassert(_is_gen_initialized);
 
-  for (int vector = 64; vector < 256; vector++) {
+  for (int vector = 32; vector < kIntVectorNum; vector++) {
     if (_callback[vector].callback == nullptr) {
       _callback[vector].callback = callback;
       _callback[vector].arg = arg;
@@ -85,9 +90,9 @@ int Idt::SetIntCallback(int_callback callback, void *arg,
   return ReservedIntVector::kError;
 }
 
-int Idt::SetIntCallback(int_callback *callback, void **arg,
-                        int range, EoiType eoi) {
+int Idt::SetIntCallback(int_callback *callback, void **arg, int range, EoiType eoi) {
   kassert(_is_gen_initialized);
+
   int _range = 1;
   while (_range < range) {
     _range *= 2;
@@ -95,8 +100,9 @@ int Idt::SetIntCallback(int_callback *callback, void **arg,
   if (range != _range) {
     return ReservedIntVector::kError;
   }
-  int vector = range > 64 ? range : 64;
-  for (; vector < 256; vector += range) {
+
+  int vector = range;
+  for (; vector < kIntVectorNum; vector += range) {
     int i;
     for (i = 0; i < range; i++) {
       if (_callback[vector + i].callback != nullptr) {

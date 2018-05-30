@@ -25,20 +25,19 @@ class Idt {
   };
   void SetupGeneric();
   void SetupProc();
-  // I/O等用の割り込みハンドラ
-  // 確保したvectorが返る(vector >= 64)
-  // 確保できなかった場合はReservedIntVector::kErrorが返る
-  int SetIntCallback(int_callback callback, void *arg,
-                     EoiType eoi);
-  // 一括で連続したvectorを確保する
-  // rangeは2のn乗である必要がある
-  // 戻り値は先頭vectorで、rangeで割り切れる事を保証する
-  int SetIntCallback(int_callback *callback, void **arg, int range,
-                     EoiType eoi);
-  // 例外等用の割り込みハンドラ
-  // vector < 64でなければならない
-  void SetExceptionCallback(int vector, int_callback callback,
-                            void *arg, EoiType eoi);
+
+  // Interrupt Handler for I/O
+  // Return Value : allocated vector number or ReservedIntVector::kError (if failed)
+  int SetIntCallback(int_callback callback, void *arg, EoiType eoi);
+
+  // Allocate continuing vector
+  // range == pow(2,n)
+  // Return Value : Head number of int vectors, and it's enable to divide range value 
+  //                or ReservedIntVector::kError (if failed)
+  int SetIntCallback(int_callback *callback, void **arg, int range, EoiType eoi);
+
+  // Interrupt Handler for Exception
+  void SetExceptionCallback(int vector, int_callback callback, void *arg, EoiType eoi);
 
   volatile int GetHandlingCnt() {
     if (!_is_gen_initialized) {
@@ -52,10 +51,7 @@ class Idt {
 
   static const uint16_t kIntVectorNum = 35;
  private:
-  void SetGate(idt_callback gate, int vector, uint8_t dpl, bool trap,
-               uint8_t ist);
-  static void HandlePageFault(Regs *rs, void *arg);
-  static void HandleGeneralProtectionFault(Regs *rs, void *arg);
+  void SetGate(idt_callback gate, int vector, uint8_t dpl, bool trap, uint8_t ist);
   static const uint32_t kIdtPresent = 1 << 15;
   volatile uint16_t _idtr[5];
   struct IntCallback {
