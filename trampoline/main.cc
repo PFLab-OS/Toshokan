@@ -2,6 +2,8 @@
 #include "int.h"
 #include "trampoline.h"
 
+Idt idt;
+
 void panic();
 
 // callback test
@@ -62,7 +64,6 @@ extern struct idt_entity {
 extern "C" void trampoline_main() {
   H2F h2f;
   F2H f2h;
-  Idt idt;
   idt.SetupGeneric();
   idt.SetupProc();
 

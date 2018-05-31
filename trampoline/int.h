@@ -18,26 +18,15 @@ extern "C" void handle_int(Regs *rs);
 
 class Idt {
  public:
-  enum class EoiType {
-    kNone,
-    kLapic,
-    kIoapic,
-  };
   void SetupGeneric();
   void SetupProc();
 
   // Interrupt Handler for I/O
   // Return Value : allocated vector number or ReservedIntVector::kError (if failed)
-  int SetIntCallback(int_callback callback, void *arg, EoiType eoi);
-
-  // Allocate continuing vector
-  // range == pow(2,n)
-  // Return Value : Head number of int vectors, and it's enable to divide range value 
-  //                or ReservedIntVector::kError (if failed)
-  int SetIntCallback(int_callback *callback, void **arg, int range, EoiType eoi);
+  int SetIntCallback(int_callback callback, void *arg);
 
   // Interrupt Handler for Exception
-  void SetExceptionCallback(int vector, int_callback callback, void *arg, EoiType eoi);
+  void SetExceptionCallback(int vector, int_callback callback, void *arg);
 
   volatile int GetHandlingCnt() {
     if (!_is_gen_initialized) {
@@ -47,9 +36,10 @@ class Idt {
   }
   struct ReservedIntVector {
     static const int kError = -1;
+    static const int kTest = 32;
   };
 
-  static const uint16_t kIntVectorNum = 35;
+  static const uint16_t kIntVectorNum = 33;
  private:
   void SetGate(idt_callback gate, int vector, uint8_t dpl, bool trap, uint8_t ist);
   static const uint32_t kIdtPresent = 1 << 15;
@@ -57,8 +47,8 @@ class Idt {
   struct IntCallback {
     int_callback callback;
     void *arg;
-    EoiType eoi;
   } _callback[kIntVectorNum];
+  static void HandleTest(Regs *rs, void *arg);
   friend void C::handle_int(Regs *rs);
   int _handling_cnt = 0;
   bool _is_gen_initialized = false;
