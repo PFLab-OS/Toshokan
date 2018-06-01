@@ -1,4 +1,6 @@
-/*                                                                                                                                     * format of trampoline region                                                                                                         */
+/*
+ * format of trampoline region
+ */
 // TODO refactoring
 enum MemoryMap {
   kMemoryMapJmp0x20                = 0x0,
