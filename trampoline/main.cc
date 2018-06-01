@@ -18,8 +18,11 @@ void print(H2F &h2f, F2H &f2h) {
 
 // execute binary
 void exec_bin(H2F &h2f, F2H &f2h) {
+  uint64_t address;
+  h2f.Read(0, address);
+  // TODO check address
   h2f.Return(0);
-  f2h.SendSignal(1);
+  asm volatile("call *%0"::"r"(address));
 }
 
 void rw_memory(H2F &h2f, F2H &f2h) {
@@ -50,11 +53,6 @@ void rw_memory(H2F &h2f, F2H &f2h) {
   h2f.Return(0);
 }
 
-void get_eflags(H2F &h2f, F2H &f2h) {
-  h2f.Return(0);
-  f2h.SendSignal(5);
-}
-
 extern struct idt_entity {
   uint32_t entry[4];
 } __attribute__((aligned(8))) idt_def[256];
@@ -81,9 +79,6 @@ extern "C" void trampoline_main() {
       break;
     case 4:
       rw_memory(h2f, f2h);
-      break;
-    case 5:
-      get_eflags(h2f, f2h);
       break;
     }
   }
