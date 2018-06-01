@@ -20,9 +20,8 @@ enum MemoryMap {
 };
 
 int main() {
-  int *address = (int *)kMemoryMapF2h;
-  address[0] = 1;
-  while(1) {
-    asm volatile("cli;hlt;nop;");
-  };
+  int *channel = (int *)kMemoryMapF2h;
+  channel[0] = 1;
+  asm volatile("cli;hlt;hlt;");
+  return 0;
 }

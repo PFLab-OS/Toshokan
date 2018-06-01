@@ -4,3 +4,4 @@
 .global entry
 entry:
 	jmp main
+  ret
