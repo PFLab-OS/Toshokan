@@ -68,3 +68,14 @@ Thumbs.db
 
 # Project files
 *.bin
+
+# Kernel Module Compile Results
+*.mod*
+*.cmd
+.tmp_versions/
+modules.order
+Module.symvers
+Mkfile.old
+dkms.conf
+
+.tramp_history
