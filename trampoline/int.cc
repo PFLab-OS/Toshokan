@@ -9,8 +9,30 @@ volatile uint16_t _idtr[5];
 
 extern idt_callback idt_vectors[Idt::kIntVectorNum];
 
+extern Idt idt;
+
+/* How to interrupt
+ * 1. Trigger interrupt (e.g. "int" instruction, HW interrupt, some exception).
+ * 2. All interruption invoke handle_int() with vector number. 
+ * 3. handle_int() call a appropriate callback function or system halt if no callback function.
+ *
+ * Register Callback Function
+ *  - Call SetIntCallback() or SetExceptionCallback()
+ *    - Able to pass one argument, which is saved in IntCallback _callback[];
+ */
+
 namespace C {
 extern "C" void handle_int(Regs *rs) {
+  bool iflag = disable_interrupt();
+  idt._handling_cnt++;
+  if (idt._callback[rs->n].callback == nullptr) {
+    //TODO notify to hakase 
+    kassert(false);
+  } else {
+    idt._callback[rs->n].callback(rs, idt._callback[rs->n].arg);
+  }
+  idt._handling_cnt--;
+  enable_interrupt(iflag);
 }
 }
 
@@ -51,10 +73,11 @@ void Idt::SetupGeneric() {
 
   for (int i = 0; i < kIntVectorNum; i++) {
     _callback[i].callback = nullptr;
-    _callback[i].eoi = EoiType::kNone;
   }
 
   _is_gen_initialized = true;
+
+  SetExceptionCallback(ReservedIntVector::kTest, HandleTest, nullptr);
 
 }
 
@@ -73,51 +96,29 @@ void Idt::SetGate(idt_callback gate, int vector, uint8_t dpl, bool trap, uint8_t
   idt_def[vector].entry[2] = vaddr >> 32;
   idt_def[vector].entry[3] = 0;
 
-
 }
 
-int Idt::SetIntCallback(int_callback callback, void *arg, EoiType eoi) {
+int Idt::SetIntCallback(int_callback callback, void *arg) {
   kassert(_is_gen_initialized);
 
   for (int vector = 32; vector < kIntVectorNum; vector++) {
     if (_callback[vector].callback == nullptr) {
       _callback[vector].callback = callback;
       _callback[vector].arg = arg;
-      _callback[vector].eoi = eoi;
       return vector;
     }
   }
   return ReservedIntVector::kError;
 }
 
-int Idt::SetIntCallback(int_callback *callback, void **arg, int range, EoiType eoi) {
+void Idt::SetExceptionCallback(int vector, int_callback callback, void *arg) {
   kassert(_is_gen_initialized);
 
-  int _range = 1;
-  while (_range < range) {
-    _range *= 2;
-  }
-  if (range != _range) {
-    return ReservedIntVector::kError;
-  }
+  _callback[vector].callback = callback;
+  _callback[vector].arg = arg;
+}
 
-  int vector = range;
-  for (; vector < kIntVectorNum; vector += range) {
-    int i;
-    for (i = 0; i < range; i++) {
-      if (_callback[vector + i].callback != nullptr) {
-        break;
-      }
-    }
-    if (i != range) {
-      continue;
-    }
-    for (i = 0; i < range; i++) {
-      _callback[vector + i].callback = callback[i];
-      _callback[vector + i].arg = arg[i];
-      _callback[vector + i].eoi = eoi;
-    }
-    return vector;
-  }
-  return ReservedIntVector::kError;
+void Idt::HandleTest(Regs *rs, void *arg) {
+  // This is test code
+
 }
