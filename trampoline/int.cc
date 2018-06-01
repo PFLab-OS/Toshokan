@@ -11,6 +11,16 @@ extern idt_callback idt_vectors[Idt::kIntVectorNum];
 
 extern Idt idt;
 
+/* How to interrupt
+ * 1. Trigger interrupt (e.g. "int" instruction, HW interrupt, some exception).
+ * 2. All interruption invoke handle_int() with vector number. 
+ * 3. handle_int() call a appropriate callback function or system halt if no callback function.
+ *
+ * Register Callback Function
+ *  - Call SetIntCallback() or SetExceptionCallback()
+ *    - Able to pass one argument, which is saved in IntCallback _callback[];
+ */
+
 namespace C {
 extern "C" void handle_int(Regs *rs) {
   bool iflag = disable_interrupt();
