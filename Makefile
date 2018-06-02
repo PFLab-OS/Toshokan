@@ -4,10 +4,10 @@ TESTS = callback print
 default: test
 
 init.bin: init.cc
-	g++ -iquote . $(CXXFLAGS) $^ -o $@
+	g++ -iquote . -iquote include $(CXXFLAGS) $^ -o $@
 
 %.bin: %.cc test.cc
-	g++ -iquote . $(CXXFLAGS) $^ -o $@
+	g++ -iquote . -iquote include $(CXXFLAGS) $^ -o $@
 
 test:
 	make -C result test

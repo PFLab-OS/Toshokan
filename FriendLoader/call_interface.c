@@ -4,7 +4,7 @@
 
 #include "call_interface.h"
 #include "common.h"
-#include "memory.h"
+#include "_memory.h"
 
 static struct kobject *call_sysfs_kobj;
 
