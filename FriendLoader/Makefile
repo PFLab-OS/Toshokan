@@ -6,11 +6,11 @@ KERN_SRC ?= /lib/modules/$(shell uname -r)/build
 .PHONY: all clean trampoline/bin.o
 
 all: trampoline/bin.o
-	$(MAKE) -C $(KERN_SRC) M=$(PWD) modules
+	$(MAKE) -C $(KERN_SRC) M=$(CURDIR) modules
 
 trampoline/bin.o:
 	$(MAKE) -C trampoline
 
 clean:
-	$(MAKE) -C $(KERN_SRC) M=$(PWD) clean
+	$(MAKE) -C $(KERN_SRC) M=$(CURDIR) clean
 	$(MAKE) -C trampoline clean

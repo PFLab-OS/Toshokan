@@ -1,5 +1,5 @@
 TESTS = callback print
-INCLUDE_DIR = $(PWD)/../include
+INCLUDE_DIR = $(CURDIR)/../include
 CXXFLAGS = -g -O0 -Wall --std=c++14 -iquote $(INCLUDE_DIR)
 export INCLUDE_DIR
 export CXXFLAGS
