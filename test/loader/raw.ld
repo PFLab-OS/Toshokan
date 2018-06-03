@@ -1,6 +1,6 @@
 OUTPUT_FORMAT(binary);
 
-ENTRY (entry)
+ENTRY (main)
 
 SECTIONS{
   .text : {
