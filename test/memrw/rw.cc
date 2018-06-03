@@ -1,5 +1,5 @@
 #include <time.h>
-#include "test.h"
+#include "../test.h"
 #include "channel.h"
 #include "memrw.h"
 

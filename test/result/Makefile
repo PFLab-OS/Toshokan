@@ -1,11 +1,10 @@
-CXXFLAGS = -g -O0 -Wall --std=c++14
 NORMAL_TESTS = unwrap_when_noerror ignore_when_error
 ABORT_TESTS = unwrap_when_error notchecked_when_noerror notchecked_when_error ignore_when_noerror 
 
 default: test
 
 %.bin: %.cc
-	g++ -iquote .. $(CXXFLAGS) $^ -o $@
+	g++ $(CXXFLAGS) $^ -o $@
 
 test:
 	@$(foreach test, $(NORMAL_TESTS), make $(test).bin; ../test_library.sh 0 $(shell pwd)/$(test).bin; )

@@ -5,18 +5,18 @@
 
 cd `dirname $0`
 if [ -f $2 ]; then
-    pushd ./FriendLoader
+    pushd ../FriendLoader
     ./run.sh run
     popd
 
-    trap 'pushd ./FriendLoader; ./run.sh stop; popd' SIGINT
+    trap 'pushd ../FriendLoader; ./run.sh stop; popd' SIGINT
 
     sudo ./test_library.sh $*
     rval=$?
 
     trap SIGINT
     
-    pushd ./FriendLoader
+    pushd ../FriendLoader
     ./run.sh stop
     popd
     exit $rval
