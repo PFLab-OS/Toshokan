@@ -77,5 +77,6 @@ modules.order
 Module.symvers
 Mkfile.old
 dkms.conf
+*.ko
 
 .tramp_history
