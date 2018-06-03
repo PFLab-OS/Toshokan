@@ -15,4 +15,4 @@ test:
 	@$(foreach test, $(TESTS), make $(test).bin; ../test_hakase.sh 0 $(shell pwd)/$(test).bin; )
 
 clean:
-	-rm *.bin raw_bin.o
+	rm -f *.bin raw_bin.o

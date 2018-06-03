@@ -11,4 +11,4 @@ test:
 	@$(foreach test, $(ABORT_TESTS), make $(test).bin; ../test_library.sh 1 $(shell pwd)/$(test).bin; )
 
 clean:
-	-rm $(foreach test, $(NORMAL_TESTS) $(ABORT_TESTS), $(test).bin)
+	rm -f $(foreach test, $(NORMAL_TESTS) $(ABORT_TESTS), $(test).bin)

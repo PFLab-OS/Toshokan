@@ -23,7 +23,7 @@ test:
 	@echo "All tests have successfully finished!"
 
 clean:
-	-rm *.bin
+	rm -f *.bin
 	make -C memrw clean
 	make -C result clean
 	make -C loader clean

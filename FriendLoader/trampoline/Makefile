@@ -26,4 +26,4 @@ check_bin_size: $(BOOTOBJS)
 	@rm $(tmpf) $(tmpbin)
 
 clean:
-	-rm *.o boot_trampoline.bin
+	rm -f *.o boot_trampoline.bin
