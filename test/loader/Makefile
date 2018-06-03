@@ -2,7 +2,7 @@ TESTS = exec
 
 default: test
 
-raw.bin: raw.cc start_raw.S
+raw.bin: raw.cc
 	g++ -O0 -Wall --std=c++14 -fpie -nostdinc -nostdlib -iquote $(INCLUDE_DIR) -T raw.ld $^ -o $@
 
 raw_bin.o: raw.bin
