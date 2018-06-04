@@ -9,8 +9,8 @@ all: trampoline/bin.o
 	$(MAKE) -C $(KERN_SRC) M=$(CURDIR) modules
 
 trampoline/bin.o:
-	$(MAKE) -C trampoline
+	$(MAKE) -f build_rule.mk -C trampoline
 
 clean:
 	$(MAKE) -C $(KERN_SRC) M=$(CURDIR) clean
-	$(MAKE) -C trampoline clean
+	$(MAKE) -f build_rule.mk -C trampoline clean
