@@ -1,6 +1,7 @@
 TESTS = callback print
 INCLUDE_DIR = $(CURDIR)/../include
 CXXFLAGS = -g -O0 -Wall --std=c++14 -iquote $(INCLUDE_DIR)
+MAKE := $(MAKE) -f build_rule.mk
 export INCLUDE_DIR
 export CXXFLAGS
 
@@ -13,17 +14,17 @@ init.bin: init.cc
 	g++ $(CXXFLAGS) $^ -o $@
 
 test:
-	make -C result test
+	$(MAKE) -C result test
 	cd ../FriendLoader; ./run.sh load;
-	make init.bin; ./test_hakase.sh 0 ./init.bin
-	@$(foreach test, $(TESTS), make $(test).bin; ./test_hakase.sh 0 ./$(test).bin; )
-	make -C memrw test
-	make -C loader test
+	$(MAKE) init.bin; ./test_hakase.sh 0 ./init.bin
+	@$(foreach test, $(TESTS), $(MAKE) $(test).bin; ./test_hakase.sh 0 ./$(test).bin; )
+	$(MAKE) -C memrw test
+	$(MAKE) -C loader test
 	cd ../FriendLoader; ./run.sh unload
 	@echo "All tests have successfully finished!"
 
 clean:
 	rm -f *.bin
-	make -C memrw clean
-	make -C result clean
-	make -C loader clean
+	$(MAKE) -C memrw clean
+	$(MAKE) -C result clean
+	$(MAKE) -C loader clean

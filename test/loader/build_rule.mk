@@ -1,4 +1,5 @@
 TESTS = exec
+MAKE := $(MAKE) -f build_rule.mk
 
 default: test
 
@@ -12,7 +13,7 @@ exec.bin: exec.cc raw_bin.o ../test.cc
 	g++ $(CXXFLAGS) $^ -o $@
 
 test:
-	@$(foreach test, $(TESTS), make $(test).bin; ../test_hakase.sh 0 $(shell pwd)/$(test).bin; )
+	@$(foreach test, $(TESTS), $(MAKE) $(test).bin; ../test_hakase.sh 0 $(shell pwd)/$(test).bin; )
 
 clean:
 	rm -f *.bin raw_bin.o
