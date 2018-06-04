@@ -22,4 +22,5 @@ default: test
 test:
 	$(call make_wrapper,test)
 
-
+clean:
+	$(call make_wrapper,clean)
