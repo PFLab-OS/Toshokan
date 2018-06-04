@@ -11,13 +11,16 @@
 # unload: unload kernel module
 
 if [ $# -ge 1 ]; then
+    uname -r | grep hakase > /dev/null 2>&1 || (echo "error: must be run on hakase kernel"; exit 1)
+    if [ ! -e friend_loader.ko ]; then
+        echo "error: make friend loader kernel module first!"
+        exit 1
+    fi
     case $1 in
 	      "load" )
-            uname -r | grep hakase > /dev/null 2>&1 || (echo "error: must be run on hakase kernel"; exit 1)
 	          if [ `lsmod | grep friend_loader | wc -l` -ge 1 ]; then
 		            sudo rmmod friend_loader.ko
 	          fi
-	          make all
 	          sudo insmod friend_loader.ko
 	          ;;
 	      "deploy" )
@@ -29,7 +32,6 @@ if [ $# -ge 1 ]; then
 	          ;;
 	      "run" )
 	          if [ `lsmod | grep friend_loader | wc -l` -eq 0 ]; then
-		            make all
 		            sudo insmod friend_loader.ko
 	          fi
 	          sudo sh -c "echo 1 > /sys/module/friend_loader/parameters/boot"
@@ -43,7 +45,6 @@ if [ $# -ge 1 ]; then
 	          if [ `lsmod | grep friend_loader | wc -l` -ge 1 ]; then
 		            sudo sh -c "echo 0 > /sys/module/friend_loader/parameters/boot"
 	          else
-		            make all
 		            sudo insmod friend_loader.ko
 	          fi
 	          sudo sh -c "echo 1 > /sys/module/friend_loader/parameters/boot"

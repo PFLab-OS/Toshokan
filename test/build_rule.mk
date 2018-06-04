@@ -15,7 +15,7 @@ init.bin: init.cc
 
 test:
 	$(MAKE) -C result test
-	cd ../FriendLoader; ./run.sh load;
+	cd ../FriendLoader; make all; ./run.sh load;
 	$(MAKE) init.bin; ./test_hakase.sh 0 ./init.bin
 	@$(foreach test, $(TESTS), $(MAKE) $(test).bin; ./test_hakase.sh 0 ./$(test).bin; )
 	$(MAKE) -C memrw test
@@ -25,6 +25,7 @@ test:
 
 clean:
 	rm -f *.bin
+	cd ../FriendLoader; make clean
 	$(MAKE) -C memrw clean
 	$(MAKE) -C result clean
 	$(MAKE) -C loader clean
