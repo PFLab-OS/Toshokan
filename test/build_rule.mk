@@ -17,7 +17,7 @@ test:
 	$(MAKE) -C result test
 	cd ../FriendLoader; make all; ./run.sh load;
 	$(MAKE) init.bin; ./test_hakase.sh 0 ./init.bin
-	@$(foreach test, $(TESTS), $(MAKE) $(test).bin && ./test_hakase.sh 0 ./$(test).bin; )
+	@$(foreach test, $(TESTS), $(MAKE) $(test).bin && ./test_hakase.sh 0 ./$(test).bin && ) :
 	$(MAKE) -C memrw test
 	$(MAKE) -C loader test
 	cd ../FriendLoader; ./run.sh unload

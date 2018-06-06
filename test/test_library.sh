@@ -24,10 +24,13 @@ if [ -f $2 ]; then
     fi
     if [ $mes = 1 ]; then
         echo -e "\e[32m$1: PASSED\e[m"
+        exit 0
     else
         echo -e "\e[31m$1: FAILED\e[m"
+        exit 1
     fi
 else
     echo -e "\e[31m$2: FAILED\e[m"
+    exit 1
 fi
    
