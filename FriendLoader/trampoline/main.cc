@@ -55,10 +55,6 @@ void rw_memory(H2F &h2f, F2H &f2h) {
   h2f.Return(0);
 }
 
-extern struct idt_entity {
-  uint32_t entry[4];
-} __attribute__((aligned(8))) idt_def[256];
-
 extern "C" void trampoline_main() {
   H2F h2f;
   F2H f2h;
