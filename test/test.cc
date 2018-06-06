@@ -5,7 +5,7 @@
 #include "channel.h"
 #include "test.h"
 
-int main(int argc, char **argv) {
+int main(int argc, const char **argv) {
   int configfd_h2f = open("/sys/module/friend_loader/call/h2f", O_RDWR);
   int configfd_f2h = open("/sys/module/friend_loader/call/f2h", O_RDWR);
   if(configfd_h2f < 0 || configfd_f2h < 0) {
@@ -22,7 +22,7 @@ int main(int argc, char **argv) {
   F2H f2h(f2h_address);
   H2F h2f(h2f_address);
 
-  int rval = test_main(f2h, h2f);
+  int rval = test_main(f2h, h2f, argc, argv);
   
   close(configfd_h2f);
   close(configfd_f2h);

@@ -3,7 +3,7 @@
 #include "../test.h"
 #include "channel.h"
 
-int test_main(F2H &f2h, H2F &h2f) {
+int test_main(F2H &f2h, H2F &h2f, int argc, const char **argv) {
   static const uint32_t kRead = 0;
   static const uint64_t address = 0;
   uint8_t *h2f_buf = h2f.GetRawPtr<uint8_t>() + 2048 / sizeof(uint8_t);

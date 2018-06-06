@@ -2,7 +2,7 @@
 #include "../test.h"
 #include "channel.h"
 
-int test_main(F2H &f2h, H2F &h2f) {
+int test_main(F2H &f2h, H2F &h2f, int argc, const char **argv) {
   static const uint32_t kInvalid = 2;
   h2f.Reserve();
   h2f.Write(0, kInvalid);
