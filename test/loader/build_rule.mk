@@ -1,12 +1,12 @@
-TESTS = exec
+TESTS = hakase
 MAKE := $(MAKE) -f build_rule.mk
 
 default: test
 
 raw.bin: raw.cc
-	g++ -O0 -Wall --std=c++14 -fpie -nostdinc -nostdlib -iquote $(INCLUDE_DIR) -T raw.ld $^ -o $@
+	g++ -O0 -Wall --std=c++14 -fpie -nostdinc -nostdlib  $(foreach dir, $(INCLUDE_DIR), -iquote $(dir)) -T raw.ld $^ -o $@
 
-exec.bin: exec.cc ../test.cc
+hakase.bin: hakase.cc ../test.cc ../../simple_loader/hakase.cc
 	g++ $(CXXFLAGS) $^ -o $@
 
 test:
