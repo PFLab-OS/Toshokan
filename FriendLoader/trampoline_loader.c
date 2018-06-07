@@ -1,6 +1,6 @@
 #include "trampoline_loader.h"
 #include "deploy.h"
-#include "_memory.h"
+#include "common/_memory.h"
 #include <asm/realmode.h>
 
 static uint8_t jmp_bin[] = {0xeb, 0x1e, 0x66, 0x90}; // jmp 0x20; xchg %ax, &ax

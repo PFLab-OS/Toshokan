@@ -13,7 +13,7 @@
 
 #include "type.h"
 
-#include "_memory.h"
+#include "common/_memory.h"
 
 static_assert(static_cast<uint64_t>(MemoryMap::kPml4t) == PML4T, "");
 static_assert(static_cast<uint64_t>(MemoryMap::kPdpt)  == PDPT, "");

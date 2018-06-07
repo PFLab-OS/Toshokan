@@ -1,5 +1,5 @@
 #include "hakase.h"
-#include "memrw.h"
+#include "common/memrw.h"
 
 int SimpleLoader::Deploy() {
   while(true) {

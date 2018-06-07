@@ -1,7 +1,7 @@
 #include <time.h>
 #include "../test.h"
-#include "channel.h"
-#include "memrw.h"
+#include "common/channel.h"
+#include "common/memrw.h"
 
 int test_main(F2H &f2h, H2F &h2f, int argc, const char **argv) {
   static const uint32_t kRead = 0;

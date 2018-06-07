@@ -1,5 +1,5 @@
 #include "../test.h"
-#include "result.h"
+#include "common/result.h"
 
 int main(int argc, char **argv) {
   Result<bool> r(true);

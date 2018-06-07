@@ -1,5 +1,5 @@
 TESTS = callback print
-INCLUDE_DIR = $(CURDIR)/.. $(CURDIR)/../include
+INCLUDE_DIR = $(CURDIR)/..
 CXXFLAGS = -g -O0 -Wall --std=c++14 $(foreach dir, $(INCLUDE_DIR), -iquote $(dir))
 MAKE := $(MAKE) -f build_rule.mk
 export INCLUDE_DIR

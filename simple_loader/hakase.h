@@ -2,7 +2,7 @@
 #include <stdint.h>
 #include <vector>
 #include <memory>
-#include "channel.h"
+#include "common/channel.h"
 
 static const uint64_t kDeployAddressStart = 0x100000;
 

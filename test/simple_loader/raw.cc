@@ -1,5 +1,5 @@
 using uint64_t = __UINT64_TYPE__;
-#include "_memory.h"
+#include "common/_memory.h"
 
 int main() __attribute__ ((section (".text.boot")));
 
