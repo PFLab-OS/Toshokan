@@ -48,7 +48,6 @@ class Idt {
     int_callback callback;
     void *arg;
   } _callback[kIntVectorNum];
-  static void HandleTest(Regs *rs, void *arg);
   friend void C::handle_int(Regs *rs);
   int _handling_cnt = 0;
   bool _is_gen_initialized = false;

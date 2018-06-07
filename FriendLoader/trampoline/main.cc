@@ -55,6 +55,29 @@ void rw_memory(H2F &h2f, F2H &f2h) {
   h2f.Return(0);
 }
 
+static void HandleTest(Regs *rs, void *arg) {
+  // This is test code
+  F2H *f2h = reinterpret_cast<F2H*>(arg);
+  f2h->Write(8, rs->n);
+}
+
+void interrupt_test(H2F &h2f, F2H &f2h) {
+  h2f.Return(0);
+
+  idt.SetExceptionCallback(Idt::ReservedIntVector::kTest, HandleTest, &f2h);
+
+  uint32_t vector_num;
+
+  h2f.Read(0, vector_num);
+
+  if (vector_num == 32) {
+    asm volatile("int $32");
+    f2h.SendSignal(5);
+  }
+
+  panic();
+}
+
 extern "C" void trampoline_main() {
   H2F h2f;
   F2H f2h;
@@ -76,6 +99,9 @@ extern "C" void trampoline_main() {
       break;
     case 4:
       rw_memory(h2f, f2h);
+      break;
+    case 5:
+      interrupt_test(h2f, f2h);
       break;
     }
   }
