@@ -10,6 +10,7 @@ hakase.bin: hakase.cc ../test.cc ../../simple_loader/hakase.cc
 	g++ $(CXXFLAGS) $^ -o $@
 
 test:
+	$(MAKE) raw.bin
 	@$(foreach test, $(TESTS), $(MAKE) $(test).bin && ../test_hakase.sh 0 $(shell pwd)/$(test).bin $(shell pwd)/raw.bin &&) :
 
 clean:
