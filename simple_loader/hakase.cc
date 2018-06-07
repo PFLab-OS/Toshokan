@@ -33,7 +33,7 @@ std::unique_ptr<SimpleLoader::BinaryFile> SimpleLoader::BinaryFile::Load(const c
     std::pair<size_t, uint8_t *> p = std::make_pair(sz, buf);
     that->_data.push_back(p);
   }
-      
+  
   fclose(fp);
   that->_it = that->_data.begin();
   return that;

@@ -10,6 +10,9 @@ default: test
 init.bin: init.cc
 	g++ $(CXXFLAGS) $^ -o $@
 
+print.bin: print.cc test.cc ../print/hakase.cc
+	g++ $(CXXFLAGS) $^ -o $@
+
 %.bin: %.cc test.cc
 	g++ $(CXXFLAGS) $^ -o $@
 
