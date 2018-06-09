@@ -33,4 +33,4 @@ clean:
 	cd ../FriendLoader; make clean
 	$(MAKE) -C memrw clean
 	$(MAKE) -C result clean
-	$(MAKE) -C simple_loader clean
+	$(MAKE) -C ../simple_loader/test clean
