@@ -1,5 +1,7 @@
 #include "hakase.h"
 #include "common/memrw.h"
+#include <stdio.h>
+#include <assert.h>
 
 int SimpleLoader::Deploy() {
   while(true) {
