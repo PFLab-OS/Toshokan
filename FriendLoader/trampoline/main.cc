@@ -33,10 +33,12 @@ void rw_memory(H2F &h2f, F2H &f2h) {
   
   uint32_t type;
   uint64_t address_;
-  uint64_t *buf = h2f.GetRawPtr<uint64_t>() + 2048 / sizeof(uint64_t);
+  uint64_t size;
+  uint8_t *buf = h2f.GetRawPtr<uint8_t>() + 2048;
   
   h2f.Read(0, type);
   h2f.Read(8, address_);
+  h2f.Read(16, size);
 
   if (address_ + 2048 / sizeof(uint64_t) >= 1024 * 1024 * 1024 /* 1GB */) {
     // avoid accessing to page unmapped region
@@ -44,13 +46,13 @@ void rw_memory(H2F &h2f, F2H &f2h) {
     return;
   }
   
-  uint64_t *address = reinterpret_cast<uint64_t *>(address_);
+  uint8_t *address = reinterpret_cast<uint8_t *>(address_);
   if (type == kRead) {
-    for(int i = 0; i < 2048 / sizeof(uint64_t); i++) {
+    for(int i = 0; i < size; i++) {
       buf[i] = address[i];
     }
   } else if (type == kWrite) {
-    for(int i = 0; i < 2048 / sizeof(uint64_t); i++) {
+    for(int i = 0; i < size; i++) {
       address[i] = buf[i];
     }
   } else {

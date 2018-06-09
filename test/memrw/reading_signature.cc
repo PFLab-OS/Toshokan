@@ -13,6 +13,7 @@ int test_main(F2H &f2h, H2F &h2f, int argc, const char **argv) {
   
   h2f.Write(0, kRead);
   h2f.Write(8, address);
+  h2f.Write(16, sizeof(signature) / sizeof(*signature));
 
   assert(h2f.SendSignal(4) == 0);
 

@@ -1,4 +1,4 @@
-TESTS = data_size invalid reading_signature rw
+TESTS = data_size invalid reading_signature rw_small rw_large
 MAKE := $(MAKE) -f build_rule.mk
 
 default: test

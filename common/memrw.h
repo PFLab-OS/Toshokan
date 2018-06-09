@@ -5,51 +5,34 @@
 #include "channel.h"
 
 namespace MemoryAccessor {
-  class DataSize {
-  public:
-    static Result<DataSize> Create(const int val) {
-      if (val > 2048) {
-        return Result<DataSize>();
-      } else {
-        return Result<DataSize>(DataSize(val));
-      }
-    }
-    const int Get() const {
-      return _val;
-    }
-  private:
-    friend class Result<DataSize>;
-    DataSize(const int val) : _val(val) {
-      assert(_val <= 2048);
-    }
-    DataSize() : _val(0) {
-    }
-    const int _val;
+  static const size_t kTransferSize = 2048;
+  
+  class MemoryAccessorBase {
+  protected:
+    static const size_t kTransferDataOffset = 2048;
   };
-
-  class Writer {
+  
+  class Writer : public MemoryAccessorBase {
   public:
-    Writer(Channel &ch, const uint64_t address, const DataSize size) : _ch(ch), _address(address), _size(size) {
-      _ch.Reserve();
-      _ch.Write(0, kSignatureWrite);
-      _ch.Write(8, address);
+    Writer(Channel &ch, const uint64_t address, void *buf, size_t size) : _ch(ch), _address(address), _buf(reinterpret_cast<uint8_t *>(buf)), _size(size) {
     }
     Writer() = delete;
     
-    Result<bool> Copy(void *buf) {
-      if (_copied) {
-        return Result<bool>();
-      }
-      uint8_t *ch_buf = _ch.GetRawPtr<uint8_t>() + 2048 / sizeof(uint8_t);
-      memcpy(ch_buf, buf, _size.Get());
-      _copied = true;
-      return Result<bool>(true);
-    }
     Result<bool> Do() {
-      if (!_copied) {
-        return Result<bool>();
+      for(size_t offset = 0; offset < _size; offset += kTransferSize) {
+        size_t size = (_size - offset) > kTransferSize ? kTransferSize : (_size - offset);
+        
+        _ch.Reserve();
+        _ch.Write(0, kSignatureWrite);
+        _ch.Write(8, _address + offset);
+        _ch.Write(16, size);
+        
+        uint8_t *ch_buf = _ch.GetRawPtr<uint8_t>() + kTransferDataOffset;
+        memcpy(ch_buf, _buf + offset, size);
+        if (_ch.SendSignal(4) != 0) {
+          return Result<bool>();
+        }
       }
-      assert(_ch.SendSignal(4) == 0);
       return Result<bool>(true);
     }
   private:
@@ -57,7 +40,7 @@ namespace MemoryAccessor {
     static const uint32_t kSignatureWrite = 1;
     Channel &_ch;
     const uint64_t _address;
-    const DataSize _size;
-    bool _copied = false;
+    uint8_t *_buf;
+    size_t _size;
   };
 }
