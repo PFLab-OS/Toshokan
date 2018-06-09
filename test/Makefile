@@ -7,7 +7,7 @@ endef
 define make_wrapper
 	$(if $(shell if [ -e /etc/hakase_installed ]; then echo "guest"; fi), \
 	  # guest environment
-    cd /vagrant; $(MAKE) -f $(BUILD_RULE_FILE) $(1), \
+    $(MAKE) -f $(BUILD_RULE_FILE) $(1), \
 	  # host environment
 	  @echo Running \"make $(1)\" on the remote build environment.
 	  @vagrant status | grep running > /dev/null 2>&1 || vagrant reload
