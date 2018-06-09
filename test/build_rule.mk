@@ -2,8 +2,10 @@ TESTS = callback print
 INCLUDE_DIR = $(CURDIR)/..
 CXXFLAGS = -g -O0 -Wall --std=c++14 $(foreach dir, $(INCLUDE_DIR), -iquote $(dir))
 MAKE := $(MAKE) -f build_rule.mk
+TEST_DIR = $(CURDIR)
 export INCLUDE_DIR
 export CXXFLAGS
+export TEST_DIR
 
 default: test
 
@@ -22,7 +24,7 @@ test:
 	$(MAKE) init.bin; ./test_hakase.sh 0 ./init.bin
 	@$(foreach test, $(TESTS), $(MAKE) $(test).bin && ./test_hakase.sh 0 ./$(test).bin && ) :
 	$(MAKE) -C memrw test
-	$(MAKE) -C simple_loader test
+	$(MAKE) -C ../simple_loader/test test
 	cd ../FriendLoader; ./run.sh unload
 	@echo "All tests have successfully finished!"
 
