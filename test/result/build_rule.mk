@@ -1,4 +1,4 @@
-NORMAL_TESTS = unwrap_when_noerror ignore_when_error
+NORMAL_TESTS = unwrap_when_noerror ignore_when_error return_error return_noerror
 ABORT_TESTS = unwrap_when_error notchecked_when_noerror notchecked_when_error ignore_when_noerror 
 MAKE := $(MAKE) -f build_rule.mk 
 
