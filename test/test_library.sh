@@ -7,7 +7,11 @@ cd `dirname $0`
 if [ -f $2 ]; then
     crash_flag=$1
     shift
-    $*
+    if [ $crash_flag = 0 ]; then
+        $*
+    else
+        $* 2>/dev/null
+    fi
     ret=$?
     if [ $crash_flag = 0 ]; then
         if [ $ret -eq 0 ]; then
