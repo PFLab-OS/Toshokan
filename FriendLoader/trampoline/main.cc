@@ -38,6 +38,12 @@ void rw_memory(H2F &h2f, F2H &f2h) {
   h2f.Read(0, type);
   h2f.Read(8, address_);
 
+  if (address_ + 2048 / sizeof(uint64_t) >= 1024 * 1024 * 1024 /* 1GB */) {
+    // avoid accessing to page unmapped region
+    h2f.Return(-1);
+    return;
+  }
+  
   uint64_t *address = reinterpret_cast<uint64_t *>(address_);
   if (type == kRead) {
     for(int i = 0; i < 2048 / sizeof(uint64_t); i++) {
