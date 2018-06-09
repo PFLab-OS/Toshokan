@@ -11,10 +11,12 @@ int test_main(F2H &f2h, H2F &h2f, int argc, const char **argv) {
   }
   
   SimpleLoader sl(h2f, std::move(file));
-  
-  if (sl.Deploy() != 0) {
+
+  auto r = sl.Deploy();
+  if (r.IsError()) {
     return 1;
   }
+  r.Unwrap();
 
   h2f.Reserve();
   h2f.Write(0, kDeployAddressStart);

@@ -3,12 +3,13 @@
 #include <stdio.h>
 #include <assert.h>
 
-int SimpleLoader::Deploy() {
+Result<bool> SimpleLoader::Deploy() {
   while(true) {
     auto dd = _file->GetData();
     if (!dd) {
-      return 0;
+      return Result<bool>(true);
     }
+
     MemoryAccessor::Writer mw(_h2f, kDeployAddressStart + dd->_offset, MemoryAccessor::DataSize::Create(dd->_size).Unwrap());
     mw.Copy(dd->_buf).Unwrap();
     mw.Do().Unwrap();

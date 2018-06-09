@@ -3,6 +3,7 @@
 #include <vector>
 #include <memory>
 #include "common/channel.h"
+#include "common/result.h"
 
 static const uint64_t kDeployAddressStart = 0x100000;
 
@@ -46,7 +47,7 @@ public:
   SimpleLoader(H2F &h2f, std::unique_ptr<BinaryFile> file) : _h2f(h2f), _file(std::move(file)) {
   }
   SimpleLoader() = delete;
-  int Deploy();
+  Result<bool> Deploy();
 private:
   H2F &_h2f;
   std::unique_ptr<BinaryFile> _file;
