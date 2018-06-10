@@ -77,8 +77,6 @@ void Idt::SetupGeneric() {
 
   _is_gen_initialized = true;
 
-  SetExceptionCallback(ReservedIntVector::kTest, HandleTest, nullptr);
-
 }
 
 void Idt::SetupProc() {
@@ -118,7 +116,3 @@ void Idt::SetExceptionCallback(int vector, int_callback callback, void *arg) {
   _callback[vector].arg = arg;
 }
 
-void Idt::HandleTest(Regs *rs, void *arg) {
-  // This is test code
-
-}

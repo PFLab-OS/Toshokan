@@ -1,4 +1,4 @@
-TESTS = callback print
+TESTS = callback print interrupt
 INCLUDE_DIR = $(CURDIR)/..
 CXXFLAGS = -g -O0 -Wall --std=c++14 $(foreach dir, $(INCLUDE_DIR), -iquote $(dir))
 MAKE := $(MAKE) -f build_rule.mk
