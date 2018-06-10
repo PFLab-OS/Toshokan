@@ -71,7 +71,7 @@ int cpu_start() {
   return boot_error;
 }
 
-int __exit cpu_replug(void) {
+int cpu_replug(void) {
   int ret = cpu_up(unpluged_cpu);
   if (unpluged_cpu < 0) {
     return -1;
