@@ -27,14 +27,14 @@ else
 ifneq ($(PWD),$(CURDIR))
 RECURSIVE=true
 endif
-ROOT_DIR=$(dir $(abspath $(lastword $(MAKEFILE_LIST))))
+ROOT_DIR:=$(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 TEST_DIR=$(ROOT_DIR)tests/
-BUILD_DIR = $(ROOT_DIR)build/
+MODULE_DIR = $(ROOT_DIR)build/
 
 MODULES=simple_loader elf_loader
 
-CXXFLAGS = -g -O0 -Wall --std=c++14 -iquote $(ROOT_DIR)
-LDFLAGS = -L$(BUILD_DIR)
+CXXFLAGS = -g -O0 -MMD -MP -Wall --std=c++14 -iquote $(ROOT_DIR)
+LDFLAGS = -L$(MODULE_DIR)
 LDLIBS = $(foreach lib, $(MODULES), -l$(lib))
 
 load:
@@ -49,7 +49,7 @@ ifeq ($(RECURSIVE),)
 	@cd $(ROOT_DIR)FriendLoader; ./run.sh unload
 endif
 
-$(BUILD_DIR):
-	mkdir -p $(BUILD_DIR)
+$(MODULE_DIR):
+	mkdir -p $(MODULE_DIR)
 
 endif

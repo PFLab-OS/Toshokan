@@ -3,17 +3,20 @@ include ../build_rule.mk
 ifeq ($(HOST),)
 
 MODULE_NAME = lib$(notdir $(CURDIR)).a
-TESTS = hakase
+OBJS := hakase.o
+DEPS := $(OBJS:%.o=%.d)
 .DEFAULT_GOAL:=all
+
+-include $(DEPS)
 
 .PHONY: all
 
-all: $(BUILD_DIR)$(MODULE_NAME)
+all: $(MODULE_DIR)$(MODULE_NAME)
 
-$(BUILD_DIR)$(MODULE_NAME): $(BUILD_DIR) hakase.o
-	ar rcs $(BUILD_DIR)$(MODULE_NAME) hakase.o
+$(MODULE_DIR)$(MODULE_NAME): $(MODULE_DIR) $(OBJS)
+	ar rcs $(MODULE_DIR)$(MODULE_NAME) $(OBJS)
 
 clean:
-	rm -f $(BUILD_DIR)$(MODULE_NAME) *.o
+	rm -f $(MODULE_DIR)$(MODULE_NAME) $(OBJS) $(DEPS)
 
 endif
