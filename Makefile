@@ -2,9 +2,12 @@ include build_rule.mk
 ifeq ($(HOST),)
 
 SUB_DIRS=simple_loader elf_loader
-.DEFAULT_GOAL:=test
+.DEFAULT_GOAL:=all
 
-.PHONY: test
+.PHONY: all test
+
+all:
+	@$(foreach dir, $(SUB_DIRS), $(MAKE) -C $(dir) all &&) :
 
 test:
 	$(MAKE) load
@@ -13,6 +16,7 @@ test:
 	@echo "All tests have successfully finished!"
 
 clean:
+	@$(foreach dir, $(SUB_DIRS), $(MAKE) -C $(dir) clean;)
 	@$(foreach dir, $(SUB_DIRS), $(MAKE) -C $(dir)/test clean;)
 
 endif

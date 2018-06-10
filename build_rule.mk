@@ -29,6 +29,7 @@ RECURSIVE=true
 endif
 ROOT_DIR=$(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 TEST_DIR=$(ROOT_DIR)tests/
+BUILD_DIR = $(ROOT_DIR)build/
 
 CXXFLAGS = -g -O0 -Wall --std=c++14 -iquote $(ROOT_DIR)
 
@@ -43,5 +44,8 @@ ifeq ($(RECURSIVE),)
 	@echo "info: Stopping FriendLoader"
 	@cd $(ROOT_DIR)FriendLoader; ./run.sh unload
 endif
+
+$(BUILD_DIR):
+	mkdir -p $(BUILD_DIR)
 
 endif

@@ -68,6 +68,7 @@ Thumbs.db
 
 # Project files
 *.bin
+build
 
 # Kernel Module Compile Results
 *.mod*
