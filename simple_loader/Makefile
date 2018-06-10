@@ -2,7 +2,7 @@ include ../build_rule.mk
 
 ifeq ($(HOST),)
 
-MODULE_NAME = $(notdir $(CURDIR)).a
+MODULE_NAME = lib$(notdir $(CURDIR)).a
 TESTS = hakase
 .DEFAULT_GOAL:=all
 

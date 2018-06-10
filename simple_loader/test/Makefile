@@ -10,8 +10,8 @@ TESTS = hakase
 raw.bin: raw.cc
 	g++ -O0 -Wall --std=c++14 -fpie -nostdinc -nostdlib -iquote $(ROOT_DIR) -T raw.ld $^ -o $@
 
-hakase.bin: hakase.cc $(TEST_DIR)test.cc ../hakase.cc
-	g++ $(CXXFLAGS) $^ -o $@
+hakase.bin: hakase.cc $(TEST_DIR)test.cc
+	g++ $(CXXFLAGS) -o $@ $^ $(LDFLAGS) $(LDLIBS)
 
 test:
 	$(MAKE) load

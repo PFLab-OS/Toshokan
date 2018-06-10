@@ -10,8 +10,8 @@ TESTS = hakase
 friend.bin: friend.cc
 	g++ -O0 -Wall --std=c++14 -nostdinc -nostdlib -iquote $(ROOT_DIR) -T friend.ld $^ -o $@
 
-hakase.bin: hakase.cc $(TEST_DIR)/test.cc ../hakase.cc
-	g++ $(CXXFLAGS) $^ -o $@
+hakase.bin: hakase.cc $(TEST_DIR)/test.cc
+	g++ $(CXXFLAGS) -o $@ $^ $(LDFLAGS) $(LDLIBS)
 
 test:
 	$(MAKE) load

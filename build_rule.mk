@@ -31,7 +31,11 @@ ROOT_DIR=$(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 TEST_DIR=$(ROOT_DIR)tests/
 BUILD_DIR = $(ROOT_DIR)build/
 
+MODULES=simple_loader elf_loader
+
 CXXFLAGS = -g -O0 -Wall --std=c++14 -iquote $(ROOT_DIR)
+LDFLAGS = -L$(BUILD_DIR)
+LDLIBS = $(foreach lib, $(MODULES), -l$(lib))
 
 load:
 ifeq ($(RECURSIVE),)
