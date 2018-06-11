@@ -13,8 +13,8 @@ DEPS := $(OBJS:%.o=%.d)
 friend.bin: friend.cc
 	g++ -O0 -Wall --std=c++14 -nostdinc -nostdlib -iquote $(ROOT_DIR) -T friend.ld $^ -o $@
 
-hakase.bin: $(TEST_OBJS)
-	g++ $(CXXFLAGS) -o $@ $^ $(LDFLAGS) $(LDLIBS)
+hakase.bin: $(TEST_OBJS) $(MODULE_DIR)libelf_loader.a
+	g++ $(CXXFLAGS) -o $@ $^
 
 test:
 	$(MAKE) -C $(ROOT_DIR) all

@@ -34,8 +34,6 @@ MODULE_DIR = $(ROOT_DIR)build/
 MODULES=simple_loader elf_loader
 
 CXXFLAGS = -g -O0 -MMD -MP -Wall --std=c++14 -iquote $(ROOT_DIR)
-LDFLAGS = -L$(MODULE_DIR)
-LDLIBS = $(foreach lib, $(MODULES), -l$(lib))
 
 load:
 ifeq ($(RECURSIVE),)
