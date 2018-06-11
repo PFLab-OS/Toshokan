@@ -31,7 +31,7 @@ ROOT_DIR:=$(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 TEST_DIR=$(ROOT_DIR)tests/
 MODULE_DIR = $(ROOT_DIR)build/
 
-MODULES=simple_loader elf_loader
+MODULES=print simple_loader elf_loader
 
 CXXFLAGS = -g -O0 -MMD -MP -Wall --std=c++14 -iquote $(ROOT_DIR)
 

@@ -1,4 +1,4 @@
-#include "test.h"
+#include "tests/test.h"
 #include "common/channel.h"
 #include "print/hakase.h"
 #include <iostream>
