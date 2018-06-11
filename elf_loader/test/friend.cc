@@ -8,7 +8,7 @@ int main();
 
 int main() {
   for (int i = 0; i < 10; i++) {
-    if (buf1[i] != 0 || buf2[i] != i) {
+    if (buf1[i] != 0 || buf2[i] != i + 1) {
       asm volatile("cli;hlt;hlt;");
     }
   }

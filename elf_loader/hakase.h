@@ -38,7 +38,7 @@ public:
       }
       Elf64_Off GetPhdrOffset(int index) {
         if (_raw->e_phnum > index) {
-          return _raw->e_phoff + _raw->e_phentsize + index;
+          return _raw->e_phoff + _raw->e_phentsize * index;
         } else {
           return 0;
         }
