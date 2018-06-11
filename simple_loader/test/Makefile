@@ -15,7 +15,7 @@ DEPS := $(OBJS:%.o=%.d)
 raw.bin: raw.cc
 	g++ -O0 -Wall --std=c++14 -fpie -nostdinc -nostdlib -iquote $(ROOT_DIR) -T raw.ld $^ -o $@
 
-hakase.bin: $(TEST_OBJS) $(MODULE_DIR)libelf_loader.a
+hakase.bin: $(TEST_OBJS) $(MODULE_DIR)libsimple_loader.a
 	g++ $(CXXFLAGS) -o $@ $^
 
 test:
