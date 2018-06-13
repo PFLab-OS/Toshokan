@@ -7,6 +7,14 @@
 
 class Channel {
 public:
+  void Read(int offset, int8_t &data) { ReadSub(offset, data); }
+  void Write(int offset, int8_t data) { WriteSub(offset, data); }
+  void Read(int offset, int16_t &data) { ReadSub(offset, data); }
+  void Write(int offset, int16_t data) { WriteSub(offset, data); }
+  void Read(int offset, int32_t &data) { ReadSub(offset, data); }
+  void Write(int offset, int32_t data) { WriteSub(offset, data); }
+  void Read(int offset, int64_t &data) { ReadSub(offset, data); }
+  void Write(int offset, int64_t data) { WriteSub(offset, data); }
   void Read(int offset, uint8_t &data) { ReadSub(offset, data); }
   void Write(int offset, uint8_t data) { WriteSub(offset, data); }
   void Read(int offset, uint16_t &data) { ReadSub(offset, data); }
