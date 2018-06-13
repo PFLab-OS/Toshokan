@@ -80,6 +80,37 @@ public:
     GetReturnValueRef() = rval;
     GetSignalTypeRef() = 0;
   }
+  class Writer {
+  public:
+    Writer(Channel &ch, int32_t type) : _type(type), _ch(ch) {
+    }
+    Writer() = delete;
+    void Write(int offset, int8_t data) { WriteSub(offset, data); }
+    void Write(int offset, int16_t data) { WriteSub(offset, data); }
+    void Write(int offset, int32_t data) { WriteSub(offset, data); }
+    void Write(int offset, int64_t data) { WriteSub(offset, data); }
+    void Write(int offset, uint8_t data) { WriteSub(offset, data); }
+    void Write(int offset, uint16_t data) { WriteSub(offset, data); }
+    void Write(int offset, uint32_t data) { WriteSub(offset, data); }
+    void Write(int offset, uint64_t data) { WriteSub(offset, data); }
+    int32_t Do() {
+      _ch.Reserve();
+      // TODO refactoring
+      for(int i = 0; i < 4096 - 8; i++) {
+        _ch.Write(i, _buffer[i]);
+      }
+      return _ch.SendSignal(_type);
+    }
+  private:
+    // TODO We must check limit & if offset is aligned.
+    template<class T>
+    void WriteSub(int offset, T data) {
+      reinterpret_cast<T *>(_buffer)[offset / sizeof(T)] = data;
+    }
+    uint8_t _buffer[4096 - 8];
+    const int32_t _type;
+    Channel &_ch;
+  };
 protected:
   Channel() {
   }
