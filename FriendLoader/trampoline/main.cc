@@ -1,8 +1,4 @@
 #include "channel.h"
-#include "int.h"
-#include "trampoline.h"
-
-Idt idt;
 
 void panic();
 
@@ -111,8 +107,6 @@ extern "C" void trampoline_main() {
   
   H2F h2f;
   F2H f2h;
-  idt.SetupGeneric();
-  idt.SetupProc();
 
   for(int i = 0; i <= 20; i++) {
     idt.SetExceptionCallback(i, HandleX, &f2h);
@@ -133,9 +127,6 @@ extern "C" void trampoline_main() {
       break;
     case 4:
       rw_memory(h2f, f2h);
-      break;
-    case 5:
-      interrupt_test(h2f, f2h);
       break;
     }
   }
