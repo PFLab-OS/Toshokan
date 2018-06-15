@@ -3,6 +3,8 @@
 #include "tests/test.h"
 
 int test_main(F2H &f2h, H2F &h2f, int argc, const char **argv) {
+  auto ic = InterruptController(f2h);
+
   if (argc < 2) {
     return 1;
   }
@@ -41,7 +43,7 @@ int test_main(F2H &f2h, H2F &h2f, int argc, const char **argv) {
     r.Unwrap();
   }
 
-  if (f2h.WaitNewSignal() != 5) {
+  if (ic.WaitSignal() != 5) {
     return 1;
   }
 
