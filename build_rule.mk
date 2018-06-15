@@ -4,7 +4,7 @@ HOST=$(shell if [ ! -e /etc/hakase_installed ]; then echo "host"; fi)
 
 ifneq ($(HOST),)
 # host environment
-VAGRANT_ROOT_DIR=$(shell vagrant status | grep host_dir: | cut -f2)
+VAGRANT_ROOT_DIR=$(shell vagrant -h | grep host_dir: | cut -f2)
 VM_ID=$(shell cat $(VAGRANT_ROOT_DIR)/.vagrant/machines/default/virtualbox/id)
 
 define run_remote
