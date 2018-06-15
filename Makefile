@@ -17,5 +17,6 @@ test:
 clean:
 	@$(foreach dir, $(MODULES), $(MAKE) -C $(dir) clean;)
 	@$(foreach dir, $(MODULES), $(MAKE) -C $(dir)/test clean;)
+	make -C FriendLoader clean
 
 endif
