@@ -23,7 +23,6 @@ test:
 	cd ../FriendLoader; make all; ./run.sh load;
 	$(MAKE) init.bin; ./test_hakase.sh 0 ./init.bin
 	@$(foreach test, $(TESTS), $(MAKE) $(test).bin && ./test_hakase.sh 0 ./$(test).bin && ) :
-	$(MAKE) -C memrw test
 	$(MAKE) -C ../simple_loader/test test
 	$(MAKE) -C ../elf_loader/test test
 	cd ../FriendLoader; ./run.sh unload
@@ -32,7 +31,6 @@ test:
 clean:
 	rm -f *.bin
 	cd ../FriendLoader; make clean
-	$(MAKE) -C memrw clean
 	$(MAKE) -C result clean
 	$(MAKE) -C ../simple_loader/test clean
 	$(MAKE) -C ../elf_loader/test clean

@@ -1,8 +1,8 @@
 // read by rw_large.cc & rw_small.cc
 #include <time.h>
-#include "../test.h"
+#include "tests/test.h"
 #include "common/channel.h"
-#include "common/memrw.h"
+#include "memrw/hakase.h"
 
 int test_main(F2H &f2h, H2F &h2f, int argc, const char **argv) {
   static const uint32_t kRead = 0;

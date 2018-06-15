@@ -1,5 +1,5 @@
 #include "hakase.h"
-#include "common/memrw.h"
+#include "memrw/hakase.h"
 #include <stdio.h>
 
 std::unique_ptr<ElfLoader::ElfFile> ElfLoader::ElfFile::Load(const char *fname) {

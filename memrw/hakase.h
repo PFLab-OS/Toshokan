@@ -1,8 +1,8 @@
 #pragma once
 #include <string.h>
 #include <stdint.h>
-#include "result.h"
-#include "channel.h"
+#include "common/result.h"
+#include "common/channel.h"
 
 namespace MemoryAccessor {
   static const size_t kTransferSize = 2048;
