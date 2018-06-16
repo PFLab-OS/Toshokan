@@ -19,9 +19,9 @@ int test_main(F2H &f2h, H2F &h2f, int argc, const char **argv) {
   }
   r.Unwrap();
 
-  h2f.Reserve();
-  h2f.Write(0, kDeployAddressStart);
-  if (h2f.SendSignal(3) != 0) {
+  Channel::Accessor ch_ac(h2f, 3);
+  ch_ac.Write(0, kDeployAddressStart);
+  if (ch_ac.Do() != 0) {
     return 1;
   }
   if (f2h.WaitNewSignal() != 1) {

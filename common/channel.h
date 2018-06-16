@@ -2,31 +2,24 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <assert.h>
 
 #define PAGE_SIZE     4096
 
 class Channel {
 public:
-  void Read(int offset, int8_t &data) { ReadSub(offset, data); }
-  void Write(int offset, int8_t data) { WriteSub(offset, data); }
-  void Read(int offset, int16_t &data) { ReadSub(offset, data); }
-  void Write(int offset, int16_t data) { WriteSub(offset, data); }
-  void Read(int offset, int32_t &data) { ReadSub(offset, data); }
-  void Write(int offset, int32_t data) { WriteSub(offset, data); }
-  void Read(int offset, int64_t &data) { ReadSub(offset, data); }
-  void Write(int offset, int64_t data) { WriteSub(offset, data); }
-  void Read(int offset, uint8_t &data) { ReadSub(offset, data); }
-  void Write(int offset, uint8_t data) { WriteSub(offset, data); }
-  void Read(int offset, uint16_t &data) { ReadSub(offset, data); }
-  void Write(int offset, uint16_t data) { WriteSub(offset, data); }
-  void Read(int offset, uint32_t &data) { ReadSub(offset, data); }
-  void Write(int offset, uint32_t data) { WriteSub(offset, data); }
-  void Read(int offset, uint64_t &data) { ReadSub(offset, data); }
-  void Write(int offset, uint64_t data) { WriteSub(offset, data); }
   template <class T>
   T *GetRawPtr() {
     return reinterpret_cast<T *>(_address);
   }
+  void Read(int offset, int8_t &data) { ReadSub(offset, data); }
+  void Read(int offset, int16_t &data) { ReadSub(offset, data); }
+  void Read(int offset, int32_t &data) { ReadSub(offset, data); }
+  void Read(int offset, int64_t &data) { ReadSub(offset, data); }
+  void Read(int offset, uint8_t &data) { ReadSub(offset, data); }
+  void Read(int offset, uint16_t &data) { ReadSub(offset, data); }
+  void Read(int offset, uint32_t &data) { ReadSub(offset, data); }
+  void Read(int offset, uint64_t &data) { ReadSub(offset, data); }
   void Reserve() {
     if (_reserved) {
       fprintf(stderr, "Channel: error: already reserved\n");
@@ -80,11 +73,14 @@ public:
     GetReturnValueRef() = rval;
     GetSignalTypeRef() = 0;
   }
-  class Writer {
+  class Accessor {
   public:
-    Writer(Channel &ch, int32_t type) : _type(type), _ch(ch) {
+    Accessor(Channel &ch, int32_t type) : _type(type), _ch(ch) {
+      for(size_t i = 0; i < sizeof(_buffer) / sizeof(_buffer[0]); i++) {
+        _buffer[i] = 0;
+      }
     }
-    Writer() = delete;
+    Accessor() = delete;
     void Write(int offset, int8_t data) { WriteSub(offset, data); }
     void Write(int offset, int16_t data) { WriteSub(offset, data); }
     void Write(int offset, int32_t data) { WriteSub(offset, data); }
@@ -93,29 +89,60 @@ public:
     void Write(int offset, uint16_t data) { WriteSub(offset, data); }
     void Write(int offset, uint32_t data) { WriteSub(offset, data); }
     void Write(int offset, uint64_t data) { WriteSub(offset, data); }
+    void Read(int offset, int8_t &data) { ReadSub(offset, data); }
+    void Read(int offset, int16_t &data) { ReadSub(offset, data); }
+    void Read(int offset, int32_t &data) { ReadSub(offset, data); }
+    void Read(int offset, int64_t &data) { ReadSub(offset, data); }
+    void Read(int offset, uint8_t &data) { ReadSub(offset, data); }
+    void Read(int offset, uint16_t &data) { ReadSub(offset, data); }
+    void Read(int offset, uint32_t &data) { ReadSub(offset, data); }
+    void Read(int offset, uint64_t &data) { ReadSub(offset, data); }
     int32_t Do() {
       _ch.Reserve();
       // TODO refactoring
       for(int i = 0; i < 4096 - 8; i++) {
         _ch.Write(i, _buffer[i]);
       }
-      return _ch.SendSignal(_type);
+      int32_t rval = _ch.SendSignal(_type);
+      _signal_sended = true;
+      for(int i = 0; i < 4096 - 8; i++) {
+        uint8_t data;
+        _ch.Read(i, data);
+        _buffer[i] = data;
+      }
+      return rval;
     }
   private:
-    // TODO We must check limit & if offset is aligned.
     template<class T>
     void WriteSub(int offset, T data) {
+      assert(!_signal_sended);
+      assert(offset < 4096 - 8);
       reinterpret_cast<T *>(_buffer)[offset / sizeof(T)] = data;
+    }
+    template<class T>
+    void ReadSub(int offset, T &data) {
+      assert(_signal_sended);
+      assert(offset < 4096 - 8);
+      data = reinterpret_cast<T *>(_buffer)[offset / sizeof(T)];
     }
     uint8_t _buffer[4096 - 8];
     const int32_t _type;
     Channel &_ch;
+    bool _signal_sended = false;
   };
 protected:
   Channel() {
   }
   char *_address;
  private:
+  void Write(int offset, int8_t data) { WriteSub(offset, data); }
+  void Write(int offset, int16_t data) { WriteSub(offset, data); }
+  void Write(int offset, int32_t data) { WriteSub(offset, data); }
+  void Write(int offset, int64_t data) { WriteSub(offset, data); }
+  void Write(int offset, uint8_t data) { WriteSub(offset, data); }
+  void Write(int offset, uint16_t data) { WriteSub(offset, data); }
+  void Write(int offset, uint32_t data) { WriteSub(offset, data); }
+  void Write(int offset, uint64_t data) { WriteSub(offset, data); }
   template<class T>
     void ReadSub(int offset, T &data) {
     data = GetRawPtr<T>()[(offset + 8) / sizeof(T)];

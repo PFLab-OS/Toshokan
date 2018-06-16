@@ -9,7 +9,6 @@ int test_main(F2H &f2h, H2F &h2f, int argc, const char **argv) {
   static const uint64_t address = 1024 * 1024;
   uint8_t buf[kDataSize];
   MemoryAccessor::Writer mw(h2f, address, buf, kDataSize);
-  uint8_t *h2f_buf = h2f.GetRawPtr<uint8_t>() + 2048 / sizeof(uint8_t);
 
   FILE *fp;
   uint8_t debug_buf_before_write[kDataSize + MemoryAccessor::kTransferSize];
@@ -40,16 +39,20 @@ int test_main(F2H &f2h, H2F &h2f, int argc, const char **argv) {
 
   mw.Do().Unwrap();
 
-  h2f.Reserve();
+  Channel::Accessor ch_ac(h2f, 4);
 
-  h2f.Write(0, kRead);
-  h2f.Write(8, address);
-  h2f.Write(16, MemoryAccessor::kTransferSize);
+  ch_ac.Write(0, kRead);
+  ch_ac.Write(8, address);
+  ch_ac.Write(16, MemoryAccessor::kTransferSize);
 
-  assert(h2f.SendSignal(4) == 0);
+  assert(ch_ac.Do() == 0);
 
-  if (memcmp(h2f_buf, buf, (kDataSize > MemoryAccessor::kTransferSize) ? MemoryAccessor::kTransferSize : kDataSize) != 0) {
-    return 1;
+  for(size_t i = 0; i < ((kDataSize > MemoryAccessor::kTransferSize) ? MemoryAccessor::kTransferSize : kDataSize); i++) {
+    uint8_t data;
+    ch_ac.Read(i + 2040, data);
+    if (data != buf[i]) {
+      return 1;
+    }
   }
 
   // reopen

@@ -9,7 +9,7 @@ namespace MemoryAccessor {
   
   class MemoryAccessorBase {
   protected:
-    static const size_t kTransferDataOffset = 2048;
+    static const size_t kTransferDataOffset = 2040;
   };
   
   class Writer : public MemoryAccessorBase {
@@ -21,15 +21,16 @@ namespace MemoryAccessor {
     Result<bool> Do() {
       for(size_t offset = 0; offset < _size; offset += kTransferSize) {
         size_t size = (_size - offset) > kTransferSize ? kTransferSize : (_size - offset);
-        
-        _ch.Reserve();
-        _ch.Write(0, kSignatureWrite);
-        _ch.Write(8, _address + offset);
-        _ch.Write(16, size);
-        
-        uint8_t *ch_buf = _ch.GetRawPtr<uint8_t>() + kTransferDataOffset;
-        memcpy(ch_buf, _buf + offset, size);
-        if (_ch.SendSignal(4) != 0) {
+
+        Channel::Accessor ch_ac(_ch, 4);
+        ch_ac.Write(0, kSignatureWrite);
+        ch_ac.Write(8, _address + offset);
+        ch_ac.Write(16, size);
+
+        for(size_t i = 0; i < size; i++) {
+          ch_ac.Write(kTransferDataOffset + i, _buf[offset + i]);
+        }
+        if (ch_ac.Do() != 0) {
           return Result<bool>();
         }
       }

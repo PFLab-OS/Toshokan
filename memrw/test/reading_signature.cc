@@ -1,24 +1,26 @@
-#include <string.h>
 #include <assert.h>
 #include "tests/test.h"
 #include "common/channel.h"
+#include "memrw/hakase.h"
 
 int test_main(F2H &f2h, H2F &h2f, int argc, const char **argv) {
   static const uint32_t kRead = 0;
-  static const uint64_t address = 0;
-  uint8_t *h2f_buf = h2f.GetRawPtr<uint8_t>() + 2048 / sizeof(uint8_t);
+  static const uint64_t kAddress = 0;
   const uint8_t signature[] = {0xeb, 0x1e, 0x66, 0x90, 0x6b, 0x72, 0x70, 0x4a};
 
-  h2f.Reserve();
+  Channel::Accessor ch_ac(h2f, 4);
+  ch_ac.Write(0, kRead);
+  ch_ac.Write(8, kAddress);
+  ch_ac.Write(16, sizeof(signature) / sizeof(*signature));
   
-  h2f.Write(0, kRead);
-  h2f.Write(8, address);
-  h2f.Write(16, sizeof(signature) / sizeof(*signature));
+  assert(ch_ac.Do() == 0);
 
-  assert(h2f.SendSignal(4) == 0);
-
-  if (memcmp(h2f_buf, signature, sizeof(signature) / sizeof(*signature)) != 0) {
-    return 1;
+  for(size_t i = 0; i < sizeof(signature)/sizeof(*signature); i++) {
+    uint8_t data;
+    ch_ac.Read(i + 2040, data);
+    if (data != signature[i]) {
+      return 1;
+    }
   }
 
   FILE *fp;

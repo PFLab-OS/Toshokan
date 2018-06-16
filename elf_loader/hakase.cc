@@ -91,9 +91,9 @@ Result<bool> ElfLoader::Deploy() {
 }
 
 Result<bool> ElfLoader::Execute() {
-  _h2f.Reserve();
-  _h2f.Write(0, _file->GetEntry());
-  if (_h2f.SendSignal(3) != 0) {
+  Channel::Accessor ch_ac(_h2f, 3);
+  ch_ac.Write(0, _file->GetEntry());
+  if (ch_ac.Do() != 0) {
     return Result<bool>();
   }
   

@@ -2,7 +2,7 @@ include ../../build_rule.mk
 
 ifeq ($(HOST),)
 
-TESTS = data_size invalid reading_signature rw_small rw_large
+TESTS = data_size reading_signature rw_small rw_large
 TEST_OBJS := $(addsuffix .o,$(TESTS)) $(TEST_DIR)test.o
 OBJS := $(TEST_OBJS)
 DEPS := $(OBJS:%.o=%.d)
