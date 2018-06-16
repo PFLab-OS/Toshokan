@@ -11,9 +11,6 @@ int test_main(F2H &f2h, H2F &h2f, int argc, const char **argv) {
   MemoryAccessor::Reader mr(h2f, kAddress, buf, sizeof(signature) / sizeof(*signature));
   mr.Do().Unwrap();
   if (memcmp(buf, signature, sizeof(signature) / sizeof(*signature)) != 0) {
-    for(uint8_t i : buf) {
-      printf("%x ", i);
-    }
     return 1;
   }
 
