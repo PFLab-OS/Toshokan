@@ -4,23 +4,17 @@
 #include "memrw/hakase.h"
 
 int test_main(F2H &f2h, H2F &h2f, int argc, const char **argv) {
-  static const uint32_t kRead = 0;
   static const uint64_t kAddress = 0;
   const uint8_t signature[] = {0xeb, 0x1e, 0x66, 0x90, 0x6b, 0x72, 0x70, 0x4a};
 
-  Channel::Accessor ch_ac(h2f, 4);
-  ch_ac.Write(0, kRead);
-  ch_ac.Write(8, kAddress);
-  ch_ac.Write(16, sizeof(signature) / sizeof(*signature));
-  
-  assert(ch_ac.Do() == 0);
-
-  for(size_t i = 0; i < sizeof(signature)/sizeof(*signature); i++) {
-    uint8_t data;
-    ch_ac.Read(i + 2040, data);
-    if (data != signature[i]) {
-      return 1;
+  uint8_t buf[sizeof(signature) / sizeof(*signature)];
+  MemoryAccessor::Reader mr(h2f, kAddress, buf, sizeof(signature) / sizeof(*signature));
+  mr.Do().Unwrap();
+  if (memcmp(buf, signature, sizeof(signature) / sizeof(*signature)) != 0) {
+    for(uint8_t i : buf) {
+      printf("%x ", i);
     }
+    return 1;
   }
 
   FILE *fp;

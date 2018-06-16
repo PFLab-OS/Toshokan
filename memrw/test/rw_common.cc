@@ -8,7 +8,6 @@ int test_main(F2H &f2h, H2F &h2f, int argc, const char **argv) {
   static const uint32_t kRead = 0;
   static const uint64_t address = 1024 * 1024;
   uint8_t buf[kDataSize];
-  MemoryAccessor::Writer mw(h2f, address, buf, kDataSize);
 
   FILE *fp;
   uint8_t debug_buf_before_write[kDataSize + MemoryAccessor::kTransferSize];
@@ -37,22 +36,15 @@ int test_main(F2H &f2h, H2F &h2f, int argc, const char **argv) {
     buf[i] = rand() % 0xFF;
   }
 
+  MemoryAccessor::Writer mw(h2f, address, buf, kDataSize);
   mw.Do().Unwrap();
 
-  Channel::Accessor ch_ac(h2f, 4);
+  uint8_t tmp_buf[kDataSize];
+  MemoryAccessor::Reader mr(h2f, address, tmp_buf, kDataSize);
+  mr.Do().Unwrap();
 
-  ch_ac.Write(0, kRead);
-  ch_ac.Write(8, address);
-  ch_ac.Write(16, MemoryAccessor::kTransferSize);
-
-  assert(ch_ac.Do() == 0);
-
-  for(size_t i = 0; i < ((kDataSize > MemoryAccessor::kTransferSize) ? MemoryAccessor::kTransferSize : kDataSize); i++) {
-    uint8_t data;
-    ch_ac.Read(i + 2040, data);
-    if (data != buf[i]) {
-      return 1;
-    }
+  if (memcmp(tmp_buf, buf, kDataSize) != 0) {
+    return 1;
   }
 
   // reopen
