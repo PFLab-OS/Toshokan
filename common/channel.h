@@ -6,6 +6,10 @@
 
 #define PAGE_SIZE     4096
 
+/*
+ * Channel : communication channel between hakase and friend
+ * !!! Do not call Channel class directly. Use Channel::Accessor instead. !!!
+ */
 class Channel {
 public:
   template <class T>
@@ -73,6 +77,17 @@ public:
     GetReturnValueRef() = rval;
     GetSignalTypeRef() = 0;
   }
+  /*
+   * Channel::Accesosr : Wrapper to access channel
+   * This class provides safer access to channel.
+   *
+   * How to use:
+   * Accessor ch_ac(ch, signal); // initialize Accessor
+   * ch_ac.Write(0, data);       // write sending data
+   * rval = ch_ac.Do();          // communicate and get return value
+   * ch_ac.Read(0, data);        // read return data
+   * 
+   */
   class Accessor {
   public:
     Accessor(Channel &ch, int32_t type) : _type(type), _ch(ch) {
