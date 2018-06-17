@@ -90,6 +90,9 @@ start:
 	// TODO Issue #1
 	// relocate page tables and gdt descriptors
 
+  movw $0x18, %ax
+	movw %ax, %ds
+	movw %ax, %ss
 	movq $STACK_BOTTOM, %rsp
 	  
 	jmp trampoline_main
