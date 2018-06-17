@@ -6,34 +6,17 @@
   i\param:
   pushq $0
   pushq $\param
-  pushq %r15
-  pushq %r14
-  pushq %r13
-  pushq %r12
-  pushq %r11
-  pushq %r10
-  pushq %r9
-  pushq %r8
-  pushq %rdi
-  pushq %rsi
-  pushq %rbp
-  pushq %rdx
-  pushq %rcx
-  pushq %rbx
-  pushq %rax
-  movq  %rsp, %rdi
-  call handle_int
-  jmp ret_from_int
+  jmp ix
   .endr
 
 .irp    param,8,10,11,12,13,14,17
   .global i\param
   i\param:
-  iretq
-  pushq %rax
   pushq $\param
-  popq %rax
-  popq %rax
+  jmp ix
+  .endr
+
+ix:
   pushq %r15
   pushq %r14
   pushq %r13
@@ -51,10 +34,6 @@
   pushq %rax
   movq  %rsp, %rdi
   call handle_int
-  jmp ret_from_int
-  .endr
-  
-ret_from_int:
   popq %rax
   popq %rbx
   popq %rcx
