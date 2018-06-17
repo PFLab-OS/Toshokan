@@ -39,7 +39,7 @@ CXXFLAGS = -g -O0 -MMD -MP -Wall --std=c++14 -iquote $(ROOT_DIR)
 load:
 ifeq ($(RECURSIVE),)
 	@echo "info: Starting FriendLoader."
-	@cd $(ROOT_DIR)FriendLoader; make all; ./run.sh load
+	@cd $(ROOT_DIR)FriendLoader; make all && ./run.sh load
 endif
 
 unload:
