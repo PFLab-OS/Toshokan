@@ -31,18 +31,24 @@ entry:
 	movl $0, (PML4T + 4)
 
 	// setup PDPT
+	leal PD(%edx), %eax
+	orl  $(PRESENT_BIT | WRITE_BIT | USER_BIT), %eax
+	movl %eax, (PDPT)
+	movl $0, (PDPT + 4)
+
+  // setup PD
 	movl (phys_addr_start), %eax
 	orl  $(PRESENT_BIT | WRITE_BIT | USER_BIT | HUGEPAGE_BIT), %eax
-	movl %eax, (PDPT)
+	movl %eax, (PD)
 	movl (phys_addr_start + 4), %eax
-	movl %eax, (PDPT + 4)
+	movl %eax, (PD + 4)
 
 	// load cr3
 	movl %edi, %cr3
 	
-	// set PAE&PGE bit
+	// set PAE&PGE&PSE bit
 	movl %cr4, %eax
-	orl $(1 << 5 | 1 << 7), %eax
+	orl $((1 << 4) | (1 << 5) | (1 << 7)), %eax
 	movl %eax, %cr4
 
 	//
@@ -57,8 +63,8 @@ entry:
 
 	// set PG&PE bit
 	movl %cr0, %eax
-	orl  $(1 << 31 | 1 << 0), %eax
-	andl $(~(1 << 30 | 1 << 29)), %eax
+	orl  $((1 << 31) | (1 << 0)), %eax
+	andl $(~((1 << 30) | (1 << 29))), %eax
 	movl %eax, %cr0
 
 	// We enabled paging.

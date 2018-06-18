@@ -59,9 +59,9 @@ int trampoline_region_init(struct trampoline_region *region,
          _binary_boot_trampoline_bin_start, binary_boot_trampoline_bin_size);
 
   // check address
-  if ((phys_addr_start & (1 * 1024 * 1024 * 1024 - 1)) != 0) {
-    // should be aligned to 1GB boundary
-    // because of using 1GB huge page
+  if ((phys_addr_start & (2 * 1024 * 1024 - 1)) != 0) {
+    // should be aligned to 2MB boundary
+    // because of using 2MB huge page
     return -1;
   }
 

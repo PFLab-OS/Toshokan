@@ -86,11 +86,37 @@ void interrupt_test(H2F &h2f, F2H &f2h) {
   panic();
 }
 
+static void HandleX(Regs *rs, void *arg) {
+  F2H *f2h = reinterpret_cast<F2H *>(arg);
+  char buf1[] = "Exeception #";
+  f2h->WriteString(buf1);
+  char buf2[] = "00\n";
+  buf2[0] += rs->n / 10;
+  buf2[1] += rs->n % 10;
+  f2h->WriteString(buf2);
+  asm volatile("cli;hlt;");
+}
+
 extern "C" void trampoline_main() {
+  uint64_t *pml4t = reinterpret_cast<uint64_t *>(MemoryMap::kPml4t);
+  uint64_t *pdpt  = reinterpret_cast<uint64_t *>(MemoryMap::kPdpt);
+  uint64_t *pd    = reinterpret_cast<uint64_t *>(MemoryMap::kPd);
+
+  pml4t[0] = (reinterpret_cast<uint64_t>(pdpt) + 0x80000000UL) | (1 << 0) | (1 << 1) | (1 << 2);
+  pdpt[0]  = (reinterpret_cast<uint64_t>(pd) + 0x80000000UL) | (1 << 0) | (1 << 1) | (1 << 2);
+  for(int i = 0; i < 512; i++) {
+    pd[i]  = (0x80000000UL + (0x200000UL * i)) | (1 << 0) | (1 << 1) | (1 << 2) | (1<<7);
+  }
+  asm volatile("movq %0, %%cr3;"::"r"(reinterpret_cast<uint64_t>(pml4t) + 0x80000000UL));
+  
   H2F h2f;
   F2H f2h;
   idt.SetupGeneric();
   idt.SetupProc();
+
+  for(int i = 0; i <= 20; i++) {
+    idt.SetExceptionCallback(i, HandleX, &f2h);
+  }
 
   while(true) {
     switch (h2f.WaitNewSignal()) {

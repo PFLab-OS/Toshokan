@@ -7,6 +7,7 @@
 
 #define PML4T        0x1000
 #define PDPT         0x2000
+#define PD           0x3000
 #define STACK_BOTTOM 0x5000
 
 #ifndef ASM_FILE
@@ -17,6 +18,7 @@
 
 static_assert(static_cast<uint64_t>(MemoryMap::kPml4t) == PML4T, "");
 static_assert(static_cast<uint64_t>(MemoryMap::kPdpt)  == PDPT, "");
+static_assert(static_cast<uint64_t>(MemoryMap::kPd)  == PD, "");
 static_assert(static_cast<uint64_t>(MemoryMap::kStack) + 0x1000 == STACK_BOTTOM, "");
 
 
