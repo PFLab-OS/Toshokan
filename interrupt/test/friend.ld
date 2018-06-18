@@ -17,6 +17,7 @@ SECTIONS{
   .data : {
     *(.data*)
     *(.gnu.linkonce.d*)
+    *(.init_array)
   }
 
   .bss : {
@@ -34,7 +35,6 @@ SECTIONS{
 
   .unsupported : {
     *(*)
-    /* TODO remove unsupported section from some object files
-     * ASSERT(0, "Found non-empty unsupported section in object files."); */
+    ASSERT(0, "Found non-empty unsupported section in object files.");
   }
 }
