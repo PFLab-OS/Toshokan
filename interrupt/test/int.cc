@@ -1,5 +1,4 @@
 #include "int.h"
-#include "trampoline.h"
 
 struct idt_entity {
   uint32_t entry[4];
