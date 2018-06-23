@@ -8,13 +8,13 @@ VAGRANT_ROOT_DIR=$(shell vagrant -h | grep host_dir: | cut -f2)
 VM_ID=$(shell cat $(VAGRANT_ROOT_DIR)/.vagrant/machines/default/virtualbox/id)
 
 define run_remote
-	@vagrant ssh -c "$(1)" | grep -v "host_dir:\t$(VAGRANT_ROOT_DIR)"
+	@bash -c 'vagrant ssh -c "$(1)" | grep -v "host_dir:\t$(VAGRANT_ROOT_DIR)"; exit $${PIPESTATUS[0]}'
 endef
 
 define make_wrapper
 	@echo Running \"make$1\" on the remote build environment.
 	@vboxmanage showvminfo $(VM_ID) | grep "State:" | grep running > /dev/null 2>&1 || vagrant reload
-	$(call run_remote, root_dir=$(VAGRANT_ROOT_DIR); pwd=$(CURDIR); cd /vagrant\$${pwd#\$${root_dir}}; env MAKEFLAGS='$(MAKEFLAGS)' make$1)
+	$(call run_remote, root_dir=$(VAGRANT_ROOT_DIR); pwd=$(CURDIR); cd /vagrant\$${pwd#\$${root_dir}}; env MAKEFLAGS=\"$(MAKEFLAGS)\" make$1)
 endef
 
 .DEFAULT_GOAL:=default
