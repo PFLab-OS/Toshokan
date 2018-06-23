@@ -59,40 +59,6 @@ void rw_memory(H2F &h2f, F2H &f2h) {
   h2f.Return(0);
 }
 
-static void HandleTest(Regs *rs, void *arg) {
-  // This is test code
-  F2H *f2h = reinterpret_cast<F2H*>(arg);
-  f2h->Write(8, rs->n);
-}
-
-void interrupt_test(H2F &h2f, F2H &f2h) {
-  h2f.Return(0);
-
-  idt.SetExceptionCallback(Idt::ReservedIntVector::kTest, HandleTest, &f2h);
-
-  uint32_t vector_num;
-
-  h2f.Read(0, vector_num);
-
-  if (vector_num == 32) {
-    asm volatile("int $32");
-    f2h.SendSignal(5);
-  }
-
-  panic();
-}
-
-static void HandleX(Regs *rs, void *arg) {
-  F2H *f2h = reinterpret_cast<F2H *>(arg);
-  char buf1[] = "Exeception #";
-  f2h->WriteString(buf1);
-  char buf2[] = "00\n";
-  buf2[0] += rs->n / 10;
-  buf2[1] += rs->n % 10;
-  f2h->WriteString(buf2);
-  asm volatile("cli;hlt;");
-}
-
 extern "C" void trampoline_main() {
   uint64_t *pml4t = reinterpret_cast<uint64_t *>(MemoryMap::kPml4t);
   uint64_t *pdpt  = reinterpret_cast<uint64_t *>(MemoryMap::kPdpt);
@@ -107,10 +73,6 @@ extern "C" void trampoline_main() {
   
   H2F h2f;
   F2H f2h;
-
-  for(int i = 0; i <= 20; i++) {
-    idt.SetExceptionCallback(i, HandleX, &f2h);
-  }
 
   while(true) {
     switch (h2f.WaitNewSignal()) {
