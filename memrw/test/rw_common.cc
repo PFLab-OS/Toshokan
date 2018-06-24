@@ -5,7 +5,6 @@
 #include "memrw/hakase.h"
 
 int test_main(F2H &f2h, H2F &h2f, int argc, const char **argv) {
-  static const uint32_t kRead = 0;
   static const uint64_t address = 1024 * 1024;
   uint8_t buf[kDataSize];
 
