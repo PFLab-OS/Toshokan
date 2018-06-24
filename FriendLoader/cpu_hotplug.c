@@ -86,9 +86,14 @@ int cpu_start() {
   /*
    * Wake up AP by INIT, INIT, STARTUP sequence.
    */
-  for (i = 0; i < 1 /*num_possible_cpus()*/; i++) {
+  for (i = 0; i < num_possible_cpus(); i++) {
     if (unplugged_cpu_list[i] > 0) {
       int apicid = apic->cpu_present_to_apicid(unplugged_cpu_list[i]);
+
+      if (apicid == 0) {
+        ret1 = -1;
+        continue;
+      }
 
       ret2 = wakeup_secondary_cpu_via_init(apicid, tregion.paddr);
       if (ret2 < 0) {
