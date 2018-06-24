@@ -69,7 +69,7 @@ int trampoline_region_init(struct trampoline_region *region,
   // initialize trampoline header
   vaddr64[kMemoryMapRegionOffset / sizeof(*vaddr64)] = region->paddr;
   vaddr64[kMemoryMapPhysAddrStart / sizeof(*vaddr64)] = phys_addr_start;
-  vaddr64[kMemoryMapReserved1 / sizeof(*vaddr64)] = 0;
+  vaddr64[kMemoryMapApicId / sizeof(*vaddr64)] = 0;  // will be initialized by trampoline_region_set_apicid()
 
   // make copy of trampoline region at deploy area
   deploy((const char *)region->vaddr, binary_boot_trampoline_bin_size + kMemoryMapTrampolineBinLoadPoint,
@@ -79,6 +79,11 @@ int trampoline_region_init(struct trampoline_region *region,
   deploy_zero(kMemoryMapPml4t, kMemoryMapStack + 0x1000 * get_cpu_num() - kMemoryMapPml4t);
 
   return 0;
+}
+
+void trampoline_region_set_apicid(struct trampoline_region *region, int apicid) {
+  uint64_t *vaddr64 = (uint64_t *)region->vaddr;
+  vaddr64[kMemoryMapApicId / sizeof(*vaddr64)] = apicid;
 }
 
 void trampoline_region_free(struct trampoline_region *region) {
