@@ -12,4 +12,4 @@ int trampoline_region_init(struct trampoline_region *region,
                            phys_addr_t phys_addr_start,
                            phys_addr_t phys_addr_end);
 void trampoline_region_free(struct trampoline_region *region);
-void trampoline_region_set_apicid(struct trampoline_region *region, int apicid);
+void trampoline_region_set_id(struct trampoline_region *region, int cpuid, int apicid);

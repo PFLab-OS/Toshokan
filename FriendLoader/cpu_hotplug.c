@@ -95,7 +95,7 @@ int cpu_start() {
         continue;
       }
 
-      trampoline_region_set_apicid(&tregion, apicid);
+      trampoline_region_set_id(&tregion, i, apicid);
 
       ret2 = wakeup_secondary_cpu_via_init(apicid, tregion.paddr);
       if (ret2 < 0) {

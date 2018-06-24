@@ -16,6 +16,7 @@ enum MemoryMap {
   DEFINE_MEMMAP(TrampolineBinLoadPoint, 0x8),
   DEFINE_MEMMAP(PhysAddrStart, 0x10),
   DEFINE_MEMMAP(ApicId, 0x18),
+  DEFINE_MEMMAP(CpuId, 0x1C),
   DEFINE_MEMMAP(TrampolineBinEntry, 0x20),
   DEFINE_MEMMAP(Pml4t, 0x1000),
   DEFINE_MEMMAP(Pdpt, 0x2000),

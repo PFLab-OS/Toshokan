@@ -81,9 +81,10 @@ int trampoline_region_init(struct trampoline_region *region,
   return 0;
 }
 
-void trampoline_region_set_apicid(struct trampoline_region *region, int apicid) {
-  uint64_t *vaddr64 = (uint64_t *)region->vaddr;
-  vaddr64[kMemoryMapApicId / sizeof(*vaddr64)] = apicid;
+void trampoline_region_set_id(struct trampoline_region *region, int cpuid, int apicid) {
+  uint32_t *vaddr32 = (uint32_t *)region->vaddr;
+  vaddr32[kMemoryMapApicId / sizeof(*vaddr32)] = apicid;
+  vaddr32[kMemoryMapCpuId / sizeof(*vaddr32)] = cpuid;
 }
 
 void trampoline_region_free(struct trampoline_region *region) {
