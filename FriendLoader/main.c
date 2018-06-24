@@ -38,7 +38,6 @@ static int __init friend_loader_init(void) {
     pr_warn("friend_loader_init: cpu_unplug failed: %d\n", ret);
     return -1;
   } else {
-    pr_info("friend_loader_init: cpu %d down\n", ret);
     return 0;
   }
 }
@@ -47,8 +46,6 @@ static void __exit friend_loader_exit(void) {
   int ret = cpu_replug();
   if (ret < 0) {
     pr_warn("friend_loader_exit: cpu_replug failed: %d\n", ret);
-  } else {
-    pr_info("friend_loader_exit: cpu %d up\n", ret);
   }
 
   debugmem_exit();
@@ -76,15 +73,11 @@ static int boot_flag_set(const char *val, struct kernel_param *kp) {
     int ret = cpu_replug();
     if (ret < 0) {
       pr_warn("friend_loade_exit: cpu_replug failed: %d\n", ret);
-    } else {
-      pr_info("friend_loade_exit: cpu %d up\n", ret);
     }
 
     ret = cpu_unplug();
     if (ret < 0) {
       pr_warn("friend_loader: cpu_unplug failed: %d\n", ret);
-    } else {
-      pr_info("friend_loader: cpu %d down\n", ret);
     }
   }
 

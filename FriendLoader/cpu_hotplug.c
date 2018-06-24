@@ -1,45 +1,55 @@
 #include <asm/uv/uv.h>
+#include <linux/slab.h>
 #include <linux/cpu.h>
+#include <linux/cpumask.h>
 
 #include "common.h"
 #include "cpu_hotplug.h"
 #include "deploy.h"
 #include "trampoline_loader.h"
 
-static int unpluged_cpu = -1;
-static int select_unplug_cpu(void);
-
 static struct trampoline_region tregion;
+static int *unplugged_cpu_list = NULL;
 
 int cpu_unplug(void) {
-  int ret;
+  int i, ret1, ret2, cpu;
+  ret1 = 0;
 
-  ret = select_unplug_cpu();
-  if (ret < 0) {
-    return ret;
+  if (unplugged_cpu_list == NULL) {
+    unplugged_cpu_list = (int *)kmalloc(sizeof(int) * num_possible_cpus(), GFP_KERNEL);
+    if (!unplugged_cpu_list) {
+      return -1;
+    }
+    memset(unplugged_cpu_list, -1, sizeof(int) * num_possible_cpus());
+
+    get_online_cpus();
+
+    i = 0;
+    for_each_online_cpu(cpu) {
+      if (cpu != 0 && cpu_is_hotpluggable(cpu)) {
+        unplugged_cpu_list[i] = cpu;
+        i++;
+      }
+    }
+    
+    put_online_cpus();
   }
 
-  if (!cpu_online(unpluged_cpu) || !cpu_is_hotpluggable(unpluged_cpu)) {
-    pr_warn("friend_loader: cpu %d is not online and hotpluggable.\n",
-            unpluged_cpu);
-    return -1;
+  for(i = 0; i < num_possible_cpus(); i++) {
+    if (unplugged_cpu_list[i] > 0) {
+      ret2 = cpu_down(unplugged_cpu_list[i]);
+      if (ret2 < 0) {
+        ret1 = -1;
+      }
+    }
   }
 
-  ret = cpu_down(unpluged_cpu);
-  if (ret < 0) {
-    return ret;
-  }
-
-  return unpluged_cpu;
+  return ret1;
 }
 
 int cpu_start() {
   int apicid;
   int boot_error;
-
-  if (unpluged_cpu == -1) {
-    return -1;
-  }
 
   if (trampoline_region_alloc(&tregion) < 0) {
     return -1;
@@ -53,7 +63,7 @@ int cpu_start() {
     return -1;
   }
 
-  apicid = apic->cpu_present_to_apicid(unpluged_cpu);
+  apicid = apic->cpu_present_to_apicid(1);
 
   if (get_uv_system_type() != UV_NON_UNIQUE_APIC) {
     smpboot_setup_warm_reset_vector(tregion.paddr);
@@ -72,24 +82,24 @@ int cpu_start() {
 }
 
 int cpu_replug(void) {
-  int ret = cpu_up(unpluged_cpu);
-  if (unpluged_cpu < 0) {
+  int i, ret1, ret2;
+  ret1 = 0;
+  if (unplugged_cpu_list == NULL) {
     return -1;
   }
 
-  if (ret < 0) {
-    return ret;
+  for (i = 0; i < num_possible_cpus(); i++) {
+    if (unplugged_cpu_list[i] > 0) {
+      ret2 = cpu_up(unplugged_cpu_list[i]);
+      if (ret2 < 0) {
+        ret1 = -1;
+      }
+    }
   }
 
-  return unpluged_cpu;
+  kfree(unplugged_cpu_list);
+  unplugged_cpu_list = NULL;
+
+  return ret1;
 }
 
-static int select_unplug_cpu(void) {
-  // TODO
-  unpluged_cpu = 1;
-  if (!cpu_present(unpluged_cpu)) {
-    pr_warn("select_unplug_cpu: no hotpluggable CPU\n");
-    return -1;
-  }
-  return 0;
-}
