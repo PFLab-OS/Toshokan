@@ -11,6 +11,19 @@
 static struct trampoline_region tregion;
 static int *unplugged_cpu_list = NULL;
 
+int get_cpu_num(void) {
+  int i, num = 0;
+  if (unplugged_cpu_list == NULL) {
+    return -1;
+  }
+  for(i = 0; i < num_possible_cpus(); i++) {
+    if (unplugged_cpu_list[i] > 0) {
+      num++;
+    }
+  }
+  return num;
+}
+
 int cpu_unplug(void) {
   int i, ret1, ret2, cpu;
   ret1 = 0;
@@ -48,8 +61,9 @@ int cpu_unplug(void) {
 }
 
 int cpu_start() {
-  int apicid;
-  int boot_error;
+  int ret1, ret2;
+  int i;
+  ret1 = 0;
 
   if (trampoline_region_alloc(&tregion) < 0) {
     return -1;
@@ -63,8 +77,6 @@ int cpu_start() {
     return -1;
   }
 
-  apicid = apic->cpu_present_to_apicid(1);
-
   if (get_uv_system_type() != UV_NON_UNIQUE_APIC) {
     smpboot_setup_warm_reset_vector(tregion.paddr);
   }
@@ -74,11 +86,20 @@ int cpu_start() {
   /*
    * Wake up AP by INIT, INIT, STARTUP sequence.
    */
-  boot_error = wakeup_secondary_cpu_via_init(apicid, tregion.paddr);
+  for (i = 0; i < 1 /*num_possible_cpus()*/; i++) {
+    if (unplugged_cpu_list[i] > 0) {
+      int apicid = apic->cpu_present_to_apicid(unplugged_cpu_list[i]);
+
+      ret2 = wakeup_secondary_cpu_via_init(apicid, tregion.paddr);
+      if (ret2 < 0) {
+        ret1 = -1;
+      }
+    }
+  }
 
   preempt_enable();
 
-  return boot_error;
+  return ret1;
 }
 
 int cpu_replug(void) {

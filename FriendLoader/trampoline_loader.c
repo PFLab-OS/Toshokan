@@ -1,6 +1,7 @@
 #include "trampoline_loader.h"
 #include "deploy.h"
 #include "common/_memory.h"
+#include "cpu_hotplug.h"
 #include <asm/realmode.h>
 
 static uint8_t jmp_bin[] = {0xeb, 0x1e, 0x66, 0x90}; // jmp 0x20; xchg %ax, &ax
@@ -75,7 +76,7 @@ int trampoline_region_init(struct trampoline_region *region,
          region->paddr);
   deploy((const char *)region->vaddr, binary_boot_trampoline_bin_size + kMemoryMapTrampolineBinLoadPoint, 0);
 
-  deploy_zero(kMemoryMapPml4t, kMemoryMapEnd - kMemoryMapPml4t);
+  deploy_zero(kMemoryMapPml4t, kMemoryMapStack + 0x1000 * get_cpu_num() - kMemoryMapPml4t);
 
   return 0;
 }

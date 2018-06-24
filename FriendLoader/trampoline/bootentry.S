@@ -99,7 +99,9 @@ start:
   movw $0x18, %ax
 	movw %ax, %ds
 	movw %ax, %ss
-	movq $STACK_BOTTOM, %rsp
+  movq $0x1000, %rax
+  addq $STACK, %rax
+  movq %rax, %rsp
 	  
 	jmp trampoline_main
 
