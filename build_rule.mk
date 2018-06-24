@@ -1,5 +1,3 @@
-MAKEFLAGS+=--no-print-directory
-
 HOST=$(shell if [ ! -e /etc/hakase_installed ]; then echo "host"; fi)
 
 ifneq ($(HOST),)
