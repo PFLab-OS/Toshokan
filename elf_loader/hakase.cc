@@ -90,10 +90,10 @@ Result<bool> ElfLoader::Deploy() {
   return Result<bool>(true);
 }
 
-Result<bool> ElfLoader::Execute() {
+Result<bool> ElfLoader::Execute(int16_t id) {
   Channel::Accessor ch_ac(_h2f, 3);
   ch_ac.Write(0, _file->GetEntry());
-  if (ch_ac.Do(1) != 0) {
+  if (ch_ac.Do(id) != 0) {
     return Result<bool>();
   }
   

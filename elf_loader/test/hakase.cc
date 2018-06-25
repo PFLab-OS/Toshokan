@@ -32,7 +32,7 @@ int test_main(F2H &f2h, H2F &h2f, int argc, const char **argv) {
   }
 
   {
-    auto r = sl.Execute();
+    auto r = sl.Execute(1);
     if (r.IsError()) {
       r.IgnoreError();
       return 1;
