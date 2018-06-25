@@ -6,7 +6,7 @@ TESTS = hakase
 TEST_OBJS := hakase.o $(TEST_DIR)test.o
 OBJS := $(TEST_OBJS)
 DEPS := $(OBJS:%.o=%.d)
-FRIENDOS_OBJS := friend.o int.o int_asm.o
+FRIENDOS_OBJS := friend.o
 FRIENDOS_DEPS := $(OBJS:%.o=%.d)
 .DEFAULT_GOAL:=test
 
@@ -22,7 +22,6 @@ test:
 	$(MAKE) -C $(ROOT_DIR) all
 	$(MAKE) load
 	$(MAKE) friend.bin
-	$(MAKE) -C $(ROOT_DIR)joshu
 	@$(foreach test, $(TESTS), $(MAKE) $(test).bin && $(TEST_DIR)test_hakase.sh 0 $(shell pwd)/$(test).bin $(MODULE_DIR)joshu.bin $(shell pwd)/friend.bin &&) :
 	$(MAKE) unload
 
