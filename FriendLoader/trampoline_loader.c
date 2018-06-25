@@ -3,6 +3,7 @@
 #include "common/_memory.h"
 #include "cpu_hotplug.h"
 #include <asm/realmode.h>
+#include <linux/slab.h>
 
 static uint8_t jmp_bin[] = {0xeb, 0x1e, 0x66, 0x90}; // jmp 0x20; xchg %ax, &ax
 static const size_t trampoline_buf_align = 0x1000;
@@ -10,7 +11,7 @@ static const size_t trampoline_buf_size = 0x4000;
 
 int trampoline_region_alloc(struct trampoline_region *region) {
   phys_addr_t tpaddr;
-  uint32_t *io_addr;
+  uint32_t __iomem *io_addr;
 
   // search signature
   for (tpaddr = 0x1000; tpaddr < 0x100000; tpaddr += trampoline_buf_align) {
@@ -18,16 +19,17 @@ int trampoline_region_alloc(struct trampoline_region *region) {
       // this area is reserved. (ref. Multiprocessor Specification)
       continue;
     }
-    io_addr = __va(tpaddr);
+    io_addr = ioremap(tpaddr, 0x1000);
     if (io_addr == 0) {
       continue;
     }
     if (io_addr[kMemoryMapSignature / sizeof(*io_addr)] == FRIEND_LOADER_TRAMPOLINE_SIGNATURE) {
       // found
       region->paddr = tpaddr;
-      region->vaddr = io_addr;
+      iounmap(io_addr);
       return 0;
     }
+    iounmap(io_addr);
   }
   return -1;
 }
@@ -40,41 +42,50 @@ int trampoline_region_init(struct trampoline_region *region,
   extern uint8_t _binary_boot_trampoline_bin_size[];
   size_t binary_boot_trampoline_bin_size =
       (size_t)_binary_boot_trampoline_bin_size;
+  uint8_t *buf;
+  const size_t kRegionSize = binary_boot_trampoline_bin_size + kMemoryMapTrampolineBinLoadPoint;
 
-  uint64_t *vaddr64 = (uint64_t *)region->vaddr;
+  {
+    uint8_t __iomem *vaddr = ioremap(region->paddr, 0x1000);
+    uint64_t __iomem *vaddr64 = (uint64_t __iomem *)vaddr;
 
-  memcpy(region->vaddr, jmp_bin, sizeof(jmp_bin) / sizeof(jmp_bin[0]));
+    memcpy(vaddr, jmp_bin, sizeof(jmp_bin) / sizeof(jmp_bin[0]));
 
-  if (0x1000 - kMemoryMapTrampolineBinLoadPoint < binary_boot_trampoline_bin_size) {
-    return -1;
+    if (0x1000 - kMemoryMapTrampolineBinLoadPoint < binary_boot_trampoline_bin_size) {
+      return -1;
+    }
+
+    if (_binary_boot_trampoline_bin_start + binary_boot_trampoline_bin_size !=
+        _binary_boot_trampoline_bin_end) {
+      // invalid state
+      return -1;
+    }
+
+    // copy trampoline binary to trampoline region + 8 byte
+    memcpy(vaddr + kMemoryMapTrampolineBinLoadPoint / (sizeof(*vaddr)),
+           _binary_boot_trampoline_bin_start, binary_boot_trampoline_bin_size);
+
+    // check address
+    if ((phys_addr_start & (2 * 1024 * 1024 - 1)) != 0) {
+      // should be aligned to 2MB boundary
+      // because of using 2MB huge page
+      return -1;
+    }
+
+    // initialize trampoline header
+    vaddr64[kMemoryMapRegionOffset / sizeof(*vaddr64)] = region->paddr;
+    vaddr64[kMemoryMapPhysAddrStart / sizeof(*vaddr64)] = phys_addr_start;
+    vaddr64[kMemoryMapId / sizeof(*vaddr64)] = 0;  // will be initialized by trampoline_region_set_id()
+
+    buf = (uint8_t *)kmalloc(kRegionSize, GFP_KERNEL);
+    memcpy_fromio(buf, vaddr, kRegionSize);
+    
+    iounmap(vaddr);
   }
-
-  if (_binary_boot_trampoline_bin_start + binary_boot_trampoline_bin_size !=
-      _binary_boot_trampoline_bin_end) {
-    // invalid state
-    return -1;
-  }
-
-  // copy trampoline binary to trampoline region + 8 byte
-  memcpy(region->vaddr + kMemoryMapTrampolineBinLoadPoint / (sizeof(*region->vaddr)),
-         _binary_boot_trampoline_bin_start, binary_boot_trampoline_bin_size);
-
-  // check address
-  if ((phys_addr_start & (2 * 1024 * 1024 - 1)) != 0) {
-    // should be aligned to 2MB boundary
-    // because of using 2MB huge page
-    return -1;
-  }
-
-  // initialize trampoline header
-  vaddr64[kMemoryMapRegionOffset / sizeof(*vaddr64)] = region->paddr;
-  vaddr64[kMemoryMapPhysAddrStart / sizeof(*vaddr64)] = phys_addr_start;
-  vaddr64[kMemoryMapApicId / sizeof(*vaddr64)] = 0;  // will be initialized by trampoline_region_set_apicid()
 
   // make copy of trampoline region at deploy area
-  deploy((const char *)region->vaddr, binary_boot_trampoline_bin_size + kMemoryMapTrampolineBinLoadPoint,
-         region->paddr);
-  deploy((const char *)region->vaddr, binary_boot_trampoline_bin_size + kMemoryMapTrampolineBinLoadPoint, 0);
+  deploy((const char *)buf, kRegionSize, region->paddr);
+  deploy((const char *)buf, kRegionSize, 0);
 
   deploy_zero(kMemoryMapPml4t, kMemoryMapStack + 0x1000 * get_cpu_num() - kMemoryMapPml4t);
 
@@ -82,11 +93,9 @@ int trampoline_region_init(struct trampoline_region *region,
 }
 
 void trampoline_region_set_id(struct trampoline_region *region, int cpuid, int apicid) {
-  uint32_t *vaddr32 = (uint32_t *)region->vaddr;
-  vaddr32[kMemoryMapApicId / sizeof(*vaddr32)] = apicid;
-  vaddr32[kMemoryMapCpuId / sizeof(*vaddr32)] = cpuid;
+  int32_t buf[2];
+  buf[0] = apicid;
+  buf[1] = cpuid;
+  deploy((const char *)buf, sizeof(buf), kMemoryMapId);
 }
 
-void trampoline_region_free(struct trampoline_region *region) {
-  iounmap(region->vaddr);
-}

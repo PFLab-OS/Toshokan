@@ -5,7 +5,9 @@ void panic();
 // callback test
 void callback(H2F &h2f, F2H &f2h) {
   h2f.Return(0);
+  f2h.Reserve();
   f2h.SendSignal(1);
+  f2h.Release();
 }
 
 // print request test
@@ -75,7 +77,9 @@ extern "C" void trampoline_main() {
   F2H f2h;
 
   while(true) {
-    switch (h2f.WaitNewSignal()) {
+    int16_t type;
+    h2f.WaitNewSignal(type);
+    switch (type) {
     case 0:
       panic();
     case 1:

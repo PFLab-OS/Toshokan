@@ -40,7 +40,9 @@ int test_main(F2H &f2h, H2F &h2f, int argc, const char **argv) {
     r.Unwrap();
   }
 
-  if (f2h.WaitNewSignal() != 1) {
+  int16_t type;
+  f2h.WaitNewSignal(type);
+  if (type != 1) {
     return 1;
   }
 

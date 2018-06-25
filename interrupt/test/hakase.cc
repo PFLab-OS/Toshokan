@@ -43,7 +43,9 @@ int test_main(F2H &f2h, H2F &h2f, int argc, const char **argv) {
     r.Unwrap();
   }
 
-  if (ic.WaitSignal() != 5) {
+  int16_t type;
+  ic.WaitSignal(type);
+  if (type != 5) {
     return 1;
   }
 

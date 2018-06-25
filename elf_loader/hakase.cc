@@ -62,7 +62,7 @@ Result<bool> ElfLoader::Deploy() {
       }
       uint8_t *buf = new uint8_t[info->size];
       memset(buf, 0, info->size);
-      MemoryAccessor::Writer mw(_h2f, info->vaddr, buf, info->size);
+      MemoryAccessor::Writer mw(_h2f, 1, info->vaddr, buf, info->size);
       mw.Do().Unwrap();
       delete buf;
     }
@@ -81,7 +81,7 @@ Result<bool> ElfLoader::Deploy() {
       }
       uint8_t *buf = new uint8_t[info->size];
       memcpy(buf, _file->GetRawPtr(info->file_offset), info->size);
-      MemoryAccessor::Writer mw(_h2f, info->vaddr, buf, info->size);
+      MemoryAccessor::Writer mw(_h2f, 1, info->vaddr, buf, info->size);
       mw.Do().Unwrap();
       delete buf;
     }
@@ -93,7 +93,7 @@ Result<bool> ElfLoader::Deploy() {
 Result<bool> ElfLoader::Execute() {
   Channel::Accessor ch_ac(_h2f, 3);
   ch_ac.Write(0, _file->GetEntry());
-  if (ch_ac.Do() != 0) {
+  if (ch_ac.Do(1) != 0) {
     return Result<bool>();
   }
   

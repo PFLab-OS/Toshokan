@@ -10,7 +10,7 @@ Result<bool> SimpleLoader::Deploy() {
       return Result<bool>(true);
     }
 
-    MemoryAccessor::Writer mw(_h2f, kDeployAddressStart + dd->_offset, dd->_buf, dd->_size);
+    MemoryAccessor::Writer mw(_h2f, 1, kDeployAddressStart + dd->_offset, dd->_buf, dd->_size);
     mw.Do().Unwrap();
   }
 }

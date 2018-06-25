@@ -14,7 +14,9 @@ int main() {
   }
   
   int *channel = reinterpret_cast<int *>(MemoryMap::kF2h);
-  channel[0] = 1;
+  if (channel[0] == 0) {
+    channel[0] = 1 | (1 << 16); // TODO replace to ID
+  }
   asm volatile("cli;hlt;hlt;");
   return 0;
 }

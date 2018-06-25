@@ -6,7 +6,7 @@ public:
   }
   InterruptController() = delete;
 
-  int WaitSignal();
+  int WaitSignal(int16_t &type);
 
 private:
   F2H &_f2h;

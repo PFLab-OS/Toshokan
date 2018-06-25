@@ -2,7 +2,9 @@
 
 void StringReceiver::Do() {
   while(true) {
-    if (_f2h.WaitNewSignal() != 2) {
+    int16_t type;
+    _f2h.WaitNewSignal(type);
+    if (type != 2) {
       return;
     }
     

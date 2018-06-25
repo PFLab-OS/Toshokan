@@ -99,7 +99,10 @@ start:
   movw $0x18, %ax
 	movw %ax, %ds
 	movw %ax, %ss
-  movq $0x1000, %rax
+  xorq %rax, %rax
+  movl (ID + 4), %eax // cpuid
+  incl %eax
+  shll $12, %eax // * 0x1000 (stack size)
   addq $STACK, %rax
   movq %rax, %rsp
 	  

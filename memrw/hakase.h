@@ -18,7 +18,7 @@ namespace MemoryAccessor {
   
   class Writer : public MemoryAccessorBase {
   public:
-    Writer(Channel &ch, const uint64_t address, void *buf, size_t size) : _ch(ch), _address(address), _buf(reinterpret_cast<uint8_t *>(buf)), _size(size) {
+    Writer(Channel &ch, int16_t id, const uint64_t address, void *buf, size_t size) : _ch(ch), _id(id), _address(address), _buf(reinterpret_cast<uint8_t *>(buf)), _size(size) {
     }
     Writer() = delete;
     
@@ -34,7 +34,7 @@ namespace MemoryAccessor {
         for(size_t i = 0; i < size; i++) {
           ch_ac.Write(kTransferDataOffset + i, _buf[offset + i]);
         }
-        if (ch_ac.Do() != 0) {
+        if (ch_ac.Do(_id) != 0) {
           return Result<bool>();
         }
       }
@@ -43,6 +43,7 @@ namespace MemoryAccessor {
   private:
     static const uint32_t kSignatureWrite = 1;
     Channel &_ch;
+    int16_t _id;
     const uint64_t _address;
     uint8_t *_buf;
     size_t _size;
@@ -50,7 +51,7 @@ namespace MemoryAccessor {
   
   class Reader : public MemoryAccessorBase {
   public:
-    Reader(Channel &ch, const uint64_t address, void *buf, size_t size) : _ch(ch), _address(address), _buf(reinterpret_cast<uint8_t *>(buf)), _size(size) {
+    Reader(Channel &ch, int16_t id, const uint64_t address, void *buf, size_t size) : _ch(ch), _id(id), _address(address), _buf(reinterpret_cast<uint8_t *>(buf)), _size(size) {
     }
     Reader() = delete;
     
@@ -63,7 +64,7 @@ namespace MemoryAccessor {
         ch_ac.Write(8, _address + offset);
         ch_ac.Write(16, size);
 
-        if (ch_ac.Do() != 0) {
+        if (ch_ac.Do(_id) != 0) {
           return Result<bool>();
         }
         for(size_t i = 0; i < size; i++) {
@@ -76,6 +77,7 @@ namespace MemoryAccessor {
     }
   private:
     Channel &_ch;
+    int16_t _id; 
     const uint64_t _address;
     uint8_t *_buf;
     size_t _size;

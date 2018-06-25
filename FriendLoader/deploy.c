@@ -6,14 +6,15 @@
 
 int deploy(const char *data, size_t size, loff_t offset) {
   void __iomem *io_addr;
-  phys_addr_t addr = DEPLOY_PHYS_ADDR_START + offset;
-  if (addr + size > DEPLOY_PHYS_ADDR_END) {
+  loff_t offset_ = (offset / 0x1000) * 0x1000;
+  phys_addr_t addr = DEPLOY_PHYS_ADDR_START + offset_;
+  if (addr + size + (offset % 0x1000) > DEPLOY_PHYS_ADDR_END) {
     pr_warn("deploy: file size too large\n");
     return -1;
   }
 
-  io_addr = ioremap(addr, size);
-  memcpy_toio(io_addr, data, size);
+  io_addr = ioremap(addr, ((size + 0x1000 - 1) / 0x1000) * 0x1000);
+  memcpy_toio(io_addr + (offset % 0x1000), data, size);
   iounmap(io_addr);
 
   return 0;

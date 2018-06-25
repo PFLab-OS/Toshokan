@@ -35,11 +35,11 @@ int test_main(F2H &f2h, H2F &h2f, int argc, const char **argv) {
     buf[i] = rand() % 0xFF;
   }
 
-  MemoryAccessor::Writer mw(h2f, address, buf, kDataSize);
+  MemoryAccessor::Writer mw(h2f, 1, address, buf, kDataSize);
   mw.Do().Unwrap();
 
   uint8_t tmp_buf[kDataSize];
-  MemoryAccessor::Reader mr(h2f, address, tmp_buf, kDataSize);
+  MemoryAccessor::Reader mr(h2f, 1, address, tmp_buf, kDataSize);
   mr.Do().Unwrap();
 
   if (memcmp(tmp_buf, buf, kDataSize) != 0) {

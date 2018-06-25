@@ -6,7 +6,7 @@ Idt idt;
 
 static void HandleTest(Regs *rs, void *arg) {
   int *channel = reinterpret_cast<int *>(MemoryMap::kF2h);
-  channel[0] = 5;
+  channel[0] = 5 | (1 << 16); // TODO replace to ID
   asm volatile("cli;hlt;hlt;");
 }
 

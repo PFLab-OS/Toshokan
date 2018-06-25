@@ -21,10 +21,12 @@ int test_main(F2H &f2h, H2F &h2f, int argc, const char **argv) {
 
   Channel::Accessor ch_ac(h2f, 3);
   ch_ac.Write(0, kDeployAddressStart);
-  if (ch_ac.Do() != 0) {
+  if (ch_ac.Do(1) != 0) {
     return 1;
   }
-  if (f2h.WaitNewSignal() != 1) {
+  int16_t type;
+  f2h.WaitNewSignal(type);
+  if (type != 1) {
     return 1;
   }
 

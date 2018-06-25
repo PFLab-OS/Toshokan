@@ -8,7 +8,7 @@ int test_main(F2H &f2h, H2F &h2f, int argc, const char **argv) {
   const uint8_t signature[] = {0xeb, 0x1e, 0x66, 0x90, 0x6b, 0x72, 0x70, 0x4a};
 
   uint8_t buf[sizeof(signature) / sizeof(*signature)];
-  MemoryAccessor::Reader mr(h2f, kAddress, buf, sizeof(signature) / sizeof(*signature));
+  MemoryAccessor::Reader mr(h2f, 1, kAddress, buf, sizeof(signature) / sizeof(*signature));
   mr.Do().Unwrap();
   if (memcmp(buf, signature, sizeof(signature) / sizeof(*signature)) != 0) {
     return 1;
