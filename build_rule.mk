@@ -6,7 +6,7 @@ VAGRANT_ROOT_DIR=$(shell vagrant -h | grep host_dir: | cut -f2)
 VM_ID=$(shell cat $(VAGRANT_ROOT_DIR)/.vagrant/machines/default/virtualbox/id)
 
 define run_remote
-	@bash -c 'vagrant ssh -c "$(1)" | grep -v "host_dir:\t$(VAGRANT_ROOT_DIR)"; exit $${PIPESTATUS[0]}'
+	@bash -c 'vagrant ssh -c "$(1)"; exit $${PIPESTATUS[0]}'
 endef
 
 define make_wrapper
