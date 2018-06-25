@@ -7,6 +7,7 @@
 #include "cpu_hotplug.h"
 #include "deploy.h"
 #include "trampoline_loader.h"
+#include "common/_memory.h"
 
 static struct trampoline_region tregion;
 static int *unplugged_cpu_list = NULL;
@@ -86,7 +87,7 @@ int cpu_start() {
   /*
    * Wake up AP by INIT, INIT, STARTUP sequence.
    */
-  for (i = 0; i < 1 /*num_possible_cpus()*/; i++) {
+  for (i = 0; i < num_possible_cpus(); i++) {
     if (unplugged_cpu_list[i] > 0) {
       int apicid = apic->cpu_present_to_apicid(unplugged_cpu_list[i]);
 
@@ -101,6 +102,18 @@ int cpu_start() {
       if (ret2 < 0) {
         ret1 = -1;
       }
+
+      do {
+        uint64_t i;
+        if (read_deploy_area((char *)&i, sizeof(i), kMemoryMapId) < 0) {
+          ret1 = -1;
+          break;
+        }
+        if (i == 0) {
+          break;
+        }
+        asm volatile("pause":::"memory");
+      } while(1);
     }
   }
 

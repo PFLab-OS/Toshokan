@@ -79,7 +79,8 @@ public:
     SetSignalType(0);
   }
 protected:
-  Channel() : _my_id(*reinterpret_cast<uint32_t *>(MemoryMap::kId)) {
+  Channel() {
+    asm volatile("movw %%fs:0x0, %0" : "=r"(_my_id));
   }
   char *_address;
 private:
@@ -116,7 +117,7 @@ private:
   int32_t &GetReturnValueRef() {
     return reinterpret_cast<int32_t *>(_address)[1];
   }
-  const int16_t _my_id;
+  int16_t _my_id;
 };
 
 class H2F : public Channel {

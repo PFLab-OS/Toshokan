@@ -74,6 +74,7 @@ entry:
 
 	// setup gdt
 	movl (region_addr), %edx
+  movl $gdt_desc, (gdt_desc_ptr)
 	addl %edx, (gdt_desc_ptr)
 	lgdtl gdtr
 
@@ -122,7 +123,7 @@ gdt_desc:
 gdtr:
 	.word 8*6 - 1
 gdt_desc_ptr:	
-	.quad gdt_desc
+	.quad 0
 
 gdtr_ptr:
 	.long 0

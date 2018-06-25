@@ -1,3 +1,4 @@
+using int16_t = __INT16_TYPE__;
 using uint64_t = __UINT64_TYPE__;
 #include "common/_memory.h"
 
@@ -15,7 +16,9 @@ int main() {
   
   int *channel = reinterpret_cast<int *>(MemoryMap::kF2h);
   if (channel[0] == 0) {
-    channel[0] = 1 | (1 << 16); // TODO replace to ID
+    int16_t id;
+    asm volatile("movw %%fs:0x0, %0" : "=r"(id));
+    channel[0] = 1 | (id << 16);
   }
   asm volatile("cli;hlt;hlt;");
   return 0;

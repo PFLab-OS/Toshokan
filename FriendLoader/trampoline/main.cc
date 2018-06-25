@@ -62,6 +62,13 @@ void rw_memory(H2F &h2f, F2H &f2h) {
 }
 
 extern "C" void trampoline_main() {
+  uint32_t *id = reinterpret_cast<uint32_t *>(MemoryMap::kId);
+  int32_t cpuid = id[1];
+  uint64_t *pc_st = reinterpret_cast<uint64_t *>(MemoryMap::kPerCoreStruct);
+  pc_st[cpuid] = *reinterpret_cast<uint64_t *>(id);
+  *reinterpret_cast<uint64_t *>(id) = 0;
+  asm volatile("wrmsr" ::"c"(0xC0000100 /* MSR_IA32_FS_BASE */), "d"(0), "a"(&pc_st[cpuid]));
+  
   uint64_t *pml4t = reinterpret_cast<uint64_t *>(MemoryMap::kPml4t);
   uint64_t *pdpt  = reinterpret_cast<uint64_t *>(MemoryMap::kPdpt);
   uint64_t *pd    = reinterpret_cast<uint64_t *>(MemoryMap::kPd);
