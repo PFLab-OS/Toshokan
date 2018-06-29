@@ -1,16 +1,21 @@
-using uint64_t = __UINT64_TYPE__;
-#include "common/_memory.h"
 #include "int.h"
+#include "channel.h"
 
 Idt idt;
+F2H f2h;
+
+static void HandleTest(Regs *rs, void *arg) {
+
+}
 
 int main() {
   // Setup Interrupt 
   idt.SetupGeneric();
   idt.SetupProc();
 
+  idt.SetExceptionCallback(Idt::ReservedIntVector::kTest, HandleTest, nullptr);
+
   // Load Elf
-  int *channel = reinterpret_cast<int *>(MemoryMap::kF2h);
-  channel[0] = 6;
+  f2h.SendSignal(6);
 
 }
