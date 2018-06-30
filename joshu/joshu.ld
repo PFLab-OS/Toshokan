@@ -3,7 +3,7 @@ OUTPUT_FORMAT(elf64-x86-64)
 ENTRY (main)
 
 SECTIONS{
-  . = SEGMENT_START("text-segment", 0x200000) + SIZEOF_HEADERS;
+  . = SEGMENT_START("text-segment", 0x300000) + SIZEOF_HEADERS;
   .text : {
     *(.text*)
     *(.gnu.linkonce.t*)

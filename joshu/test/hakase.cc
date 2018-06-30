@@ -36,7 +36,7 @@ int test_main(F2H &f2h, H2F &h2f, int argc, const char **argv) {
   }
 
   {
-    auto r = sl.Execute();
+    auto r = sl.Execute(1);
     if (r.IsError()) {
       r.IgnoreError();
       return 1;
@@ -44,9 +44,14 @@ int test_main(F2H &f2h, H2F &h2f, int argc, const char **argv) {
     r.Unwrap();
   }
 
-  if(f2h.WaitNewSignal() != 6) { 
+
+  int16_t type;
+  f2h.WaitNewSignal(type);
+  if (type != 6) {
     return 1;
   }
+
+  f2h.Return(0);
 
   // Load friend.bin
   auto file2 = ElfLoader::ElfFile::Load(argv[2]);
@@ -75,7 +80,7 @@ int test_main(F2H &f2h, H2F &h2f, int argc, const char **argv) {
   }
 
   {
-    auto r = sl2.Execute();
+    auto r = sl2.Execute(1);
     if (r.IsError()) {
       r.IgnoreError();
       return 1;
@@ -83,10 +88,11 @@ int test_main(F2H &f2h, H2F &h2f, int argc, const char **argv) {
     r.Unwrap();
   }
 
-  if(f2h.WaitNewSignal() != 7) { 
+
+  f2h.WaitNewSignal(type);
+  if (type != 7) {
     return 1;
   }
-
 
   return 0;
 }
