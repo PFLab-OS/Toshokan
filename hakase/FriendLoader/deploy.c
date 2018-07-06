@@ -15,7 +15,7 @@ int deploy(const char *data, size_t size, loff_t offset) {
 
   io_addr = ioremap(addr, ((size + 0x1000 - 1) / 0x1000) * 0x1000);
   if (io_addr == 0) {
-    pr_err("friend_loader: failed to remap address.(addr: %lx, size: %lx)", addr, size);
+    pr_err("friend_loader: failed to remap address.(addr: %llx, size: %lx)", addr, size);
     return -1;
   }
   memcpy_toio(io_addr + (offset % 0x1000), data, size);
@@ -35,7 +35,7 @@ int read_deploy_area(char *buf, size_t size, loff_t offset) {
 
   io_addr = ioremap(addr, ((size + 0x1000 - 1) / 0x1000) * 0x1000);
   if (io_addr == 0) {
-    pr_err("friend_loader: failed to remap address.(addr: %lx, size: %lx)", addr, size);
+    pr_err("friend_loader: failed to remap address.(addr: %llx, size: %lx)", addr, size);
     return -1;
   }
   memcpy_fromio(buf, io_addr + (offset % 0x1000), size);
@@ -53,7 +53,7 @@ int deploy_zero(loff_t offset, size_t size) {
 
   io_addr = ioremap(addr, size);
   if (io_addr == 0) {
-    pr_err("friend_loader: failed to remap address.(addr: %lx, size: %lx)", addr, size);
+    pr_err("friend_loader: failed to remap address.(addr: %llx, size: %lx)", addr, size);
     return -1;
   }
   memset_io(io_addr, 0, size);
