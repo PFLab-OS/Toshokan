@@ -84,18 +84,27 @@ int trampoline_region_init(struct trampoline_region *region,
   }
 
   // make copy of trampoline region at deploy area
-  deploy((const char *)buf, kRegionSize, region->paddr);
-  deploy((const char *)buf, kRegionSize, 0);
+  if (deploy((const char *)buf, kRegionSize, region->paddr) < 0) {
+    pr_err("friend_loader: deploy failed\n");
+    return -1;
+  }
+  if (deploy((const char *)buf, kRegionSize, 0) < 0) {
+    pr_err("friend_loader: deploy failed\n");
+    return -1;
+  }
 
-  deploy_zero(kMemoryMapPml4t, kMemoryMapStack + 0x1000 * get_cpu_num() - kMemoryMapPml4t);
+  if (deploy_zero(kMemoryMapPml4t, kMemoryMapStack + 0x1000 * get_cpu_num() - kMemoryMapPml4t) < 0) {
+    pr_err("friend_loader: deploy failed\n");
+    return -1;
+  }
 
   return 0;
 }
 
-void trampoline_region_set_id(struct trampoline_region *region, int cpuid, int apicid) {
+int trampoline_region_set_id(struct trampoline_region *region, int cpuid, int apicid) {
   int32_t buf[2];
   buf[0] = apicid;
   buf[1] = cpuid;
-  deploy((const char *)buf, sizeof(buf), kMemoryMapId);
+  return deploy((const char *)buf, sizeof(buf), kMemoryMapId);
 }
 
