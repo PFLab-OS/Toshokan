@@ -10,15 +10,15 @@
 #include "common/_memory.h"
 
 static struct trampoline_region tregion;
-static int *unplugged_cpu_list = NULL;
+static int *unpluged_cpu_list = NULL;
 
 int get_cpu_num(void) {
   int i, num = 0;
-  if (unplugged_cpu_list == NULL) {
+  if (unpluged_cpu_list == NULL) {
     return -1;
   }
   for(i = 0; i < num_possible_cpus(); i++) {
-    if (unplugged_cpu_list[i] > 0) {
+    if (unpluged_cpu_list[i] > 0) {
       num++;
     }
   }
@@ -30,19 +30,19 @@ int cpu_unplug(void) {
   ret1 = 0;
   unpluged_flag = 0;
 
-  if (unplugged_cpu_list == NULL) {
-    unplugged_cpu_list = (int *)kmalloc(sizeof(int) * num_possible_cpus(), GFP_KERNEL);
-    if (!unplugged_cpu_list) {
+  if (unpluged_cpu_list == NULL) {
+    unpluged_cpu_list = (int *)kmalloc(sizeof(int) * num_possible_cpus(), GFP_KERNEL);
+    if (!unpluged_cpu_list) {
       return -1;
     }
-    memset(unplugged_cpu_list, -1, sizeof(int) * num_possible_cpus());
+    memset(unpluged_cpu_list, -1, sizeof(int) * num_possible_cpus());
 
     get_online_cpus();
 
     i = 0;
     for_each_online_cpu(cpu) {
       if (cpu != 0 && cpu_is_hotpluggable(cpu)) {
-        unplugged_cpu_list[i] = cpu;
+        unpluged_cpu_list[i] = cpu;
         i++;
       }
     }
@@ -51,9 +51,9 @@ int cpu_unplug(void) {
   }
 
   for(i = 0; i < num_possible_cpus(); i++) {
-    if (unplugged_cpu_list[i] > 0) {
+    if (unpluged_cpu_list[i] > 0) {
       unpluged_flag = 1;
-      ret2 = cpu_down(unplugged_cpu_list[i]);
+      ret2 = cpu_down(unpluged_cpu_list[i]);
       if (ret2 < 0) {
         ret1 = -1;
       }
@@ -95,8 +95,8 @@ int cpu_start() {
    * Wake up AP by INIT, INIT, STARTUP sequence.
    */
   for (i = 0; i < num_possible_cpus(); i++) {
-    if (unplugged_cpu_list[i] > 0) {
-      int apicid = apic->cpu_present_to_apicid(unplugged_cpu_list[i]);
+    if (unpluged_cpu_list[i] > 0) {
+      int apicid = apic->cpu_present_to_apicid(unpluged_cpu_list[i]);
 
       if (apicid == 0) {
         ret1 = -1;
@@ -132,21 +132,21 @@ int cpu_start() {
 int cpu_replug(void) {
   int i, ret1, ret2;
   ret1 = 0;
-  if (unplugged_cpu_list == NULL) {
+  if (unpluged_cpu_list == NULL) {
     return -1;
   }
 
   for (i = 0; i < num_possible_cpus(); i++) {
-    if (unplugged_cpu_list[i] > 0) {
-      ret2 = cpu_up(unplugged_cpu_list[i]);
+    if (unpluged_cpu_list[i] > 0) {
+      ret2 = cpu_up(unpluged_cpu_list[i]);
       if (ret2 < 0) {
         ret1 = -1;
       }
     }
   }
 
-  kfree(unplugged_cpu_list);
-  unplugged_cpu_list = NULL;
+  kfree(unpluged_cpu_list);
+  unpluged_cpu_list = NULL;
 
   return ret1;
 }
