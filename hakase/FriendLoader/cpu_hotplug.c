@@ -26,8 +26,9 @@ int get_cpu_num(void) {
 }
 
 int cpu_unplug(void) {
-  int i, ret1, ret2, cpu;
+  int i, ret1, ret2, cpu, unpluged_flag;
   ret1 = 0;
+  unpluged_flag = 0;
 
   if (unplugged_cpu_list == NULL) {
     unplugged_cpu_list = (int *)kmalloc(sizeof(int) * num_possible_cpus(), GFP_KERNEL);
@@ -51,11 +52,17 @@ int cpu_unplug(void) {
 
   for(i = 0; i < num_possible_cpus(); i++) {
     if (unplugged_cpu_list[i] > 0) {
+      unpluged_flag = 1;
       ret2 = cpu_down(unplugged_cpu_list[i]);
       if (ret2 < 0) {
         ret1 = -1;
       }
     }
+  }
+
+  if (unpluged_flag == 0) {
+    pr_warn("friend_loader: no unplugable cpu\n");
+    return -1;
   }
 
   return ret1;
