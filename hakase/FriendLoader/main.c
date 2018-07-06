@@ -68,16 +68,19 @@ static int boot_flag_set(const char *val, struct kernel_param *kp) {
               DEPLOY_PHYS_ADDR_START);
     } else {
       pr_warn("friend_loader: cpu_start failed\n");
+      return -EIO;
     }
   } else if (n == 0) {
     int ret = cpu_replug();
     if (ret < 0) {
       pr_warn("friend_loade_exit: cpu_replug failed: %d\n", ret);
+      return -EIO;
     }
 
     ret = cpu_unplug();
     if (ret < 0) {
       pr_warn("friend_loader: cpu_unplug failed: %d\n", ret);
+      return -EIO;
     }
   }
 
