@@ -12,6 +12,7 @@
 
 if [ $# -ge 1 ]; then
     uname -r | grep hakase > /dev/null 2>&1 || (echo "error: must be run on hakase kernel"; exit 1)
+    cat /proc/cmdline | grep memmap=0x80000000x80000000 > /dev/null 2>&1 || (echo "error: physical memory is not isolated for hakase"; exit 1)
     if [ ! -e friend_loader.ko ]; then
         echo "error: make friend loader kernel module first!"
         exit 1
