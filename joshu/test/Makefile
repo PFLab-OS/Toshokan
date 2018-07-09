@@ -1,4 +1,4 @@
-include ../../build_rule.mk
+include ../../hakase/build_rule.mk
 
 ifeq ($(HOST),)
 
@@ -22,7 +22,8 @@ test:
 	$(MAKE) -C $(ROOT_DIR) all
 	$(MAKE) load
 	$(MAKE) friend.bin
-	@$(foreach test, $(TESTS), $(MAKE) $(test).bin && $(TEST_DIR)test_hakase.sh 0 $(shell pwd)/$(test).bin $(MODULE_DIR)joshu.bin $(shell pwd)/friend.bin &&) :
+	$(MAKE) -C $(shell pwd)/../
+	@$(foreach test, $(TESTS), $(MAKE) $(test).bin && $(TEST_DIR)test_hakase.sh 0 $(shell pwd)/$(test).bin $(shell pwd)/../joshu.bin $(shell pwd)/friend.bin &&) :
 	$(MAKE) unload
 
 clean:
