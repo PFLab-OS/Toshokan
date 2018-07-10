@@ -1,4 +1,4 @@
-include ../build_rule.mk
+include ../hakase/build_rule.mk
 
 ifeq ($(HOST),)
 
@@ -11,12 +11,12 @@ DEPS := $(OBJS:%.o=%.d)
 
 .PHONY: all
 
-all: $(MODULE_DIR)$(MODULE_NAME)
+all: $(MODULE_NAME)
 
-$(MODULE_DIR)$(MODULE_NAME): joshu.cc int.cc int_asm.S 
+$(MODULE_NAME): joshu.cc int.cc int_asm.S 
 	g++ -O0 -Wall --std=c++14 -nostdinc -nostdlib -iquote $(ROOT_DIR) -T joshu.ld $^ -o $@
 
 clean:
-	rm -f $(MODULE_DIR)$(MODULE_NAME) 
+	rm -f $(MODULE_NAME) 
 
 endif
