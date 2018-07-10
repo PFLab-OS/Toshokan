@@ -1,4 +1,5 @@
 #include "int.h"
+#include "channel_baremetal.h"
 
 struct idt_entity {
   uint32_t entry[4];
@@ -9,6 +10,7 @@ volatile uint16_t _idtr[5];
 extern idt_callback idt_vectors[Idt::kIntVectorNum];
 
 extern Idt idt;
+
 
 /* How to interrupt
  * 1. Trigger interrupt (e.g. "int" instruction, HW interrupt, some exception).
@@ -22,20 +24,25 @@ extern Idt idt;
 
 namespace C {
 extern "C" void handle_int(Regs *rs) {
+  F2H f2h;
   bool iflag = disable_interrupt();
   idt._handling_cnt++;
-  if (idt._callback[rs->n].callback == nullptr) {
-    //TODO notify to hakase 
-    kassert(false);
-  } else {
-    idt._callback[rs->n].callback(rs, idt._callback[rs->n].arg);
-  }
+
+  f2h.Reserve();
+  f2h.Write(0, static_cast<uint64_t>(rs->n));
+  f2h.SendSignal(6);
+  f2h.Release();
+
   idt._handling_cnt--;
   enable_interrupt(iflag);
 }
 }
 
 void Idt::SetupGeneric() {
+  //TODO : Fix elf_loader's bug
+  F2H f2h;
+  f2h.Release();
+
   for (int i = 0; i < kIntVectorNum; i++) {
     uint8_t ist;
     // We don't use TSS and IST
