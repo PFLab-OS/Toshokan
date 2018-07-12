@@ -9,7 +9,7 @@
 #define PML4T        0x1000
 #define PDPT         0x2000
 #define PD           0x3000
-#define STACK        0x8000
+#define STACK        0x9000
 
 #ifndef ASM_FILE
 

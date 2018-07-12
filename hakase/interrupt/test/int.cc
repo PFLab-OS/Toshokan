@@ -1,5 +1,5 @@
 #include "int.h"
-#include "channel_baremetal.h"
+#include "common/channel.h"
 
 struct idt_entity {
   uint32_t entry[4];
@@ -24,14 +24,13 @@ extern Idt idt;
 
 namespace C {
 extern "C" void handle_int(Regs *rs) {
-  F2H f2h;
   bool iflag = disable_interrupt();
   idt._handling_cnt++;
 
-  f2h.Reserve();
-  f2h.Write(0, static_cast<uint64_t>(rs->n));
-  f2h.SendSignal(6);
-  f2h.Release();
+  I2H i2h;
+  Channel::Accessor<> ch_ac(i2h, 6);
+  ch_ac.Write<uint64_t>(0, static_cast<uint64_t>(rs->n));
+  ch_ac.Do(0);
 
   idt._handling_cnt--;
   enable_interrupt(iflag);
@@ -39,10 +38,6 @@ extern "C" void handle_int(Regs *rs) {
 }
 
 void Idt::SetupGeneric() {
-  //TODO : Fix elf_loader's bug
-  F2H f2h;
-  f2h.Release();
-
   for (int i = 0; i < kIntVectorNum; i++) {
     uint8_t ist;
     // We don't use TSS and IST

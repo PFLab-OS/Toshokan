@@ -129,3 +129,8 @@ class F2H : public Channel {
 public:
   F2H() { _address = reinterpret_cast<char *>(MemoryMap::kF2h); }
 };
+
+class I2H : public Channel {
+public:
+  I2H() { _address = reinterpret_cast<char *>(MemoryMap::kI2h); }
+};

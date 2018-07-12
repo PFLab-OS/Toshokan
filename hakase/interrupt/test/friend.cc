@@ -1,6 +1,5 @@
-using int16_t = __INT16_TYPE__;
-using uint64_t = __UINT64_TYPE__;
 #include "common/_memory.h"
+#include "common/channel.h"
 #include "int.h"
 
 Idt idt;

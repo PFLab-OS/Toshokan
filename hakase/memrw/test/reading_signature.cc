@@ -3,7 +3,7 @@
 #include "common/channel.h"
 #include "memrw/hakase.h"
 
-int test_main(F2H &f2h, H2F &h2f, int argc, const char **argv) {
+int test_main(F2H &f2h, H2F &h2f, I2H &i2h, int argc, const char **argv) {
   static const uint64_t kAddress = 0;
   const uint8_t signature[] = {0xeb, 0x1e, 0x66, 0x90, 0x6b, 0x72, 0x70, 0x4a};
 
