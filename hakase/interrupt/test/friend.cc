@@ -6,7 +6,7 @@ using uint64_t = __UINT64_TYPE__;
 Idt idt;
 
 static void HandleTest(Regs *rs, void *arg) {
-  int *channel = reinterpret_cast<int *>(MemoryMap::kF2h);
+  int *channel = reinterpret_cast<int *>(MemoryMap::kI2h);
   int16_t id;
   asm volatile("movw %%fs:0x0, %0" : "=r"(id));
   channel[0] = 5 | (id << 16);

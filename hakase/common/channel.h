@@ -216,3 +216,11 @@ public:
     _address = address;
   }
 };
+
+class I2H : public Channel {
+public:
+  I2H() = delete;
+  I2H(char *address) {
+    _address = address;
+  }
+};

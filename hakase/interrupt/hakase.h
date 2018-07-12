@@ -2,13 +2,13 @@
 
 class InterruptController {
 public:
-  InterruptController(F2H &f2h) : _f2h(f2h) {
+  InterruptController(I2H &i2h) : _i2h(i2h) {
   }
   InterruptController() = delete;
 
   int WaitSignal(int16_t &type);
 
 private:
-  F2H &_f2h;
+  I2H &_i2h;
 };
 
