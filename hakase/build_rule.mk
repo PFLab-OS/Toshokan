@@ -1,4 +1,4 @@
-DOCKER_IMAGE_TAG=2fac00a686bf6124772f611096cdc01060c267e0
+DOCKER_IMAGE_TAG=c07f6982495230c5377f0decb114a7fac7908c09
 ROOT_DIR:=$(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 RELATIVE_DIR:=$(shell bash -c "root_dir=$(abspath $(ROOT_DIR)../); pwd=$(CURDIR); echo \$${pwd\#\$${root_dir}};")
 DEPLOY_DIR:=/deploy/
@@ -14,9 +14,8 @@ define make_wrapper
 	@echo  Running \"make$1\" on the docker environment.
 	@echo "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
 	@docker rm hakase_devenv -f > /dev/null 2>&1 || :
-	docker run -d --mount type=tmpfs,destination=/ram,tmpfs-size=400M --cpu-period=50000 --cpu-quota=45000 -it -v $(abspath $(ROOT_DIR)../):/share --name hakase_devenv livadk/hakase-qemu:$(DOCKER_IMAGE_TAG)
+	docker run -d -it -v $(abspath $(ROOT_DIR)../):/share --name hakase_devenv livadk/hakase-qemu:$(DOCKER_IMAGE_TAG)
 	@echo ""
-	docker exec -t hakase_devenv sh -c "cp /root/*.diff.qcow2 /ram"
 	docker exec -t -w /share$(RELATIVE_DIR) hakase_devenv make$1
 	@echo ""
 	docker rm -f hakase_devenv
