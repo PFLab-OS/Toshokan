@@ -1,18 +1,25 @@
-HOST=$(shell if [ ! -e /etc/hakase_installed ]; then echo "host"; fi)
+DOCKER_IMAGE_TAG=2fac00a686bf6124772f611096cdc01060c267e0
+ROOT_DIR:=$(dir $(abspath $(lastword $(MAKEFILE_LIST))))
+RELATIVE_DIR:=$(shell bash -c "root_dir=$(abspath $(ROOT_DIR)../); pwd=$(CURDIR); echo \$${pwd\#\$${root_dir}};")
+DEPLOY_DIR:=/deploy/
+RUN_SCRIPT:=$(DEPLOY_DIR)/script.sh
+QEMU_DIR:=/home/ubuntu/share
+HOST=$(shell if [ ! -e /lib/modules/4.14.34hakase/build ]; then echo "host"; fi)
 
 ifneq ($(HOST),)
 # host environment
-VAGRANT_ROOT_DIR=$(shell vagrant -h | grep host_dir: | cut -f2)
-VM_ID=$(shell cat $(VAGRANT_ROOT_DIR)/.vagrant/machines/default/virtualbox/id)
-
-define run_remote
-	@bash -c 'vagrant ssh -c "$(1)"; exit $${PIPESTATUS[0]}'
-endef
 
 define make_wrapper
-	@echo Running \"make$1\" on the remote build environment.
-	@vboxmanage showvminfo $(VM_ID) | grep "State:" | grep running > /dev/null 2>&1 || vagrant reload
-	$(call run_remote, root_dir=$(VAGRANT_ROOT_DIR); pwd=$(CURDIR); cd /vagrant\$${pwd#\$${root_dir}}; env MAKEFLAGS=\"$(MAKEFLAGS)\" make$1)
+	@echo "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
+	@echo  Running \"make$1\" on the docker environment.
+	@echo "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
+	@docker rm hakase_devenv -f > /dev/null 2>&1 || :
+	docker run -d --mount type=tmpfs,destination=/ram,tmpfs-size=400M --cpu-period=50000 --cpu-quota=45000 -it -v $(abspath $(ROOT_DIR)../):/share --name hakase_devenv livadk/hakase-qemu:$(DOCKER_IMAGE_TAG)
+	@echo ""
+	docker exec -t hakase_devenv sh -c "cp /root/*.diff.qcow2 /ram"
+	docker exec -t -w /share$(RELATIVE_DIR) hakase_devenv make$1
+	@echo ""
+	docker rm -f hakase_devenv
 endef
 
 .DEFAULT_GOAL:=default
@@ -26,25 +33,13 @@ else
 ifneq ($(PWD),$(CURDIR))
 RECURSIVE=true
 endif
-ROOT_DIR:=$(dir $(abspath $(lastword $(MAKEFILE_LIST))))
+
 TEST_DIR=$(ROOT_DIR)tests/
 MODULE_DIR = $(ROOT_DIR)build/
 
-MODULES=callback print memrw simple_loader elf_loader interrupt joshu
+MODULES=callback print memrw simple_loader elf_loader interrupt
 
 CXXFLAGS = -g -O0 -MMD -MP -Wall --std=c++14 -iquote $(ROOT_DIR)
-
-load:
-ifeq ($(RECURSIVE),)
-	@echo "info: Starting FriendLoader."
-	@cd $(ROOT_DIR)FriendLoader; make all && ./run.sh load
-endif
-
-unload:
-ifeq ($(RECURSIVE),)
-	@echo "info: Stopping FriendLoader."
-	@cd $(ROOT_DIR)FriendLoader; ./run.sh unload
-endif
 
 $(MODULE_DIR):
 	mkdir -p $(MODULE_DIR)

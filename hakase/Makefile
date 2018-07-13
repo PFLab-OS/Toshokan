@@ -3,20 +3,55 @@ ifeq ($(HOST),)
 
 .DEFAULT_GOAL:=all
 
-.PHONY: all test
+.PHONY: all test clean prepare_test execute_test start_qemu deploy_to_qemu prepare_script run_script
 
 all:
+	cd FriendLoader; $(MAKE) all
 	@$(foreach dir, $(MODULES), $(MAKE) -C $(dir) all &&) :
 
 test:
-	$(MAKE) load
-	@$(foreach dir, $(MODULES), $(MAKE) -C $(dir)/test test &&) :
-	$(MAKE) unload
-	@echo "All tests have successfully finished!"
+	$(MAKE) prepare_test
+	$(foreach dir, $(MODULES), $(MAKE) -C $(dir)/test pre-deploy &&) :
+	$(MAKE) execute_test
 
 clean:
 	@$(foreach dir, $(MODULES), $(MAKE) -C $(dir) clean;)
 	@$(foreach dir, $(MODULES), $(MAKE) -C $(dir)/test clean;)
 	make -C FriendLoader clean
+
+###########################
+#  Sub Functions
+###########################
+prepare_test:
+	$(MAKE) all
+	$(MAKE) start_qemu
+	rm -rf $(DEPLOY_DIR)
+	mkdir $(DEPLOY_DIR)
+	$(MAKE) prepare_script
+	cp $(TEST_DIR)test_hakase.sh $(DEPLOY_DIR)
+	cp $(TEST_DIR)test_library.sh $(DEPLOY_DIR)
+	cd FriendLoader; $(MAKE) pre-deploy
+
+execute_test:
+	$(MAKE) deploy_to_qemu
+	$(MAKE) run_script
+	@echo "All tests have successfully finished!"
+
+start_qemu:
+	/root/qemu > /dev/null 2>&1 &
+
+deploy_to_qemu:
+	rsync -r $(DEPLOY_DIR)/* rsync://localhost:2873/share
+
+prepare_script:
+	touch $(RUN_SCRIPT)
+	echo "#!/bin/bash -e" > $(RUN_SCRIPT)
+	chmod +x $(RUN_SCRIPT)
+
+run_script:
+	@echo "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
+	@echo  Executing baremetal codes on QEMU.
+	@echo "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
+	/root/ssh $(QEMU_DIR)/script.sh
 
 endif
