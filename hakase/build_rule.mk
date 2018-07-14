@@ -34,6 +34,12 @@ endef
 default:
 	$(call make_wrapper,)
 
+attach_docker:
+	docker exec -t $(CONTAINER_NAME) /bin/bash
+
+run_docker:
+	docker run --rm -v $(HOST_DIR):$(SHARE_DIR) -it livadk/hakase-qemu:$(DOCKER_IMAGE_TAG) /bin/bash
+
 %:
 	$(call make_wrapper, $@)
 else
