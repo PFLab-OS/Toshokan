@@ -8,18 +8,21 @@ HOST=$(shell if [ ! -e /lib/modules/4.14.34hakase/build ]; then echo "host"; fi)
 
 ifneq ($(HOST),)
 # host environment
+HOST_DIR:=$(abspath $(ROOT_DIR)../)
+SHARE_DIR:=/share
+CONTAINER_NAME:=hakase_devenv
 
 define make_wrapper
 	@echo "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
 	@echo  Running \"make$1\" on the docker environment.
 	@echo "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
-	@docker rm hakase_devenv -f > /dev/null 2>&1 || :
-	docker run -d -it --name hakase_devenv livadk/hakase-qemu:$(DOCKER_IMAGE_TAG)
-	docker cp $(abspath $(ROOT_DIR)../) hakase_devenv:/share
+	@docker rm $(CONTAINER_NAME) -f > /dev/null 2>&1 || :
+	docker run -d $(if $(CI),,-v $(HOST_DIR):$(SHARE_DIR)) -it --name $(CONTAINER_NAME) livadk/hakase-qemu:$(DOCKER_IMAGE_TAG)
+	$(if $(CI),docker cp $(HOST_DIR) $(CONTAINER_NAME):$(SHARE_DIR))
 	@echo ""
-	docker exec -t hakase_devenv sh -c "cd /share$(RELATIVE_DIR) && make$1"
+	docker exec -t $(CONTAINER_NAME) sh -c "cd /share$(RELATIVE_DIR) && make$1"
 	@echo ""
-	docker rm -f hakase_devenv
+	docker rm -f $(CONTAINER_NAME)
 endef
 
 .DEFAULT_GOAL:=default
