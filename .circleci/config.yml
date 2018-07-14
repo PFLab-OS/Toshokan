@@ -5,7 +5,7 @@ jobs:
       - image: docker:18.03.0-ce-git
     steps:
       - checkout
-      - setup_remote_docker:
+      - setup_remote_docker
       - run:
           command: |
             apk --update add make bash
