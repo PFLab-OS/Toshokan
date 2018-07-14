@@ -1,0 +1,16 @@
+version: 2
+jobs:
+  build:
+    docker:
+      - image: docker:18.03.0-ce-git
+    steps:
+      - checkout
+      - setup_remote_docker:
+          docker_layer_caching: true
+      - run:
+          command: |
+            apk --update add make bash
+      - run:
+          command: |
+            cd hakase
+            make test
