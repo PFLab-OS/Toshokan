@@ -1,6 +1,6 @@
 BOOTOBJS := bootentry.o main.o
 
-FLAGS := -Os -nostdinc -ffreestanding -fno-builtin -fomit-frame-pointer -fno-exceptions -fno-asynchronous-unwind-tables -fno-unwind-tables -iquote $(CURDIR)/../..
+FLAGS := -Os -nostdinc -ffreestanding -fno-builtin -fomit-frame-pointer -fno-exceptions -fno-asynchronous-unwind-tables -fno-unwind-tables -iquote $(CURDIR)/../.. -D__FRIEND__
 CXXFLAGS := $(FLAGS) --std=c++14
 CFLAGS := $(FLAGS)
 ASFLAGS := -Os

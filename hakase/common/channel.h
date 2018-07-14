@@ -1,8 +1,8 @@
 #pragma once
-#include <stdint.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <assert.h>
+#include "common/type.h"
+#include "common/_memory.h"
+#include "common/panic.h"
+#include "common/assert.h"
 
 #define PAGE_SIZE     4096
 
@@ -42,7 +42,7 @@ public:
   int WaitNewSignal(int16_t &type) {
     while(true) {
       SignalTypeAndIdContainer c = GetSignalTypeAndId();
-      if (c.id != _my_id && c.type != 0) {
+      if (IsMyId(c.id) && c.type != 0) {
         type = c.type;
         return c.id;
       }
@@ -52,7 +52,7 @@ public:
   void Reserve(int16_t id) {
     while(true) {
       SignalTypeAndId u;
-      u.c.id = id;
+      u.c.id = GetCalleeId(id);
       u.c.type = 0;
       if (__sync_bool_compare_and_swap(&reinterpret_cast<SignalTypeAndId *>(&_address[0])->u32, 0, u.u32)) {
         break;
@@ -156,8 +156,7 @@ public:
     bool _signal_sended = false;
   };
 protected:
-  Channel() {
-  }
+  Channel();
   char *_address;
 private:
   void Write(int offset, int8_t data) { WriteSub(offset, data); }
@@ -191,15 +190,19 @@ private:
   }
   void SetSignalType(int16_t type) {
     if (reinterpret_cast<SignalTypeAndId *>(&_address[0])->c.id == 0) {
-      assert(false);
+      panic();
     }
     reinterpret_cast<SignalTypeAndId *>(&_address[0])->c.type = type;
   }
   int32_t &GetReturnValueRef() {
     return reinterpret_cast<int32_t *>(_address)[1];
   }
-  const int16_t _my_id = 0;
+  bool IsMyId(int16_t id);
+  int16_t GetCalleeId(int16_t id);
+  int16_t _my_id;
 };
+
+#if defined(__HAKASE__)
 
 class H2F : public Channel {
 public:
@@ -216,3 +219,42 @@ public:
     _address = address;
   }
 };
+
+inline Channel::Channel() {
+  _my_id = 0;
+}
+
+inline bool Channel::IsMyId(int16_t id) {
+  return id != _my_id;
+}
+
+inline int16_t Channel::GetCalleeId(int16_t id) {
+  return id;
+}
+
+#elif defined(__FRIEND__)
+
+class H2F : public Channel {
+public:
+  H2F() { _address = reinterpret_cast<char *>(MemoryMap::kH2f); }
+};
+
+class F2H : public Channel {
+public:
+  F2H() { _address = reinterpret_cast<char *>(MemoryMap::kF2h); }
+};
+
+inline Channel::Channel() {
+  asm volatile("movw %%fs:0x0, %0" : "=r"(_my_id));
+}
+
+inline bool Channel::IsMyId(int16_t id) {
+  return id == _my_id;
+}
+
+inline int16_t Channel::GetCalleeId(int16_t id) {
+  assert(id == 0);
+  return _my_id;
+}
+
+#endif /* defined(__HAKASE__) */
