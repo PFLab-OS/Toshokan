@@ -126,7 +126,7 @@ public:
   ElfLoader(H2F &h2f, std::unique_ptr<ElfFile> file) : _h2f(h2f), _file(std::move(file)) {
   }
   Result<bool> Deploy();
-  Result<bool> Execute(int16_t id);
+  Result<bool> Execute(int16_t apicid);
 private:
   H2F &_h2f;
   std::unique_ptr<ElfFile> _file;
