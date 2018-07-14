@@ -1,4 +1,4 @@
-include ../../build_rule.mk
+include $(dir $(abspath $(lastword $(MAKEFILE_LIST))))build_rule.mk
 
 ifeq ($(HOST),)
 
