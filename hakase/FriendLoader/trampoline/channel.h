@@ -1,6 +1,6 @@
 #pragma once
 
-#include "type.h"
+#include "common/type.h"
 #include "memory.h"
 
 class Channel {
