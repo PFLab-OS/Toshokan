@@ -1,11 +1,10 @@
-#include "channel.h"
-
-void panic();
+#include "common/channel.h"
+#include "common/panic.h"
 
 // callback test
 void callback(H2F &h2f, F2H &f2h) {
   h2f.Return(0);
-  f2h.Reserve();
+  f2h.Reserve(0);
   f2h.SendSignal(1);
   f2h.Release();
 }
@@ -13,7 +12,7 @@ void callback(H2F &h2f, F2H &f2h) {
 // print request test
 void print(H2F &h2f, F2H &f2h) {
   h2f.Return(0);
-  f2h.WriteString("abc\n");
+  f2h.WriteString(0, "abc\n");
 }
 
 // execute binary
@@ -105,8 +104,3 @@ extern "C" void trampoline_main() {
   }
 }
 
-void panic() {
-  while (true) {
-    asm volatile("cli;hlt;nop;");
-  }
-}
