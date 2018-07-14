@@ -17,7 +17,7 @@ define make_wrapper
 	docker run -d -it --name hakase_devenv livadk/hakase-qemu:$(DOCKER_IMAGE_TAG)
 	docker cp $(abspath $(ROOT_DIR)../) hakase_devenv:/share
 	@echo ""
-	docker exec -t -w /share$(RELATIVE_DIR) hakase_devenv make$1
+	docker exec -t hakase_devenv sh -c "cd /share$(RELATIVE_DIR) && make$1"
 	@echo ""
 	docker rm -f hakase_devenv
 endef
