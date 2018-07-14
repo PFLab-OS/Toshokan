@@ -13,7 +13,7 @@ SHARE_DIR:=/share
 CONTAINER_NAME:=hakase_devenv
 
 ifeq ($(OS),Windows_NT)
-CRLF_CHECK:=! find $(HOST_DIR)/hakase -not -type d -exec file "{}" ";" | grep CRLF || sh -c 'echo "****CRLF detected from the files!****\nplease follow these steps!(Warning: It will discard your changes)\n$$ git config autocrlf false\n$$ git reset --hard HEAD"; exit 1'
+CRLF_CHECK:=! find $(HOST_DIR)/hakase -not -type d -exec file "{}" ";" | grep CRLF || sh -c 'echo "****CRLF detected from the files!****\nplease follow these steps!(Warning: It will discard your changes)\n$$ git config core.autocrlf false\n$$ git reset --hard HEAD"; exit 1'
 endif
 
 define make_wrapper
