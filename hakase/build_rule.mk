@@ -10,7 +10,7 @@ ifneq ($(HOST),)
 # host environment
 HOST_DIR:=$(abspath $(ROOT_DIR)../)
 SHARE_DIR:=/share
-CONTAINER_NAME:=hakase_devenv
+CONTAINER_NAME:=toshokan
 
 ifeq ($(OS),Windows_NT)
 CRLF_CHECK:=! find $(HOST_DIR)/hakase -not -type d -exec file "{}" ";" | grep CRLF || sh -c 'echo "****CRLF detected from the files!****\nplease follow these steps!(Warning: It will discard your changes)\n$$ git config core.autocrlf false\n$$ git reset --hard HEAD"; exit 1'
