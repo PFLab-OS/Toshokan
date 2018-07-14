@@ -1,7 +1,7 @@
 DOCKER_IMAGE_TAG=c07f6982495230c5377f0decb114a7fac7908c09
 ROOT_DIR:=$(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 RELATIVE_DIR:=$(shell bash -c "root_dir=$(abspath $(ROOT_DIR)../); pwd=$(CURDIR); echo \$${pwd\#\$${root_dir}};")
-DEPLOY_DIR:=/deploy/
+DEPLOY_DIR:=/deploy
 RUN_SCRIPT:=$(DEPLOY_DIR)/script.sh
 QEMU_DIR:=/home/ubuntu/share
 HOST=$(shell if [ ! -e /lib/modules/4.14.34hakase/build ]; then echo "host"; fi)
