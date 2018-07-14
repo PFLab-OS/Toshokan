@@ -1,4 +1,4 @@
-#!/bin/bash -e
+#!/bin/bash
 # arg1: If crash test or not.
 # arg2: binary file name
 # arg3...: arguments
