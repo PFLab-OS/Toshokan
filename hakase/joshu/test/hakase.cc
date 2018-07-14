@@ -2,8 +2,8 @@
 #include "elf_loader/hakase.h"
 #include "tests/test.h"
 
-int test_main(F2H &f2h, H2F &h2f, int argc, const char **argv) {
-  auto ic = InterruptController(f2h);
+int test_main(F2H &f2h, H2F &h2f, I2H &i2h, int argc, const char **argv) {
+  auto ic = InterruptController(i2h);
 
   if (argc < 3) {
     return 1;
