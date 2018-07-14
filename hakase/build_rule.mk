@@ -14,7 +14,8 @@ define make_wrapper
 	@echo  Running \"make$1\" on the docker environment.
 	@echo "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
 	@docker rm hakase_devenv -f > /dev/null 2>&1 || :
-	docker run -d -it -v $(abspath $(ROOT_DIR)../):/share --name hakase_devenv livadk/hakase-qemu:$(DOCKER_IMAGE_TAG)
+	docker run -d -it --name hakase_devenv livadk/hakase-qemu:$(DOCKER_IMAGE_TAG)
+	docker cp $(abspath $(ROOT_DIR)../) hakase_devenv:/share
 	@echo ""
 	docker exec -t -w /share$(RELATIVE_DIR) hakase_devenv make$1
 	@echo ""
