@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -e
 # arg1: If crash test or not.
 # arg2: binary file name
 # arg3...: arguments
@@ -34,7 +34,7 @@ if [ -f $2 ]; then
         exit 1
     fi
 else
-    echo -e "\e[31m$2: FAILED\e[m"
+    echo -e "\e[31m$2: FAILED (No such file)\e[m"
     exit 1
 fi
    
