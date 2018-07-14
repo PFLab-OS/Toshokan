@@ -6,7 +6,6 @@ jobs:
     steps:
       - checkout
       - setup_remote_docker:
-          docker_layer_caching: true
       - run:
           command: |
             apk --update add make bash
