@@ -19,8 +19,8 @@ int test_main(F2H &f2h, H2F &h2f, int argc, const char **argv) {
   }
   r.Unwrap();
 
-  Channel::Accessor ch_ac(h2f, 3);
-  ch_ac.Write(0, kDeployAddressStart);
+  Channel::Accessor<> ch_ac(h2f, 3);
+  ch_ac.Write<uint64_t>(0, kDeployAddressStart);
   if (ch_ac.Do(1) != 0) {
     return 1;
   }

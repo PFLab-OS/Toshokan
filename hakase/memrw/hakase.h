@@ -26,13 +26,13 @@ namespace MemoryAccessor {
       for(size_t offset = 0; offset < _size; offset += kTransferSize) {
         size_t size = (_size - offset) > kTransferSize ? kTransferSize : (_size - offset);
 
-        Channel::Accessor ch_ac(_ch, 4);
-        ch_ac.Write(0, static_cast<uint32_t>(Signature::kWrite));
-        ch_ac.Write(8, _address + offset);
-        ch_ac.Write(16, size);
+        Channel::Accessor<> ch_ac(_ch, 4);
+        ch_ac.Write<uint32_t>(0, static_cast<uint32_t>(Signature::kWrite));
+        ch_ac.Write<uint64_t>(8, _address + offset);
+        ch_ac.Write<size_t>(16, size);
 
         for(size_t i = 0; i < size; i++) {
-          ch_ac.Write(kTransferDataOffset + i, _buf[offset + i]);
+          ch_ac.Write<uint8_t>(kTransferDataOffset + i, _buf[offset + i]);
         }
         if (ch_ac.Do(_id) != 0) {
           return Result<bool>();
@@ -59,17 +59,17 @@ namespace MemoryAccessor {
       for(size_t offset = 0; offset < _size; offset += kTransferSize) {
         size_t size = (_size - offset) > kTransferSize ? kTransferSize : (_size - offset);
 
-        Channel::Accessor ch_ac(_ch, 4);
-        ch_ac.Write(0, static_cast<uint32_t>(Signature::kRead));
-        ch_ac.Write(8, _address + offset);
-        ch_ac.Write(16, size);
+        Channel::Accessor<> ch_ac(_ch, 4);
+        ch_ac.Write<uint32_t>(0, static_cast<uint32_t>(Signature::kRead));
+        ch_ac.Write<size_t>(8, _address + offset);
+        ch_ac.Write<size_t>(16, size);
 
         if (ch_ac.Do(_id) != 0) {
           return Result<bool>();
         }
         for(size_t i = 0; i < size; i++) {
           uint8_t data;
-          ch_ac.Read(kTransferDataOffset + i, data);
+          ch_ac.Read<uint8_t>(kTransferDataOffset + i, data);
           _buf[offset + i] = data;
         }
       }

@@ -92,11 +92,12 @@ public:
    *
    * How to use:
    * Accessor ch_ac(ch, signal); // initialize Accessor
-   * ch_ac.Write(0, data);       // write sending data
+   * ch_ac.Write<T>(0, data);       // write sending data
    * rval = ch_ac.Do();          // communicate and get return value
-   * ch_ac.Read(0, data);        // read return data
+   * ch_ac.Read<T>(0, data);        // read return data
    * 
    */
+  template<int kBufMax = 4096 - 8>
   class Accessor {
   public:
     Accessor(Channel &ch, int32_t type) : _type(type), _ch(ch) {
@@ -105,31 +106,27 @@ public:
       }
     }
     Accessor() = delete;
-    void Write(int offset, int8_t data) { WriteSub(offset, data); }
-    void Write(int offset, int16_t data) { WriteSub(offset, data); }
-    void Write(int offset, int32_t data) { WriteSub(offset, data); }
-    void Write(int offset, int64_t data) { WriteSub(offset, data); }
-    void Write(int offset, uint8_t data) { WriteSub(offset, data); }
-    void Write(int offset, uint16_t data) { WriteSub(offset, data); }
-    void Write(int offset, uint32_t data) { WriteSub(offset, data); }
-    void Write(int offset, uint64_t data) { WriteSub(offset, data); }
-    void Read(int offset, int8_t &data) { ReadSub(offset, data); }
-    void Read(int offset, int16_t &data) { ReadSub(offset, data); }
-    void Read(int offset, int32_t &data) { ReadSub(offset, data); }
-    void Read(int offset, int64_t &data) { ReadSub(offset, data); }
-    void Read(int offset, uint8_t &data) { ReadSub(offset, data); }
-    void Read(int offset, uint16_t &data) { ReadSub(offset, data); }
-    void Read(int offset, uint32_t &data) { ReadSub(offset, data); }
-    void Read(int offset, uint64_t &data) { ReadSub(offset, data); }
+    template<class T>
+    void Write(int offset, T data) {
+      assert(!_signal_sended);
+      assert(offset + sizeof(T) <= kBufMax);
+      reinterpret_cast<T *>(_buffer)[offset / sizeof(T)] = data;
+    }
+    template<class T>
+    void Read(int offset, T &data) {
+      assert(_signal_sended);
+      assert(offset + sizeof(T) <= kBufMax);
+      data = reinterpret_cast<T *>(_buffer)[offset / sizeof(T)];
+    }
     int32_t Do(int16_t id) {
       _ch.Reserve(id);
       // TODO refactoring
-      for(int i = 0; i < 4096 - 8; i++) {
+      for(int i = 0; i < kBufMax; i++) {
         _ch.Write(i, _buffer[i]);
       }
       int32_t rval = _ch.SendSignal(_type);
       _signal_sended = true;
-      for(int i = 0; i < 4096 - 8; i++) {
+      for(int i = 0; i < kBufMax; i++) {
         uint8_t data;
         _ch.Read(i, data);
         _buffer[i] = data;
@@ -138,19 +135,8 @@ public:
       return rval;
     }
   private:
-    template<class T>
-    void WriteSub(int offset, T data) {
-      assert(!_signal_sended);
-      assert(offset < 4096 - 8);
-      reinterpret_cast<T *>(_buffer)[offset / sizeof(T)] = data;
-    }
-    template<class T>
-    void ReadSub(int offset, T &data) {
-      assert(_signal_sended);
-      assert(offset < 4096 - 8);
-      data = reinterpret_cast<T *>(_buffer)[offset / sizeof(T)];
-    }
-    uint8_t _buffer[4096 - 8];
+    uint8_t _buffer[kBufMax];
+    static_assert(kBufMax <= 4096 - 8, "");
     const int32_t _type;
     Channel &_ch;
     bool _signal_sended = false;

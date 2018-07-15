@@ -91,8 +91,8 @@ Result<bool> ElfLoader::Deploy() {
 }
 
 Result<bool> ElfLoader::Execute(int16_t apicid) {
-  Channel::Accessor ch_ac(_h2f, 3);
-  ch_ac.Write(0, _file->GetEntry());
+  Channel::Accessor<> ch_ac(_h2f, 3);
+  ch_ac.Write<uint64_t>(0, _file->GetEntry());
   if (ch_ac.Do(apicid) != 0) {
     return Result<bool>();
   }
