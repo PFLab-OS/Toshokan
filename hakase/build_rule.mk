@@ -1,4 +1,4 @@
-DOCKER_IMAGE_TAG=50b4efb764cb126f4800496f7e79c778b3e8e861
+DOCKER_IMAGE_TAG=b4d2e699e214a1405d65de592006529e0dede7d3
 ROOT_DIR:=$(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 RELATIVE_DIR:=$(shell bash -c "root_dir=$(abspath $(ROOT_DIR)../); pwd=$(CURDIR); echo \$${pwd\#\$${root_dir}};")
 DEPLOY_DIR:=/deploy
