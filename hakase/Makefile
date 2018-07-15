@@ -53,6 +53,6 @@ run_script:
 	@echo  Executing baremetal codes on QEMU.
 	@echo "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
 	@echo /root/ssh $(QEMU_DIR)/script.sh
-	@bash -c '/root/ssh $(QEMU_DIR)/script.sh || { echo "" | netcat localhost 2222 > /dev/null 2>&1 || { echo -e "\e[31m**** qemu crashed ****\e[m"; echo -e "\e[31m---- qemu cpu_reset log ---\e[m"; cat /tmp/qemu.log; echo -e "\e[31m---- qemu cpu_reset log ---\e[m"; }; exit 1; }'
+	@bash -c '/root/ssh $(QEMU_DIR)/script.sh || { echo "" | netcat localhost 2222 > /dev/null 2>&1 || echo -e "\e[31m**** qemu crashed ****\e[m"; exit 1; }'
 
 endif
