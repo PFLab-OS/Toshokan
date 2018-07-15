@@ -35,7 +35,9 @@ prepare_test:
 execute_test:
 	$(MAKE) deploy_to_qemu
 	$(MAKE) run_script
+	@echo "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
 	@echo "All tests have successfully finished!"
+	@echo "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
 
 start_qemu:
 	/root/qemu > /dev/null 2>&1 &
