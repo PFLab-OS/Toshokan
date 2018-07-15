@@ -52,6 +52,7 @@ run_script:
 	@echo "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
 	@echo  Executing baremetal codes on QEMU.
 	@echo "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
-	/root/ssh $(QEMU_DIR)/script.sh
+	@echo /root/ssh $(QEMU_DIR)/script.sh
+	@/root/ssh $(QEMU_DIR)/script.sh || bash -c 'echo "" | netcat localhost 2222 || echo -e "\e[31m*** qemu crashed ***\e[m"; exit 1'
 
 endif
