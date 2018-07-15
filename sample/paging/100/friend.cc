@@ -2,12 +2,6 @@
 #include "common/_memory.h"
 #include "common/channel.h"
 
-int16_t get_cpuid() {
-  int16_t id;
-  asm volatile("movw %%fs:0x4, %0" : "=r"(id));
-  return id;
-}
-
 void puts(F2H &f2h, const char *str) {
   while(*str) {
     Channel::Accessor<1> ch_ac(f2h, 2);
