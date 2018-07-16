@@ -26,7 +26,7 @@ define make_wrapper
 	$(if $(CI),docker cp $(HOST_DIR) $(CONTAINER_NAME):$(SHARE_DIR))
 	@echo ""
 	@echo 'docker exec $(CONTAINER_NAME) sh -c "cd /share$(RELATIVE_DIR) && make$1"'
-	@trap "docker exec $(CONTAINER_NAME) sh -c 'pkill qemu-system-x86 || :'" INT ERR; docker exec $(CONTAINER_NAME) sh -c "cd /share$(RELATIVE_DIR) && make$1"
+	@bash -c "trap \"docker exec $(CONTAINER_NAME) sh -c 'pkill qemu-system-x86 || :'\" INT ERR; docker exec $(CONTAINER_NAME) sh -c \"cd /share$(RELATIVE_DIR) && make$1\""
 	@echo ""
 	docker rm -f $(CONTAINER_NAME)
 endef
