@@ -7,7 +7,6 @@
 #include "call_interface.h"
 #include "common.h"
 #include "cpu_hotplug.h"
-#include "deploy_interface.h"
 #include "debug_mem.h"
 
 MODULE_DESCRIPTION("Friend Loader");
@@ -19,10 +18,6 @@ static int __init friend_loader_init(void) {
 
   pr_info("friend_loader_init: init\n");
 
-  if (deploy_interface_init() < 0) {
-    pr_err("friend_loader_init: failed to init deploy interface\n");
-  }
-  
   if (call_interface_init() < 0) {
     pr_err("friend_loader_init: failed to init call interface\n");
   }
@@ -50,7 +45,6 @@ static void __exit friend_loader_exit(void) {
 
   debugmem_exit();
   call_interface_exit();
-  deploy_interface_exit();
 
   pr_info("friend_loader_exit: exit\n");
 }
