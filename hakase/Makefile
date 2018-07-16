@@ -3,7 +3,7 @@ ifeq ($(HOST),)
 
 .DEFAULT_GOAL:=all
 
-.PHONY: all test clean prepare_test execute_test start_qemu deploy_to_qemu prepare_script run_script
+.PHONY: all test clean prepare_test execute_test start_qemu deploy_to_qemu prepare_script run_script kill_qemu
 
 all:
 	cd FriendLoader; $(MAKE) all

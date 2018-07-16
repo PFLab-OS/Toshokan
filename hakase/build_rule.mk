@@ -25,7 +25,8 @@ define make_wrapper
 	docker run -d $(if $(CI),,-v $(HOST_DIR):$(SHARE_DIR)) -it --name $(CONTAINER_NAME) livadk/hakase-qemu:$(DOCKER_IMAGE_TAG)
 	$(if $(CI),docker cp $(HOST_DIR) $(CONTAINER_NAME):$(SHARE_DIR))
 	@echo ""
-	docker exec -t $(CONTAINER_NAME) sh -c "cd /share$(RELATIVE_DIR) && make$1"
+	@echo 'docker exec $(CONTAINER_NAME) sh -c "cd /share$(RELATIVE_DIR) && make$1"'
+	@trap "docker exec $(CONTAINER_NAME) sh -c 'pkill qemu-system-x86 || :'" INT ERR; docker exec $(CONTAINER_NAME) sh -c "cd /share$(RELATIVE_DIR) && make$1"
 	@echo ""
 	docker rm -f $(CONTAINER_NAME)
 endef
