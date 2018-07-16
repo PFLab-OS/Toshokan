@@ -30,6 +30,7 @@ prepare_test:
 	$(MAKE) prepare_script
 	cp $(TEST_DIR)test_hakase.sh $(DEPLOY_DIR)
 	cp $(TEST_DIR)test_library.sh $(DEPLOY_DIR)
+	cp $(TEST_DIR)/../a.out $(DEPLOY_DIR)
 	cd FriendLoader; $(MAKE) pre-deploy
 
 execute_test:
