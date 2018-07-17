@@ -1,10 +1,9 @@
 #!/bin/bash
-# arg1: If crash test or not.
-# arg2: binary file name
-# arg3...: arguments
+# arg1: binary file name
+# arg2...: arguments
 
 cd `dirname $0`
-if [ -f $2 ]; then
+if [ -f $1 ]; then
     ./run.sh run
 
     trap './run.sh stop;' SIGINT

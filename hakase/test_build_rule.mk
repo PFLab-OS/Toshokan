@@ -32,6 +32,6 @@ pre-deploy: FORCE
 	$(MAKE) bin
 	mkdir -p $(DEPLOY_DIR)$(RELATIVE_DIR)/
 	$(foreach file, $(DEPLOY_FILES), cp $(file) $(DEPLOY_DIR)$(RELATIVE_DIR)/$(file) &&) :
-	$(foreach file, $(TEST_BINS), echo "$(QEMU_DIR)/test_hakase.sh 0 $(QEMU_DIR)$(RELATIVE_DIR)/$(file) $(ARGUMENTS)" >> $(RUN_SCRIPT) &&) :
+	$(foreach file, $(TEST_BINS), echo "$(QEMU_DIR)/test_hakase.sh $(QEMU_DIR)$(RELATIVE_DIR)/$(file) $(ARGUMENTS)" >> $(RUN_SCRIPT) &&) :
 
 endif

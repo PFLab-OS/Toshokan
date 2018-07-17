@@ -1,32 +1,12 @@
 #!/bin/bash
-# arg1: If crash test or not.
-# arg2: binary file name
-# arg3...: arguments
+# arg1: binary file name
+# arg2...: arguments
 
 cd `dirname $0`
-if [ -f $2 ]; then
-    crash_flag=$1
-    shift
-    if [ $crash_flag = 0 ]; then
-        $*
-    else
-        $* 2>/dev/null
-    fi
+if [ -f $1 ]; then
+    $*
     ret=$?
-    if [ $crash_flag = 0 ]; then
-        if [ $ret -eq 0 ]; then
-            mes=1
-        else
-            mes=0
-        fi
-    else
-        if [ $ret -eq 255 ]; then
-            mes=1
-        else
-            mes=0
-        fi
-    fi
-    if [ $mes = 1 ]; then
+    if [ $ret -eq 0 ]; then
         echo -e "\e[32m$1: PASSED\e[m"
         exit 0
     else
