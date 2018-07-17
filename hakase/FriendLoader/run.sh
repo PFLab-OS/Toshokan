@@ -24,13 +24,6 @@ if [ $# -ge 1 ]; then
 	          fi
 	          sudo insmod friend_loader.ko
 	          ;;
-	      "deploy" )
-	          if [ $# -ge 2 ]; then
-		            sudo dd if=$2 of=/sys/module/friend_loader/deploy/content
-	          else
-		            echo "error: needs 'file'!"
-	          fi
-	          ;;
 	      "run" )
 	          if [ `lsmod | grep friend_loader | wc -l` -eq 0 ]; then
 		            sudo insmod friend_loader.ko

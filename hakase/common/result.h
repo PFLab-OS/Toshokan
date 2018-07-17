@@ -12,15 +12,13 @@ public:
   }
   ~Result() {
     if (!_checked) {
-      fprintf(stderr, "Result: error: check the result\n");
-      exit(255);
+      panic("Result: error: check the result\n");
     }
   }
   T Unwrap() {
     _checked = true;
     if (_error) {
-      fprintf(stderr, "Result: error: failed to unwrap\n");
-      exit(255);
+      panic("Result: error: failed to unwrap\n");
     }
     return _t;
   }
@@ -29,8 +27,7 @@ public:
   }
   void IgnoreError() {
     if (!_error) {
-      fprintf(stderr, "Result: error: do not call IgnoreError() when there is no error.\n");
-      exit(255);
+      panic("Result: error: do not call IgnoreError() when there is no error.\n");
     }
     _checked = true;
   }
