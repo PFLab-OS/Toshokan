@@ -44,14 +44,14 @@ TEST(ChannelAccessor, ReadWrite0) {
   Debug::InitChannelBuffer();
   mock("Channel").ignoreOtherCalls();
   
-  int16_t expected[kBufMax / sizeof(int16_t)];
+  int16_t expected[Channel::kDataAreaSizeMax / sizeof(int16_t)];
   memset(expected, 0, sizeof(expected));
 
   Channel ch;
   ChannelAccessor<> ch_ac(ch, 0);
   ch_ac.Do(0);
 
-  MEMCMP_EQUAL(expected, Debug::channel_write_buffer, kBufMax);
+  MEMCMP_EQUAL(expected, Debug::channel_write_buffer, Channel::kDataAreaSizeMax);
 
   mock().checkExpectations();
 }
@@ -60,10 +60,10 @@ TEST(ChannelAccessor, Write1) {
   Debug::InitChannelBuffer();
   mock("Channel").ignoreOtherCalls();
   
-  const int offset = align<int>((rand() % kBufMax), sizeof(int16_t));
-  int16_t data = rand() % kBufMax;
-  int16_t expected[kBufMax / sizeof(int16_t)];
-  static_assert(sizeof(expected) == kBufMax, "");
+  const int offset = align<int>((rand() % Channel::kDataAreaSizeMax), sizeof(int16_t));
+  int16_t data = rand() % Channel::kDataAreaSizeMax;
+  int16_t expected[Channel::kDataAreaSizeMax / sizeof(int16_t)];
+  static_assert(sizeof(expected) == Channel::kDataAreaSizeMax, "");
   memset(expected, 0, sizeof(expected));
   expected[offset / sizeof(int16_t)] = data;
 
@@ -72,7 +72,7 @@ TEST(ChannelAccessor, Write1) {
   ch_ac.Write<int16_t>(offset, data);
   ch_ac.Do(0);
 
-  MEMCMP_EQUAL(expected, Debug::channel_write_buffer, kBufMax);
+  MEMCMP_EQUAL(expected, Debug::channel_write_buffer, Channel::kDataAreaSizeMax);
 
   mock().checkExpectations();
 }
@@ -81,20 +81,20 @@ TEST(ChannelAccessor, WriteN) {
   Debug::InitChannelBuffer();
   mock("Channel").ignoreOtherCalls();
 
-  int16_t expected[kBufMax / sizeof(int16_t)];
+  int16_t expected[Channel::kDataAreaSizeMax / sizeof(int16_t)];
   memset(expected, 0, sizeof(expected));
 
   Channel ch;
   ChannelAccessor<> ch_ac(ch, 0);
-  for (int i = 0; i < (rand() % kBufMax); i++) {
-    const int offset = align<int>((rand() % kBufMax), sizeof(int16_t));
-    int16_t data = rand() % kBufMax;
+  for (int i = 0; i < (rand() % Channel::kDataAreaSizeMax); i++) {
+    const int offset = align<int>((rand() % Channel::kDataAreaSizeMax), sizeof(int16_t));
+    int16_t data = rand() % Channel::kDataAreaSizeMax;
     expected[offset / sizeof(int16_t)] = data;
     ch_ac.Write<int16_t>(offset, data);
   }
   ch_ac.Do(0);
 
-  MEMCMP_EQUAL(expected, Debug::channel_write_buffer, kBufMax);
+  MEMCMP_EQUAL(expected, Debug::channel_write_buffer, Channel::kDataAreaSizeMax);
 
   mock().checkExpectations();
 }
@@ -103,7 +103,7 @@ TEST(ChannelAccessor, Read1) {
   Debug::InitChannelBuffer();
   mock("Channel").ignoreOtherCalls();
   
-  const int offset = align<int>((rand() % kBufMax), sizeof(int16_t));
+  const int offset = align<int>((rand() % Channel::kDataAreaSizeMax), sizeof(int16_t));
 
   Channel ch;
   ChannelAccessor<> ch_ac(ch, 0);
@@ -120,8 +120,8 @@ TEST(ChannelAccessor, ReadN) {
   Channel ch;
   ChannelAccessor<> ch_ac(ch, 0);
   ch_ac.Do(0);
-  for (int i = 0; i < (rand() % kBufMax); i++) {
-    const int offset = align<int>((rand() % kBufMax), sizeof(int16_t));
+  for (int i = 0; i < (rand() % Channel::kDataAreaSizeMax); i++) {
+    const int offset = align<int>((rand() % Channel::kDataAreaSizeMax), sizeof(int16_t));
     CHECK_EQUAL(reinterpret_cast<int16_t *>(Debug::channel_read_buffer)[offset / sizeof(int16_t)], ch_ac.Read<int16_t>(offset));
   }
 
@@ -137,7 +137,7 @@ TEST(ChannelAccessor, WriteAlign) {
   mock().expectOneCall("assert");
   mock("Channel").ignoreOtherCalls();
   
-  const int offset = align<int>((rand() % kBufMax), sizeof(int16_t)) + 1;
+  const int offset = align<int>((rand() % Channel::kDataAreaSizeMax), sizeof(int16_t)) + 1;
 
   Channel ch;
   ChannelAccessor<> ch_ac(ch, 0);
@@ -152,7 +152,7 @@ TEST(ChannelAccessor, ReadAlign) {
   mock().expectOneCall("assert");
   mock("Channel").ignoreOtherCalls();
   
-  const int offset = align<int>((rand() % kBufMax), sizeof(int16_t)) + 1;
+  const int offset = align<int>((rand() % Channel::kDataAreaSizeMax), sizeof(int16_t)) + 1;
 
   Channel ch;
   ChannelAccessor<> ch_ac(ch, 0);
@@ -193,10 +193,10 @@ TEST(ChannelAccessor, WriteOffset) {
   mock().expectOneCall("assert");
   mock("Channel").ignoreOtherCalls();
   
-  const int offset = kBufMax;
+  const int offset = Channel::kDataAreaSizeMax;
 
   Channel ch;
-  ChannelAccessor<kBufMax - 1> ch_ac(ch, 0);
+  ChannelAccessor<Channel::kDataAreaSizeMax - 1> ch_ac(ch, 0);
   ch_ac.Write<int16_t>(offset, 0);
   ch_ac.Do(0);
 
@@ -208,10 +208,10 @@ TEST(ChannelAccessor, ReadOffset) {
   mock().expectOneCall("assert");
   mock("Channel").ignoreOtherCalls();
   
-  const int offset = kBufMax;
+  const int offset = Channel::kDataAreaSizeMax;
 
   Channel ch;
-  ChannelAccessor<kBufMax - 1> ch_ac(ch, 0);
+  ChannelAccessor<Channel::kDataAreaSizeMax - 1> ch_ac(ch, 0);
   ch_ac.Do(0);
   ch_ac.Read<int16_t>(offset);
 

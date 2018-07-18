@@ -4,9 +4,7 @@
 #include <stdlib.h>
 #include <assert.h>
 
-static const int kBufMax = 4096 - 8; // DEBUG
-
-template<int kBufSize = kBufMax>
+template<int kBufSize = Channel::kDataAreaSizeMax>
 class ChannelAccessor {
  public:
  ChannelAccessor(Channel &ch, int16_t type) : _ch(ch), _type(type) {
@@ -26,7 +24,7 @@ class ChannelAccessor {
  T Read(int offset) {
    assert(_signal_sended);
    assert((offset % sizeof(T)) == 0);
-   assert(offset + sizeof(T) <= kBufMax);
+   assert(offset + sizeof(T) <= Channel::kDataAreaSizeMax);
    return reinterpret_cast<T *>(_buffer)[offset / sizeof(T)];
  }
  int32_t Do(int16_t id) {
@@ -43,6 +41,7 @@ class ChannelAccessor {
    return rval;
  }
  private:
+ static_assert(kBufSize <= Channel::kDataAreaSizeMax, "");
  Channel &_ch;
  const int16_t _type;
  uint8_t _buffer[kBufSize];

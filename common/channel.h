@@ -9,5 +9,6 @@ public:
   void Write(int offset, uint8_t data);
   uint8_t Read(int offset);
   void Release();
+  static const int kDataAreaSizeMax = 4096 - 8;
 private:
 };
