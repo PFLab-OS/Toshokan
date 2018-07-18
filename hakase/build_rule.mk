@@ -54,7 +54,7 @@ MODULE_DIR = $(ROOT_DIR)build/
 
 MODULES=callback print memrw simple_loader elf_loader interrupt
 
-CXXFLAGS = -g -O0 -MMD -MP -Wall --std=c++14 -iquote $(ROOT_DIR) -D __HAKASE__
+CXXFLAGS = -g -O0 -MMD -MP -Wall --std=c++14 -iquote $(ROOT_DIR) -iquote $(ROOT_DIR)../ -D __HAKASE__
 
 $(MODULE_DIR):
 	mkdir -p $(MODULE_DIR)

@@ -14,6 +14,9 @@ test:
 	$(foreach dir, $(MODULES), $(MAKE) -C $(dir)/test pre-deploy &&) :
 	$(MAKE) execute_test
 
+common_test:
+	$(MAKE) -C ../common/tests test
+
 clean:
 	@$(foreach dir, $(MODULES), $(MAKE) -C $(dir) clean;)
 	@$(foreach dir, $(MODULES), $(MAKE) -C $(dir)/test clean;)

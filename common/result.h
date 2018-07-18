@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <stdio.h>
-#include "panic.h"
+#include "common/panic.h"
 
 template<class T>
 class Result {
