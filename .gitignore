@@ -81,4 +81,9 @@ Mkfile.old
 dkms.conf
 *.ko
 
+# Code Coverage Files
+*.gcov
+*.gcda
+*.gcno
+
 .tramp_history
