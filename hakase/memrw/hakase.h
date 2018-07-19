@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include "common/result.h"
 #include "channel/hakase.h"
+#include "common/channel_accessor.h"
 
 namespace MemoryAccessor {
   static const size_t kTransferSize = 2048;
@@ -26,7 +27,7 @@ namespace MemoryAccessor {
       for(size_t offset = 0; offset < _size; offset += kTransferSize) {
         size_t size = (_size - offset) > kTransferSize ? kTransferSize : (_size - offset);
 
-        Channel::Accessor<> ch_ac(_ch, 4);
+        ChannelAccessor<> ch_ac(_ch, 4);
         ch_ac.Write<uint32_t>(0, static_cast<uint32_t>(Signature::kWrite));
         ch_ac.Write<uint64_t>(8, _address + offset);
         ch_ac.Write<size_t>(16, size);
@@ -59,7 +60,7 @@ namespace MemoryAccessor {
       for(size_t offset = 0; offset < _size; offset += kTransferSize) {
         size_t size = (_size - offset) > kTransferSize ? kTransferSize : (_size - offset);
 
-        Channel::Accessor<> ch_ac(_ch, 4);
+        ChannelAccessor<> ch_ac(_ch, 4);
         ch_ac.Write<uint32_t>(0, static_cast<uint32_t>(Signature::kRead));
         ch_ac.Write<size_t>(8, _address + offset);
         ch_ac.Write<size_t>(16, size);

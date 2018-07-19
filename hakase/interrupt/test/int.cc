@@ -1,7 +1,8 @@
 #include "int.h"
-#include "common/type.h"
+#include "type.h"
 #include "common/_memory.h"
 #include "channel/hakase.h"
+#include "common/channel_accessor.h"
 
 struct idt_entity {
   uint32_t entry[4];
@@ -30,7 +31,7 @@ extern "C" void handle_int(Regs *rs) {
   bool iflag = disable_interrupt();
   idt._handling_cnt++;
 
-  Channel::Accessor<> ch_ac(f2h, 6);
+  ChannelAccessor<> ch_ac(f2h, 6);
   ch_ac.Write<uint64_t>(0, static_cast<uint64_t>(rs->n));
   ch_ac.Do(0);
   

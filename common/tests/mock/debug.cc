@@ -1,5 +1,5 @@
 #include "debug.h"
-#include "assert.h"
+#include <assert.h>
 #include <stdlib.h>
 #include "CppUTestExt/MockSupport.h"
 

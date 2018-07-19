@@ -13,7 +13,7 @@
 
 #ifndef ASM_FILE
 
-#include "common/type.h"
+#include "type.h"
 #include "common/_memory.h"
 
 static_assert(static_cast<uint64_t>(MemoryMap::kPml4t)  == PML4T, "");

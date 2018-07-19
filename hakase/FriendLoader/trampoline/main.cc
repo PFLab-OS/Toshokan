@@ -1,5 +1,5 @@
 #include "channel/hakase.h"
-#include "common/panic.h"
+#include "panic.h"
 
 // callback test
 void callback(H2F &h2f, F2H &f2h) {
@@ -17,8 +17,7 @@ void print(H2F &h2f, F2H &f2h) {
 
 // execute binary
 void exec_bin(H2F &h2f, F2H &f2h) {
-  uint64_t address;
-  h2f.Read(0, address);
+  uint64_t address = h2f.OldRead<uint64_t>(0);
   // TODO check address
   h2f.Return(0);
   asm volatile("call *%0"::"r"(address));
@@ -28,15 +27,10 @@ void rw_memory(H2F &h2f, F2H &f2h) {
   static const uint32_t kRead = 0;
   static const uint32_t kWrite = 1;
   
-  uint32_t type;
-  uint64_t address_;
-  uint64_t size;
-  uint8_t *buf = h2f.GetRawPtr<uint8_t>() + 2048;
+  uint32_t type = h2f.OldRead<uint32_t>(0);
+  uint64_t address_ = h2f.OldRead<uint64_t>(8);
+  uint64_t size = h2f.OldRead<uint64_t>(16);
   
-  h2f.Read(0, type);
-  h2f.Read(8, address_);
-  h2f.Read(16, size);
-
   if (address_ + 2048 / sizeof(uint64_t) >= 1024 * 1024 * 1024 /* 1GB */) {
     // avoid accessing to page unmapped region
     h2f.Return(-1);
@@ -46,11 +40,11 @@ void rw_memory(H2F &h2f, F2H &f2h) {
   uint8_t *address = reinterpret_cast<uint8_t *>(address_);
   if (type == kRead) {
     for(int i = 0; i < size; i++) {
-      buf[i] = address[i];
+      h2f.Write(i + 2040, address[i]);
     }
   } else if (type == kWrite) {
     for(int i = 0; i < size; i++) {
-      address[i] = buf[i];
+      address[i] = h2f.Read(i + 2040);
     }
   } else {
     h2f.Return(-1);

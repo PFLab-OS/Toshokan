@@ -1,5 +1,6 @@
 #include "hakase.h"
 #include "memrw/hakase.h"
+#include "common/channel_accessor.h"
 #include <stdio.h>
 
 std::unique_ptr<ElfLoader::ElfFile> ElfLoader::ElfFile::Load(const char *fname) {
@@ -91,7 +92,7 @@ Result<bool> ElfLoader::Deploy() {
 }
 
 Result<bool> ElfLoader::Execute(int16_t apicid) {
-  Channel::Accessor<> ch_ac(_h2f, 3);
+  ChannelAccessor<> ch_ac(_h2f, 3);
   ch_ac.Write<uint64_t>(0, _file->GetEntry());
   if (ch_ac.Do(apicid) != 0) {
     return Result<bool>();

@@ -1,21 +1,22 @@
-#include "common/type.h"
+#include "type.h"
 #include "common/_memory.h"
 #include "common/channel.h"
+#include "common/channel_accessor.h"
 
 void puts(F2H &f2h, const char *str) {
   while(*str) {
-    Channel::Accessor<1> ch_ac(f2h, 2);
+    ChannelAccessor<1> ch_ac(f2h, 2);
     ch_ac.Write<char>(0, *str);
     ch_ac.Do(0);
     str++;
   }
-  Channel::Accessor<1> ch_ac(f2h, 2);
+  ChannelAccessor<1> ch_ac(f2h, 2);
   ch_ac.Write<char>(0, '\n');
   ch_ac.Do(0);
 }
 
 void return_value(F2H &f2h, int i) {
-  Channel::Accessor<sizeof(int)> ch_ac(f2h, 1);
+  ChannelAccessor<sizeof(int)> ch_ac(f2h, 1);
   ch_ac.Write<int>(0, i);
   ch_ac.Do(0);
 }

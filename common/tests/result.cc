@@ -2,9 +2,7 @@
 #include "CppUTestExt/MockSupport.h"
 
 #define panic(x) panic_mock(x)
-void panic_mock(const char *) {
-  mock().actualCall("panic");
-}
+void panic_mock(const char *);
 
 #include "../result.h"
 

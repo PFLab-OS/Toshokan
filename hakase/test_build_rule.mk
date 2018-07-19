@@ -6,7 +6,7 @@ OBJS:=$(addsuffix .o,$(TESTS)) $(TEST_DIR)test.o
 DEPS:=$(OBJS:%.o=%.d)
 TEST_BINS:=$(addsuffix .bin, $(TESTS))
 DEPLOY_FILES:=$(TEST_BINS) $(EX_DEPLOY_FILES)
-RAW_CXX_FLAGS:=-g -O0 -Wall --std=c++14 -nostdinc -nostdlib -iquote $(ROOT_DIR) -D__FRIEND__
+RAW_CXX_FLAGS:=-g -O0 -Wall --std=c++14 -nostdinc -nostdlib -iquote $(ROOT_DIR)../friend/ -I $(ROOT_DIR)../friend/ -iquote $(ROOT_DIR)../ -iquote $(ROOT_DIR) -D__FRIEND__
 TEST_CXX_FLAGS:=$(RAW_CXX_FLAGS) -T $(ROOT_DIR)/../friend/friend.ld
 .DEFAULT_GOAL:=test
 
