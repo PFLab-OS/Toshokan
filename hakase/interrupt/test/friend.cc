@@ -1,5 +1,6 @@
 #include <stdint.h>
 #include "common/_memory.h"
+#include "channel/hakase.h"
 #include "int.h"
 
 Idt idt;

@@ -1,9 +1,10 @@
 #include "interrupt/hakase.h"
 #include "elf_loader/hakase.h"
 #include "tests/test.h"
+#include "common/_memory.h"
 
-int test_main(F2H &f2h, H2F &h2f, int argc, const char **argv) {
-  auto ic = InterruptController(f2h);
+int test_main(F2H &f2h, H2F &h2f, I2H &i2h, int argc, const char **argv) {
+  auto ic = InterruptController(i2h);
   ic.Init();
 
   if (argc < 2) {
@@ -57,11 +58,10 @@ int test_main(F2H &f2h, H2F &h2f, int argc, const char **argv) {
     }
 
     int16_t type;
-    f2h.WaitNewSignal(type);
+    i2h.WaitNewSignal(type);
     if (type != 6) {
       return 1;
     }
-
     int64_t vnum;
     bool p = ic.ProcessInterrupt(vnum);
     if (vnum != i) {

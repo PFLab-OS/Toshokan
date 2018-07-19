@@ -2,7 +2,7 @@
 #include "channel/hakase.h"
 #include "common/channel_accessor.h"
 
-int test_main(F2H &f2h, H2F &h2f, int argc, const char **argv) {
+int test_main(F2H &f2h, H2F &h2f, I2H &i2h, int argc, const char **argv) {
   int16_t id = 1;
   ChannelAccessor<> ch_ac(h2f, id);
   ch_ac.Do(1);

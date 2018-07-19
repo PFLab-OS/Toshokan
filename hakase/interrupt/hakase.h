@@ -11,7 +11,7 @@ typedef void (*int_callback)(void *arg);
 
 class InterruptController {
 public:
-  InterruptController(F2H &f2h) : _f2h(f2h) {
+  InterruptController(I2H &i2h) : _i2h(i2h) {
   }
   InterruptController() = delete;
 
@@ -34,7 +34,7 @@ public:
 
   static const int kIntVectorNum = 256;
 private:
-  F2H &_f2h;
+  I2H &_i2h;
   struct IntCallback {
     int_callback callback;
     void *arg;

@@ -27,11 +27,11 @@ extern Idt idt;
 
 namespace C {
 extern "C" void handle_int(Regs *rs) {
-  F2H f2h;
   bool iflag = disable_interrupt();
   idt._handling_cnt++;
 
-  ChannelAccessor<> ch_ac(f2h, 6);
+  I2H i2h;
+  ChannelAccessor<> ch_ac(i2h, 6);
   ch_ac.Write<uint64_t>(0, static_cast<uint64_t>(rs->n));
   ch_ac.Do(0);
   
@@ -41,10 +41,6 @@ extern "C" void handle_int(Regs *rs) {
 }
 
 void Idt::SetupGeneric() {
-  //TODO : Fix elf_loader's bug
-  F2H f2h;
-  f2h.Release();
-
   for (int i = 0; i < kIntVectorNum; i++) {
     uint8_t ist;
     // We don't use TSS and IST

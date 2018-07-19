@@ -155,6 +155,14 @@ public:
   }
 };
 
+class I2H : public Channel {
+public:
+  I2H() = delete;
+  I2H(char *address) {
+    _address = reinterpret_cast<uint8_t *>(address);
+  }
+};
+
 inline Channel::Channel() {
   _my_id = 0;
 }
@@ -177,6 +185,11 @@ public:
 class F2H : public Channel {
 public:
   F2H() { _address = reinterpret_cast<uint8_t *>(MemoryMap::kF2h); }
+};
+
+class I2H : public Channel {
+ public:
+  I2H() { _address = reinterpret_cast<uint8_t *>(MemoryMap::kI2h); }
 };
 
 inline Channel::Channel() {
