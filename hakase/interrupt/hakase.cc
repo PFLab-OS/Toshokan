@@ -1,7 +1,7 @@
 #include "hakase.h"
 
 bool InterruptController::ProcessInterrupt(int64_t &vnum) {
-  _i2h.Read(0, vnum);
+  vnum = _i2h.OldRead<int64_t>(0);
   _i2h.Return(0);
 
   if (_callback[vnum].callback != nullptr) {

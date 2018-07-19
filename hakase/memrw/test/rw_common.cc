@@ -1,7 +1,7 @@
 // read by rw_large.cc & rw_small.cc
 #include <time.h>
 #include "tests/test.h"
-#include "common/channel.h"
+#include "channel/hakase.h"
 #include "memrw/hakase.h"
 
 int test_main(F2H &f2h, H2F &h2f, I2H &i2h, int argc, const char **argv) {

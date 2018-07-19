@@ -1,5 +1,5 @@
 #include "tests/test.h"
-#include "common/channel.h"
+#include "channel/hakase.h"
 #include "print/hakase.h"
 #include <iostream>
 

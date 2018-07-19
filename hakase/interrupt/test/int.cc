@@ -1,5 +1,8 @@
 #include "int.h"
-#include "common/channel.h"
+#include "type.h"
+#include "common/_memory.h"
+#include "channel/hakase.h"
+#include "common/channel_accessor.h"
 
 struct idt_entity {
   uint32_t entry[4];
@@ -28,10 +31,10 @@ extern "C" void handle_int(Regs *rs) {
   idt._handling_cnt++;
 
   I2H i2h;
-  Channel::Accessor<> ch_ac(i2h, 6);
+  ChannelAccessor<> ch_ac(i2h, 6);
   ch_ac.Write<uint64_t>(0, static_cast<uint64_t>(rs->n));
   ch_ac.Do(0);
-
+  
   idt._handling_cnt--;
   enable_interrupt(iflag);
 }

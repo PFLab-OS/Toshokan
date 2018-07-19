@@ -8,6 +8,6 @@ include ../../test_build_rule.mk
 ifeq ($(HOST),)
 
 friend.elf: friend.cc int.cc int_asm.S
-	g++ -O0 -Wall --std=c++14 -nostdinc -nostdlib -iquote $(ROOT_DIR) -D __FRIEND__ -T friend.ld $^ -o $@
+	g++ $(TEST_CXX_FLAGS) $^ -o $@
 
 endif

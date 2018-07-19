@@ -46,13 +46,11 @@ int test_main(F2H &f2h, H2F &h2f, int argc, const char **argv) {
     f2h.WaitNewSignal(type);
     switch(type) {
     case 1: {
-      uint32_t rval;
-      f2h.Read(0, rval);
+      uint32_t rval = f2h.OldRead<uint32_t>(0);
       return rval;
     }
     case 2: {
-      uint8_t data;
-      f2h.Read(0, data);
+      uint8_t data = f2h.OldRead<uint8_t>(0);
       f2h.Return(0);
       putchar(data);
       fflush(stdout);

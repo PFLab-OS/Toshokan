@@ -2,7 +2,7 @@
 #include <stdint.h>
 #include <vector>
 #include <memory>
-#include "common/channel.h"
+#include "channel/hakase.h"
 #include "common/result.h"
 
 static const uint64_t kDeployAddressStart = 0x100000;

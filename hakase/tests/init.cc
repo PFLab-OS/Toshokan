@@ -4,7 +4,7 @@
 #include <sys/mman.h>
 #include <unistd.h>
 #include "test.h"
-#include "common/channel.h"
+#include "channel/hakase.h"
 
 int main(int argc, char **argv) {
   int configfd_h2f = open("/sys/module/friend_loader/call/h2f", O_RDWR);
