@@ -1,4 +1,4 @@
-#include "common/channel.h"
+#include "channel/hakase.h"
 #include "common/panic.h"
 
 // callback test

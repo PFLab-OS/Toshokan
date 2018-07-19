@@ -2,7 +2,7 @@
 #include <string.h>
 #include <stdint.h>
 #include "common/result.h"
-#include "common/channel.h"
+#include "channel/hakase.h"
 
 namespace MemoryAccessor {
   static const size_t kTransferSize = 2048;

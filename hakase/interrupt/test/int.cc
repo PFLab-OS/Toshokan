@@ -1,7 +1,7 @@
 #include "int.h"
 #include "common/type.h"
 #include "common/_memory.h"
-#include "common/channel.h"
+#include "channel/hakase.h"
 
 struct idt_entity {
   uint32_t entry[4];

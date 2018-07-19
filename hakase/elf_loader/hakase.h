@@ -1,5 +1,5 @@
 #include "elfhead.h"
-#include "common/channel.h"
+#include "channel/hakase.h"
 #include "common/result.h"
 #include <memory>
 #include <vector>

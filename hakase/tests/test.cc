@@ -2,7 +2,7 @@
 #include <sys/mman.h>
 #include <fcntl.h>
 #include <unistd.h>
-#include "common/channel.h"
+#include "channel/hakase.h"
 #include "test.h"
 
 int main(int argc, const char **argv) {
