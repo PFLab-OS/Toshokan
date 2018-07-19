@@ -8,6 +8,6 @@ include ../../test_build_rule.mk
 ifeq ($(HOST),)
 
 raw.elf: raw.cc
-	g++ -O0 -Wall --std=c++14 -fpie -nostdinc -nostdlib -iquote $(ROOT_DIR) -T raw.ld $^ -o $@
+	g++ $(TEST_CXX_FLAGS) -T raw.ld $^ -o $@
 
 endif

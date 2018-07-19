@@ -6,6 +6,7 @@ OBJS:=$(addsuffix .o,$(TESTS)) $(TEST_DIR)test.o
 DEPS:=$(OBJS:%.o=%.d)
 TEST_BINS:=$(addsuffix .bin, $(TESTS))
 DEPLOY_FILES:=$(TEST_BINS) $(EX_DEPLOY_FILES)
+TEST_CXX_FLAGS:=-g -O0 -Wall --std=c++14 -nostdinc -nostdlib -iquote $(ROOT_DIR) -D__FRIEND__
 .DEFAULT_GOAL:=test
 
 -include $(DEPS)
