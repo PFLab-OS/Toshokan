@@ -20,7 +20,7 @@ public:
   void Read(int offset, int16_t &data) { ReadSub(offset, data); }
   void Read(int offset, int32_t &data) { ReadSub(offset, data); }
   void Read(int offset, int64_t &data) { ReadSub(offset, data); }
-  void Read(int offset, uint8_t &data) { ReadSub(offset, data); }
+  uint8_t Read(int offset) { uint8_t data; ReadSub(offset, data); return data; }
   void Read(int offset, uint16_t &data) { ReadSub(offset, data); }
   void Read(int offset, uint32_t &data) { ReadSub(offset, data); }
   void Read(int offset, uint64_t &data) { ReadSub(offset, data); }
@@ -127,9 +127,7 @@ public:
       int32_t rval = _ch.SendSignal(_type);
       _signal_sended = true;
       for(int i = 0; i < kBufMax; i++) {
-        uint8_t data;
-        _ch.Read(i, data);
-        _buffer[i] = data;
+        _buffer[i] = _ch.Read(i);
       }
       _ch.Release();
       return rval;

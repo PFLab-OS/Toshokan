@@ -8,8 +8,7 @@ void StringReceiver::Do() {
       return;
     }
     
-    uint8_t data;
-    _f2h.Read(0, data);
+    uint8_t data = _f2h.Read(0);
     _f2h.Return(0);
 
     if (data == '\0') {
