@@ -68,9 +68,7 @@ namespace MemoryAccessor {
           return Result<bool>();
         }
         for(size_t i = 0; i < size; i++) {
-          uint8_t data;
-          ch_ac.Read<uint8_t>(kTransferDataOffset + i, data);
-          _buf[offset + i] = data;
+          _buf[offset + i] = ch_ac.Read<uint8_t>(kTransferDataOffset + i);
         }
       }
       return Result<bool>(true);

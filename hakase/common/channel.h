@@ -113,10 +113,10 @@ public:
       reinterpret_cast<T *>(_buffer)[offset / sizeof(T)] = data;
     }
     template<class T>
-    void Read(int offset, T &data) {
+    T Read(int offset) {
       assert(_signal_sended);
       assert(offset + sizeof(T) <= kBufMax);
-      data = reinterpret_cast<T *>(_buffer)[offset / sizeof(T)];
+      return reinterpret_cast<T *>(_buffer)[offset / sizeof(T)];
     }
     int32_t Do(int16_t id) {
       _ch.Reserve(id);
