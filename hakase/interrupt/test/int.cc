@@ -1,5 +1,7 @@
 #include "int.h"
-#include "channel_baremetal.h"
+#include "common/type.h"
+#include "common/_memory.h"
+#include "common/channel.h"
 
 struct idt_entity {
   uint32_t entry[4];
@@ -28,11 +30,10 @@ extern "C" void handle_int(Regs *rs) {
   bool iflag = disable_interrupt();
   idt._handling_cnt++;
 
-  f2h.Reserve();
-  f2h.Write(0, static_cast<uint64_t>(rs->n));
-  f2h.SendSignal(6);
-  f2h.Release();
-
+  Channel::Accessor<> ch_ac(f2h, 6);
+  ch_ac.Write<uint64_t>(0, static_cast<uint64_t>(rs->n));
+  ch_ac.Do(0);
+  
   idt._handling_cnt--;
   enable_interrupt(iflag);
 }

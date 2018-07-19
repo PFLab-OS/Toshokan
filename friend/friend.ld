@@ -17,6 +17,7 @@ SECTIONS{
   .data : {
     *(.data*)
     *(.gnu.linkonce.d*)
+    *(.init_array)
   }
 
   .bss : {

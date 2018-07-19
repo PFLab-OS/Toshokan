@@ -8,6 +8,6 @@ include ../../test_build_rule.mk
 ifeq ($(HOST),)
 
 friend.elf: friend.cc
-	g++ $(TEST_CXX_FLAGS) -T friend.ld $^ -o $@
+	g++ $(TEST_CXX_FLAGS) $^ -o $@
 
 endif

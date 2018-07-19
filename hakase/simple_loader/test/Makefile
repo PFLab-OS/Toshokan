@@ -8,6 +8,6 @@ include ../../test_build_rule.mk
 ifeq ($(HOST),)
 
 raw.elf: raw.cc
-	g++ $(TEST_CXX_FLAGS) -T raw.ld $^ -o $@
+	g++ $(RAW_CXX_FLAGS) -T raw.ld $^ -o $@
 
 endif
