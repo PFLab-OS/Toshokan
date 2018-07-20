@@ -1,6 +1,6 @@
 #include "simple_loader/hakase.h"
-#include "tests/test.h"
 #include "common/channel_accessor.h"
+#include "tests/test.h"
 
 int test_main(F2H &f2h, H2F &h2f, I2H &i2h, int argc, const char **argv) {
   if (argc < 2) {
@@ -11,7 +11,7 @@ int test_main(F2H &f2h, H2F &h2f, I2H &i2h, int argc, const char **argv) {
   if (!file) {
     return 1;
   }
-  
+
   SimpleLoader sl(h2f, std::move(file));
 
   auto r = sl.Deploy();

@@ -1,7 +1,7 @@
 #include <stdint.h>
 #include "common/_memory.h"
 
-int main() __attribute__ ((section (".text.boot")));
+int main() __attribute__((section(".text.boot")));
 
 int main() {
   unsigned int *channel = reinterpret_cast<unsigned int *>(MemoryMap::kF2h);
