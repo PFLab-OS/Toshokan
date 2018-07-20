@@ -12,8 +12,7 @@ jobs:
       - run:
           command: |
             cd hakase
-            make format
-            git diff --quiet
+            make CI=true format
           command: |
             cd hakase
             make CI=true test

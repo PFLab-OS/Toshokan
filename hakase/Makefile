@@ -23,15 +23,6 @@ clean:
 	@$(foreach dir, $(MODULES), $(MAKE) -C $(dir)/test clean;)
 	make -C FriendLoader clean
 
-format:
-	@echo "Formatting with clang-format. Please wait..."
-	@git ls-files .. \
-	  | grep -e FriendLoader/ \
-	         -e ../friend/ \
-	  | grep -E ".*\.cc$$|.*\.h$$" \
-		| xargs -n 1 clang-format -i
-	@echo "Done."
-
 ###########################
 #  Sub Functions
 ###########################
