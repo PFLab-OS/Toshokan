@@ -59,6 +59,7 @@ format:
 	  | grep -e FriendLoader/ \
 	         -e ../friend/ \
 	         -e interrupt/ \
+	         -e channel/ \
 	  | grep -E '.*\.cc$$|.*\.h$$' \
 		| xargs -n 1 clang-format -style='{BasedOnStyle: Google}' -i \
 	 $(if $(CI),&& git diff))
