@@ -3,7 +3,7 @@ ifeq ($(HOST),)
 
 .DEFAULT_GOAL:=all
 
-.PHONY: all test clean prepare_test execute_test start_qemu deploy_to_qemu prepare_script run_script kill_qemu
+.PHONY: all test clean format prepare_test execute_test start_qemu deploy_to_qemu prepare_script run_script kill_qemu
 
 all:
 	cd FriendLoader; $(MAKE) all
@@ -22,6 +22,13 @@ clean:
 	@$(foreach dir, $(MODULES), $(MAKE) -C $(dir) clean;)
 	@$(foreach dir, $(MODULES), $(MAKE) -C $(dir)/test clean;)
 	make -C FriendLoader clean
+
+format:
+	@echo "Formatting with clang-format. Please wait..."
+	@git ls-files .. \
+	  | grep -E ".*\.cc$$|.*\.h$$" \
+		| xargs -n 1 clang-format -i
+	@echo "Done."
 
 ###########################
 #  Sub Functions
