@@ -28,7 +28,7 @@ define make_wrapper
 	$(if $(CI),docker cp $(HOST_DIR) $1:$(SHARE_DIR))
 	@echo ""
 	@echo 'docker exec $1 sh -c "cd /share$(RELATIVE_DIR) && make$3"'
-	@bash -c "trap \"docker exec $1 sh -c 'pkill qemu-system-x86 || :'\" INT ERR; docker exec $1 sh -c \"cd /share$(RELATIVE_DIR) && make$4\""
+	@bash -c "trap \"docker exec $1 sh -c 'pkill qemu-system-x86 || :'\" INT ERR; docker exec $1 sh -c \"cd /share$(RELATIVE_DIR) && make$3\""
 	@echo ""
 	docker rm -f $1
 endef
@@ -58,6 +58,7 @@ format:
 	 git ls-files .. \
 	  | grep -e FriendLoader/ \
 	         -e ../friend/ \
+	         -e interrupt/ \
 	  | grep -E '.*\.cc$$|.*\.h$$' \
 		| xargs -n 1 clang-format -style='{BasedOnStyle: Google}' -i \
 	 $(if $(CI),&& git diff))

@@ -1,7 +1,7 @@
 #include "interrupt/hakase.h"
+#include "common/_memory.h"
 #include "elf_loader/hakase.h"
 #include "tests/test.h"
-#include "common/_memory.h"
 
 int test_main(F2H &f2h, H2F &h2f, I2H &i2h, int argc, const char **argv) {
   auto ic = InterruptController(i2h);
@@ -24,7 +24,7 @@ int test_main(F2H &f2h, H2F &h2f, I2H &i2h, int argc, const char **argv) {
     }
     r.Unwrap();
   }
-  
+
   ElfLoader sl(h2f, std::move(file));
 
   {
@@ -45,7 +45,7 @@ int test_main(F2H &f2h, H2F &h2f, I2H &i2h, int argc, const char **argv) {
     r.Unwrap();
   }
 
-  for (int i = 0; i < 33; i++ ) { 
+  for (int i = 0; i < 33; i++) {
     switch (i) {
       case 8:
       case 10:

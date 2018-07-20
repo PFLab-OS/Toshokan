@@ -12,14 +12,12 @@ bool InterruptController::ProcessInterrupt(int64_t &vnum) {
 }
 
 void InterruptController::Init() {
-
   for (int i = 0; i < kIntVectorNum; i++) {
     _callback[i].callback = nullptr;
   }
 }
 
 int InterruptController::SetIntCallback(int_callback callback, void *arg) {
-
   for (int vector = 32; vector < kIntVectorNum; vector++) {
     if (_callback[vector].callback == nullptr) {
       _callback[vector].callback = callback;
@@ -30,9 +28,9 @@ int InterruptController::SetIntCallback(int_callback callback, void *arg) {
   return ReservedIntVector::kError;
 }
 
-void InterruptController::SetExceptionCallback(int vector, int_callback callback, void *arg) {
-
+void InterruptController::SetExceptionCallback(int vector,
+                                               int_callback callback,
+                                               void *arg) {
   _callback[vector].callback = callback;
   _callback[vector].arg = arg;
 }
-

@@ -1,8 +1,8 @@
 #include "int.h"
-#include "type.h"
-#include "common/_memory.h"
 #include "channel/hakase.h"
+#include "common/_memory.h"
 #include "common/channel_accessor.h"
+#include "type.h"
 
 struct idt_entity {
   uint32_t entry[4];
@@ -14,11 +14,11 @@ extern idt_callback idt_vectors[Idt::kIntVectorNum];
 
 extern Idt idt;
 
-
 /* How to interrupt
  * 1. Trigger interrupt (e.g. "int" instruction, HW interrupt, some exception).
- * 2. All interruption invoke handle_int() with vector number. 
- * 3. handle_int() call a appropriate callback function or system halt if no callback function.
+ * 2. All interruption invoke handle_int() with vector number.
+ * 3. handle_int() call a appropriate callback function or system halt if no
+ * callback function.
  *
  * Register Callback Function
  *  - Call SetIntCallback() or SetExceptionCallback()
@@ -34,34 +34,34 @@ extern "C" void handle_int(Regs *rs) {
   ChannelAccessor<> ch_ac(i2h, 6);
   ch_ac.Write<uint64_t>(0, static_cast<uint64_t>(rs->n));
   ch_ac.Do(0);
-  
+
   idt._handling_cnt--;
   enable_interrupt(iflag);
 }
-}
+}  // namespace C
 
 void Idt::SetupGeneric() {
   for (int i = 0; i < kIntVectorNum; i++) {
     uint8_t ist;
     // We don't use TSS and IST
-//    switch (i) {
-//      case 8:
-//        ist = 1;
-//        break;
-//      case 2:
-//        ist = 2;
-//        break;
-//      case 1:
-//      case 3:
-//        ist = 3;
-//        break;
-//      case 18:
-//        ist = 4;
-//        break;
-//      default:
-//        ist = 5;
-//        break;
-//    };
+    //    switch (i) {
+    //      case 8:
+    //        ist = 1;
+    //        break;
+    //      case 2:
+    //        ist = 2;
+    //        break;
+    //      case 1:
+    //      case 3:
+    //        ist = 3;
+    //        break;
+    //      case 18:
+    //        ist = 4;
+    //        break;
+    //      default:
+    //        ist = 5;
+    //        break;
+    //    };
     // mechanism of interrupt stack ref : SDM vol.3 6.14.4,5
     ist = 0;
     SetGate(idt_vectors[i], i, 0, false, ist);
@@ -80,7 +80,6 @@ void Idt::SetupGeneric() {
   }
 
   _is_gen_initialized = true;
-
 }
 
 void Idt::SetupProc() {
@@ -88,7 +87,8 @@ void Idt::SetupProc() {
   asm volatile("sti;");
 }
 
-void Idt::SetGate(idt_callback gate, int vector, uint8_t dpl, bool trap, uint8_t ist) {
+void Idt::SetGate(idt_callback gate, int vector, uint8_t dpl, bool trap,
+                  uint8_t ist) {
   // structure of IDT ref: SDM vol.3 Figure 6-7
   virt_addr vaddr = reinterpret_cast<virt_addr>(gate);
   uint32_t type = trap ? 0xF : 0xE;
@@ -97,7 +97,6 @@ void Idt::SetGate(idt_callback gate, int vector, uint8_t dpl, bool trap, uint8_t
                              ((dpl & 0x3) << 13) | kIdtPresent | ist;
   idt_def[vector].entry[2] = vaddr >> 32;
   idt_def[vector].entry[3] = 0;
-
 }
 
 int Idt::SetIntCallback(int_callback callback, void *arg) {
@@ -119,4 +118,3 @@ void Idt::SetExceptionCallback(int vector, int_callback callback, void *arg) {
   _callback[vector].callback = callback;
   _callback[vector].arg = arg;
 }
-

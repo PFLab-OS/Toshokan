@@ -10,9 +10,8 @@ struct Regs {
 typedef void (*int_callback)(void *arg);
 
 class InterruptController {
-public:
-  InterruptController(I2H &i2h) : _i2h(i2h) {
-  }
+ public:
+  InterruptController(I2H &i2h) : _i2h(i2h) {}
   InterruptController() = delete;
 
   // Processing Interrupt
@@ -22,7 +21,8 @@ public:
   void Init();
 
   // Interrupt Handler for I/O
-  // Return Value : allocated vector number or ReservedIntVector::kError (if failed)
+  // Return Value : allocated vector number or ReservedIntVector::kError (if
+  // failed)
   int SetIntCallback(int_callback callback, void *arg);
 
   // Interrupt Handler for Exception
@@ -33,11 +33,11 @@ public:
   };
 
   static const int kIntVectorNum = 256;
-private:
+
+ private:
   I2H &_i2h;
   struct IntCallback {
     int_callback callback;
     void *arg;
   } _callback[kIntVectorNum];
 };
-

@@ -1,14 +1,13 @@
 #pragma once
 
-
 using uint64_t = __UINT64_TYPE__;
 using uint32_t = __UINT32_TYPE__;
 using uint16_t = __UINT16_TYPE__;
 using uint8_t = __UINT8_TYPE__;
 
-#define kassert(flag)                       \
-  if (!(flag)) {                            \
-    asm volatile("cli; nop; hlt;");         \
+#define kassert(flag)               \
+  if (!(flag)) {                    \
+    asm volatile("cli; nop; hlt;"); \
   }
 
 static inline bool disable_interrupt() {
@@ -52,7 +51,8 @@ class Idt {
   void SetupProc();
 
   // Interrupt Handler for I/O
-  // Return Value : allocated vector number or ReservedIntVector::kError (if failed)
+  // Return Value : allocated vector number or ReservedIntVector::kError (if
+  // failed)
   int SetIntCallback(int_callback callback, void *arg);
 
   // Interrupt Handler for Exception
@@ -70,8 +70,10 @@ class Idt {
   };
 
   static const uint16_t kIntVectorNum = 33;
+
  private:
-  void SetGate(idt_callback gate, int vector, uint8_t dpl, bool trap, uint8_t ist);
+  void SetGate(idt_callback gate, int vector, uint8_t dpl, bool trap,
+               uint8_t ist);
   static const uint32_t kIdtPresent = 1 << 15;
   volatile uint16_t _idtr[5];
   struct IntCallback {
