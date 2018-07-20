@@ -26,7 +26,8 @@ clean:
 format:
 	@echo "Formatting with clang-format. Please wait..."
 	@git ls-files .. \
-	  | grep FriendLoader \
+	  | grep -e FriendLoader/ \
+	         -e ../friend/ \
 	  | grep -E ".*\.cc$$|.*\.h$$" \
 		| xargs -n 1 clang-format -i
 	@echo "Done."
