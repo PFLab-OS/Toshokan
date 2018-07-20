@@ -1,6 +1,6 @@
 #pragma once
 
-#include <linux/types.h> // phys_addr_t
+#include <linux/types.h>  // phys_addr_t
 
 struct trampoline_region {
   phys_addr_t paddr;

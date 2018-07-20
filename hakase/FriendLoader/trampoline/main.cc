@@ -85,20 +85,20 @@ extern "C" void trampoline_main() {
     int16_t type;
     h2f.WaitNewSignal(type);
     switch (type) {
-    case 0:
-      panic();
-    case 1:
-      callback(h2f, f2h);
-      break;
-    case 2:
-      print(h2f, f2h);
-      break;
-    case 3:
-      exec_bin(h2f, f2h);
-      break;
-    case 4:
-      rw_memory(h2f, f2h);
-      break;
+      case 0:
+        panic();
+      case 1:
+        callback(h2f, f2h);
+        break;
+      case 2:
+        print(h2f, f2h);
+        break;
+      case 3:
+        exec_bin(h2f, f2h);
+        break;
+      case 4:
+        rw_memory(h2f, f2h);
+        break;
     }
   }
 }

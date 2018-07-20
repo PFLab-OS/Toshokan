@@ -1,7 +1,7 @@
 #pragma once
 
 #include "panic.h"
-#define assert(flag)                                                           \
-  if (!(flag)) {                                                               \
-    panic();                                                                   \
+#define assert(flag) \
+  if (!(flag)) {     \
+    panic();         \
   }
