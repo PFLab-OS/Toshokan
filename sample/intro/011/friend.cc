@@ -1,6 +1,6 @@
 #include "type.h"
 #include "common/_memory.h"
-#include "common/channel.h"
+#include "channel/hakase.h"
 #include "common/channel_accessor.h"
 
 int16_t get_cpuid() {
