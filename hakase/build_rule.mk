@@ -21,7 +21,7 @@ endif
 define make_wrapper
 	@$(CRLF_CHECK)
 	@echo "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
-	@echo  Running \"make$1\" on the docker environment.
+	@echo  Running \"make$3\" on the docker environment.
 	@echo "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
 	@docker rm $1 -f > /dev/null 2>&1 || :
 	docker run -d $(if $(CI),,-v $(HOST_DIR):$(SHARE_DIR)) -it --name $1 $2
