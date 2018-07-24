@@ -16,14 +16,15 @@ enum MemoryMap {
 #define DEFINE_MEMMAP(name, value) kMemoryMap##name = value
 
 #endif /* __cplusplus */
-
-  DEFINE_MEMMAP(Jmp0x20, 0x0),
+  DEFINE_MEMMAP(Jmp0x30, 0x0),
   DEFINE_MEMMAP(Signature, 0x4),
   DEFINE_MEMMAP(RegionOffset, 0x8),
   DEFINE_MEMMAP(TrampolineBinLoadPoint, 0x8),
   DEFINE_MEMMAP(PhysAddrStart, 0x10),
-  DEFINE_MEMMAP(Id, 0x18),
-  DEFINE_MEMMAP(TrampolineBinEntry, 0x20),
+  DEFINE_MEMMAP(ChannelPhysAddr, 0x18),
+  DEFINE_MEMMAP(Id, 0x20),
+  DEFINE_MEMMAP(StackVirtAddr, 0x28),
+  DEFINE_MEMMAP(TrampolineBinEntry, 0x30),
   DEFINE_MEMMAP(Pml4t, 0x1000),
   DEFINE_MEMMAP(Pdpt, 0x2000),
   DEFINE_MEMMAP(Pd, 0x3000),

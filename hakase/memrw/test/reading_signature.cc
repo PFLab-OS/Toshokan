@@ -2,10 +2,11 @@
 #include "channel/hakase.h"
 #include "memrw/hakase.h"
 #include "tests/test.h"
+#include "common/_memory.h"
 
 int test_main(F2H &f2h, H2F &h2f, I2H &i2h, int argc, const char **argv) {
   static const uint64_t kAddress = 0;
-  const uint8_t signature[] = {0xeb, 0x1e, 0x66, 0x90, 0x6b, 0x72, 0x70, 0x4a};
+  const uint8_t signature[] = {0xeb, static_cast<int>(MemoryMap::kTrampolineBinEntry) - 2, 0x66, 0x90, 0x6b, 0x72, 0x70, 0x4a};
 
   uint8_t buf[sizeof(signature) / sizeof(*signature)];
   MemoryAccessor::Reader mr(h2f, 1, kAddress, buf,

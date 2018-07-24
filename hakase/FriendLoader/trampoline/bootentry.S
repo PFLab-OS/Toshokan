@@ -10,9 +10,13 @@ region_addr:
 	.quad 0
 phys_addr_start:
 	.quad 0
-reserved:	
+channel_phys_addr:
 	.quad 0
-	
+id:
+	.quad 0
+stack_virt_addr:
+	.quad 0	
+
 entry:
 	cli
 	movw %cs, %ax
@@ -101,12 +105,9 @@ start:
 	movw %ax, %ds
 	movw %ax, %ss
 	xorq %rax, %rax
-	movl (ID + 4), %eax // cpuid
-	incl %eax
-	shll $12, %eax // * 0x1000 (stack size)
-	addq $STACK, %rax
+	movl (stack_virt_addr), %eax
 	movq %rax, %rsp
-	  
+	
 	jmp trampoline_main
 
 	.balign 8
