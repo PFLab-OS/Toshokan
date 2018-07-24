@@ -10,7 +10,7 @@ region_addr:
 	.quad 0
 phys_addr_start:
 	.quad 0
-channel_phys_addr:
+reserved:
 	.quad 0
 id:
 	.quad 0
