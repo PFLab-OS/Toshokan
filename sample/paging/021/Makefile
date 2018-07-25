@@ -7,13 +7,13 @@ include ../../../hakase/test_build_rule.mk
 
 ifeq ($(HOST),)
 
-app: app.cc
-	g++ --std=c++14 -nostdinc -nostdlib -T app.ld $^ -o $@
+app1: app1.cc
+	g++ --std=c++14 -nostdinc -nostdlib -T app1.ld $^ -o $@
 
-app.o: app
+app1.o: app1
 	objcopy -I binary -O elf64-x86-64 -B i386:x86-64 $^ $@
 
-friend.elf: friend.cc ../../common/common.cc app.o
+friend.elf: friend.cc ../../common/common.cc app1.o
 	g++ -iquote $(ROOT_DIR)../sample/common $(TEST_CXX_FLAGS) $^ -o $@
 
 endif

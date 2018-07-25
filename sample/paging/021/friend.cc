@@ -12,9 +12,9 @@ int main() {
 
   puts(f2h, "hello!");
 
-  extern uint8_t _binary_app_start[];
-  extern uint8_t _binary_app_size[];
-  memcpy((void *)0x400000UL, (const void *)_binary_app_start, (size_t)_binary_app_size);
+  extern uint8_t _binary_app1_start[];
+  extern uint8_t _binary_app1_size[];
+  memcpy((void *)0x400000UL, (const void *)_binary_app1_start, (size_t)_binary_app1_size);
   
   Context c;
   c.next = (Context (*)(Context))0x400000UL; // entry1
