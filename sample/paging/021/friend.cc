@@ -1,6 +1,12 @@
 #include "common.h"
 #include "app.h"
 
+void show_i(F2H &f2h, int i) {
+  char mes[] = "i=0";
+  mes[2] += i;
+  puts(f2h, mes);
+}
+
 int main() {
   F2H f2h;
 
@@ -16,9 +22,7 @@ int main() {
   
   c = c.next(c); // call entry1
 
-  char mes1[] = "i=0";
-  mes1[2] += c.i;
-  puts(f2h, mes1);
+  show_i(f2h, c.i);
   
   if (c.i != 1) {
     return_value(f2h, 1);
@@ -27,9 +31,7 @@ int main() {
 
   c = c.next(c); // call entry2
 
-  char mes2[] = "i=0";
-  mes2[2] += c.i;
-  puts(f2h, mes2);
+  show_i(f2h, c.i);
 
   if (c.i != 2) {
     return_value(f2h, 1);
