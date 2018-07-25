@@ -16,12 +16,20 @@ int main() {
   
   c = c.next(c); // call entry1
 
+  char mes1[] = "i=0";
+  mes1[2] += c.i;
+  puts(f2h, mes1);
+  
   if (c.i != 1) {
     return_value(f2h, 1);
     return 1;
   }
 
   c = c.next(c); // call entry2
+
+  char mes2[] = "i=0";
+  mes2[2] += c.i;
+  puts(f2h, mes2);
 
   if (c.i != 2) {
     return_value(f2h, 1);
