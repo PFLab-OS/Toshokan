@@ -10,7 +10,7 @@ Context entry1(Context c) {
 }
 
 Context entry2(Context c) {
-  c.i = 2;
+  c.i++;
   c.next = nullptr;
   return c;
 }
