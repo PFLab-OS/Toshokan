@@ -25,6 +25,7 @@ int main() {
 
   memcpy((void *)0x400000UL, (void *)0x500000UL, (size_t)_binary_app1_size);
   c1 = c1.next(c1); // call entry1
+  memcpy((void *)0x500000UL, (void *)0x400000UL, (size_t)_binary_app1_size);
 
   show_i(f2h, c1.i);
   
@@ -39,6 +40,7 @@ int main() {
   
   memcpy((void *)0x400000UL, (void *)0x600000UL, (size_t)_binary_app2_size);
   c2 = c2.next(c2); // call entry3
+  memcpy((void *)0x600000UL, (void *)0x400000UL, (size_t)_binary_app2_size);
 
   show_i(f2h, c2.i);
   
@@ -49,6 +51,7 @@ int main() {
 
   memcpy((void *)0x400000UL, (void *)0x500000UL, (size_t)_binary_app1_size);
   c1 = c1.next(c1); // call entry2
+  memcpy((void *)0x500000UL, (void *)0x400000UL, (size_t)_binary_app1_size);
 
   show_i(f2h, c1.i);
 
@@ -59,6 +62,7 @@ int main() {
 
   memcpy((void *)0x400000UL, (void *)0x600000UL, (size_t)_binary_app2_size);
   c2 = c2.next(c2); // call entry4
+  memcpy((void *)0x600000UL, (void *)0x400000UL, (size_t)_binary_app2_size);
 
   show_i(f2h, c2.i);
 
