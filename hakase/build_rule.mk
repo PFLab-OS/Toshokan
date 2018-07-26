@@ -9,7 +9,7 @@ ifneq ($(HOST),)
 # host environment
 HOST_DIR:=$(abspath $(ROOT_DIR)../)
 SHARE_DIR:=/share
-BUILD_CONTAINER:=livadk/hakase-qemu:9d2c439feba99efb506ce0faf803a85cdf38d6d0
+BUILD_CONTAINER:=livadk/hakase-qemu:984648a0464d2de5638e58b3b38f179ebdcaa5bc
 BUILD_CONTAINER_NAME:=toshokan
 FORMAT_CONTAINER:=livadk/clang-format:9f1d281b0a30b98fbb106840d9504e2307d3ad8f
 FORMAT_CONTAINER_NAME:=toshokan_format

@@ -17,6 +17,7 @@ test:
 
 common_test:
 	$(MAKE) -C ../common/tests test
+	$(MAKE) -C tests2 test
 
 clean:
 	@$(foreach dir, $(MODULES), $(MAKE) -C $(dir) clean;)
@@ -44,7 +45,7 @@ execute_test:
 	@echo "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
 
 start_qemu:
-	/root/qemu > /dev/null 2>&1 &
+	/root/qemu
 
 deploy_to_qemu:
 	rsync -r $(DEPLOY_DIR)/* rsync://localhost:2873/share
