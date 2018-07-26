@@ -4,8 +4,6 @@
 #include "panic.h"
 #include "type.h"
 
-#define PAGE_SIZE 4096
-
 /*
  * Channel : communication channel between hakase and friend
  * !!! Do not call Channel class directly. Use ChannelAccessor instead. !!!
