@@ -2,9 +2,6 @@
 #include "channel/hakase.h"
 #include "debug.h"
 
-Channel::Channel() {
-}
-
 int Channel::SendSignal(int16_t type) {
   return mock("Channel").actualCall("SendSignal").withParameter("type", type).returnIntValue();
 }

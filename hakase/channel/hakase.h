@@ -4,6 +4,8 @@
 #include "panic.h"
 #include "type.h"
 
+#define PAGE_SIZE 4096
+
 /*
  * Channel : communication channel between hakase and friend
  * !!! Do not call Channel class directly. Use ChannelAccessor instead. !!!
@@ -41,8 +43,9 @@ class Channel {
   static const int kDataAreaSizeMax = 4096 - 8;
 
  protected:
-  Channel();
-  uint8_t *_address;
+  Channel() = delete;
+  Channel(int16_t my_id, uint8_t *address) : _my_id(my_id), _address(address) {
+  }
 
  private:
   struct SignalTypeAndIdContainer {
@@ -72,6 +75,7 @@ class Channel {
     return reinterpret_cast<SignalTypeAndId *>(&_address[0])->c;
   }
   int16_t _my_id;
+  uint8_t *_address;
 };
 
 #if defined(__HAKASE__) || defined(__FRIEND__)
@@ -143,22 +147,20 @@ inline void Channel::Return(int32_t rval) {
 class H2F : public Channel {
  public:
   H2F() = delete;
-  H2F(char *address) { _address = reinterpret_cast<uint8_t *>(address); }
+  H2F(char *address) : Channel(0, reinterpret_cast<uint8_t *>(address)) { }
 };
 
 class F2H : public Channel {
  public:
   F2H() = delete;
-  F2H(char *address) { _address = reinterpret_cast<uint8_t *>(address); }
+  F2H(char *address) : Channel(0, reinterpret_cast<uint8_t *>(address)) { }
 };
 
 class I2H : public Channel {
  public:
   I2H() = delete;
-  I2H(char *address) { _address = reinterpret_cast<uint8_t *>(address); }
+  I2H(char *address) : Channel(0, reinterpret_cast<uint8_t *>(address)) { }
 };
-
-inline Channel::Channel() { _my_id = 0; }
 
 inline bool Channel::IsMyId(int16_t id) { return id != _my_id; }
 
@@ -167,21 +169,37 @@ inline int16_t Channel::GetCalleeId(int16_t id) { return id; }
 #elif defined(__FRIEND__)
 
 class H2F : public Channel {
- public:
-  H2F() { _address = reinterpret_cast<uint8_t *>(MemoryMap::kH2f); }
+public:
+  H2F() : Channel(GetId(), reinterpret_cast<uint8_t *>(MemoryMap::kH2f)) { }
+private:
+  static int16_t GetId() {
+    int16_t my_id;
+    asm volatile("movw %%fs:0x0, %0" : "=r"(my_id));
+    return my_id;
+  }
 };
 
 class F2H : public Channel {
- public:
-  F2H() { _address = reinterpret_cast<uint8_t *>(MemoryMap::kF2h); }
+public:
+  F2H() : Channel(GetId(), reinterpret_cast<uint8_t *>(MemoryMap::kF2h)) { }
+private:
+  static int16_t GetId() {
+    int16_t my_id;
+    asm volatile("movw %%fs:0x0, %0" : "=r"(my_id));
+    return my_id;
+  }
 };
 
 class I2H : public Channel {
- public:
-  I2H() { _address = reinterpret_cast<uint8_t *>(MemoryMap::kI2h); }
+public:
+  I2H() : Channel(GetId(), reinterpret_cast<uint8_t *>(MemoryMap::kI2h)) { }
+private:
+  static int16_t GetId() {
+    int16_t my_id;
+    asm volatile("movw %%fs:0x0, %0" : "=r"(my_id));
+    return my_id;
+  }
 };
-
-inline Channel::Channel() { asm volatile("movw %%fs:0x0, %0" : "=r"(_my_id)); }
 
 inline bool Channel::IsMyId(int16_t id) { return id == _my_id; }
 

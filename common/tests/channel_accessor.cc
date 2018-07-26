@@ -17,7 +17,7 @@ TEST_GROUP(ChannelAccessor) {
 
 class ChildChannel : public Channel {
 public:
-  ChildChannel() {
+  ChildChannel() : Channel(0, nullptr) {
   }
 };
 
