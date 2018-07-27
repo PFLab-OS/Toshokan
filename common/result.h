@@ -12,25 +12,20 @@ public:
   Result(T t) : _t(t), _error(false) {
   }
   ~Result() {
-    if (!_checked) {
+    if (_error && !_checked) {
       panic("Result: error: check the result\n");
     }
   }
   T Unwrap() {
-    _checked = true;
     if (_error) {
       panic("Result: error: failed to unwrap\n");
     }
+    _checked = true;
     return _t;
   }
   bool IsError() {
-    return _error;
-  }
-  void IgnoreError() {
-    if (!_error) {
-      panic("Result: error: do not call IgnoreError() when there is no error.\n");
-    }
     _checked = true;
+    return _error;
   }
 private:
   T _t;

@@ -14,11 +14,9 @@ int test_main(F2H &f2h, H2F &h2f, I2H &i2h, int argc, const char **argv) {
 
   SimpleLoader sl(h2f, std::move(file));
 
-  auto r = sl.Deploy();
-  if (r.IsError()) {
+  if (sl.Deploy().IsError()) {
     return 1;
   }
-  r.Unwrap();
 
   ChannelAccessor<> ch_ac(h2f, 3);
   ch_ac.Write<uint64_t>(0, kDeployAddressStart);
