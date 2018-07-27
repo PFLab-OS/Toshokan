@@ -15,3 +15,7 @@ void Debug::InitChannelBuffer() {
 void assert_func() {
   mock().actualCall("assert");
 }
+
+void panic_func(const char *str) {
+  mock().actualCall("panic");
+}
