@@ -16,33 +16,18 @@ int test_main(F2H &f2h, H2F &h2f, I2H &i2h, int argc, const char **argv) {
     return 1;
   }
 
-  {
-    auto r = file->Init(h2f);
-    if (r.IsError()) {
-      r.IgnoreError();
-      return 1;
-    }
-    r.Unwrap();
+  if (file->Init(h2f).IsError()) {
+    return 1;
   }
 
   ElfLoader sl(h2f, std::move(file));
 
-  {
-    auto r = sl.Deploy();
-    if (r.IsError()) {
-      r.IgnoreError();
-      return 1;
-    }
-    r.Unwrap();
+  if (sl.Deploy().IsError()) {
+    return 1;
   }
 
-  {
-    auto r = sl.Execute(1);
-    if (r.IsError()) {
-      r.IgnoreError();
-      return 1;
-    }
-    r.Unwrap();
+  if (sl.Execute(1).IsError()) {
+    return 1;
   }
 
   for (int i = 0; i < 33; i++) {
