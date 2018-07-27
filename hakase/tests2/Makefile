@@ -1,3 +1,7 @@
+include ../build_rule.mk
+
+ifeq ($(HOST),)
+
 SRC:=main.cc ivshmem.cc
 
 .PHONY: test clean
@@ -8,3 +12,5 @@ test: $(SRC)
 
 clean:
 	rm -f ./a.out *.gcov *.gcda *.gcno
+
+endif
