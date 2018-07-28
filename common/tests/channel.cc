@@ -3,7 +3,7 @@
 #include <chrono>
 #include "CppUTest/TestHarness.h"
 #include "CppUTestExt/MockSupport.h"
-#include "../channel.h"
+#include "../channel2.h"
 
 TEST_GROUP(Id) {
   TEST_SETUP() {
