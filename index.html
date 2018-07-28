@@ -4248,19 +4248,19 @@ function googlemapsReady() {
 <script type="text/javascript">
   (function($) {
     // 'use strict';
-    var jsGimmick = {
-        name: 'js',
+    var githubGimmick = {
+        name: 'github',
         version: $.md.version,
         once: function() {
-            $.md.linkGimmick(this, 'js', create_script);
+            $.md.linkGimmick(this, 'github', create_script);
         }
     };
-    $.md.registerGimmick(jsGimmick);
+    $.md.registerGimmick(githubGimmick);
   
     function create_script($links, opt, text) {
         return $links.each (function (i, link){
             var $link = $(link);
-            var href = $link.attr('href');
+            var href = "https://gist-it.appspot.com/" + $link.attr('href');
 
             var $iframe = $('<iframe>');
             var iframe = $iframe.get(0);
@@ -4270,14 +4270,14 @@ function googlemapsReady() {
 
             var doc = iframe.contentWindow.document;
             doc.open();
-            doc.write("<" + "body><" + "script src=\"" + href + "\"><" + "/script><" + "/body>");
+            doc.write("<" + "body style='margin:0px;padding:0px;'><div id='iframediv'><" + "script src=\"" + href + "\"><" + "/script><" + "/div><" + "/body>");
             doc.close();
 
             var updateSizeFn = function () {
-                var offset = $iframe.offset();
+                /*var offset = $iframe.offset();
                 var winHeight = $(window).height();
-                var newHeight = winHeight - offset.top - 5;
-                $iframe.height(newHeight);
+                var newHeight = winHeight - offset.top - 5;*/
+                $iframe.height($iframe.contents().find('#iframediv').height() + "px");
             };
 
             $iframe.load(function(done) {
