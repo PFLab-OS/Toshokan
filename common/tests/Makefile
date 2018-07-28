@@ -2,7 +2,7 @@ include ../../hakase/build_rule.mk
 
 ifeq ($(HOST),)
 
-SRC:=main.cc align.cc channel_accessor.cc result.cc mock/channel.cc mock/debug.cc # memrw.cc  channel.cc
+SRC:=main.cc align.cc channel_accessor.cc result.cc channel.cc mock/channel.cc mock/debug.cc # memrw.cc
 
 .PHONY: test clean
 
