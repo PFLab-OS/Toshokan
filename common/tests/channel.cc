@@ -2,7 +2,6 @@
 #include <string.h>
 #include <chrono>
 #include "CppUTest/TestHarness.h"
-#include "CppUTestExt/MockSupport.h"
 #include "../channel2.h"
 
 TEST_GROUP(Id) {
@@ -49,7 +48,6 @@ TEST_GROUP(Channel2) {
 
   TEST_TEARDOWN() {
     delete [] channel_buf;
-    mock().clear();
   }
   uint8_t *channel_buf;
 };
@@ -200,26 +198,20 @@ TEST(Channel2, WriteReadOverChannelBuffer) {
 //
 TEST(Channel2, ReserveBeforeSendingSignal) {
   Channel2 ch(channel_buf, Channel2::Id(1));
-  
-  mock().expectOneCall("assert");
-  ch.SendSignal(Channel2::Id(0), 1);
-  mock().checkExpectations();
+
+  CHECK_THROWS(AssertException, ch.SendSignal(Channel2::Id(0), 1)); 
 }
 
 TEST(Channel2, DoNotReleaseIfNonReserved) {
   Channel2 ch(channel_buf, Channel2::Id(1));
   
-  mock().expectOneCall("assert");
-  ch.Release();
-  mock().checkExpectations();
+  CHECK_THROWS(AssertException, ch.Release()); 
 }
 
 TEST(Channel2, DoNotSendSignal0) {
   Channel2 ch(channel_buf, Channel2::Id(1));
   ch.Reserve();
-  
-  mock().expectOneCall("assert");
-  ch.SendSignal(Channel2::Id(0), 0);
-  mock().checkExpectations();
+
+  CHECK_THROWS(AssertException, ch.SendSignal(Channel2::Id(0), 0));
 }
 
