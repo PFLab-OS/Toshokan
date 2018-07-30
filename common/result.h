@@ -11,7 +11,7 @@ public:
   }
   Result(T t) : _t(t), _error(false) {
   }
-  ~Result() {
+  ~Result() noexcept(false) {
     if (_error && !_checked) {
       panic("Result: error: check the result\n");
     }

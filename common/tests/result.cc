@@ -1,5 +1,4 @@
 #include "CppUTest/TestHarness.h"
-#include "CppUTestExt/MockSupport.h"
 
 #include "../result.h"
 
@@ -8,45 +7,28 @@ TEST_GROUP(Result) {
   }
 
   TEST_TEARDOWN() {
-    mock().clear();
   }
 };
 
 TEST(Result, Error) {
-  mock().expectNoCall("panic");
-  {
-    Result<bool> r;
-    CHECK(r.IsError());
-  }
-  mock().checkExpectations();
+  Result<bool> r;
+  CHECK(r.IsError());
 }
 
 TEST(Result, NoError) {
-  mock().expectNoCall("panic");
-  {
-    Result<bool> r(true);
-    CHECK_FALSE(r.IsError());
-  }
-  mock().checkExpectations();
+  Result<bool> r(true);
+  CHECK_FALSE(r.IsError());
 }
 
 // must check result
 TEST(Result, IgnoreWhenError) {
-  mock().expectNoCall("panic");
-  {
-    Result<bool> r;
-    r.IsError();
-  }
-  mock().checkExpectations();
+  Result<bool> r;
+  r.IsError();
 }
 
 TEST(Result, AbleToUnwrapWhenNoError) {
-  mock().expectNoCall("panic");
-  {
-    Result<bool> r(true);
-    r.Unwrap();
-  }
-  mock().checkExpectations();
+  Result<bool> r(true);
+  r.Unwrap();
 }
 
 //
@@ -55,19 +37,14 @@ TEST(Result, AbleToUnwrapWhenNoError) {
 
 // do not Unwrap() when error
 TEST(Result, UnwrapWhenError) {
-  mock().expectOneCall("panic");
-  {
-    Result<bool> r;
-    r.Unwrap();
-  }
-  mock().checkExpectations();
+  Result<bool> r;
+  CHECK_THROWS(PanicException, r.Unwrap());
+  r.IsError();
 }
 
 // must check result
 TEST(Result, NotcheckedWhenError) {
-  mock().expectOneCall("panic");
-  {
-    Result<bool> r;
-  }
-  mock().checkExpectations();
+  CHECK_THROWS(PanicException, ([](){
+        Result<bool> r;
+      })());
 }
