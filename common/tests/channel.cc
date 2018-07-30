@@ -174,6 +174,27 @@ TEST(Channel2, ReleaseBeforeReserving) {
   CHECK(ch1.Reserve().IsError());
 }
 
+TEST(Channel2, WriteRead) {
+  int offset = rand() % Channel2::kDataSize;
+  uint8_t data = rand() % 0xFF;
+  Channel2 ch(channel_buf, Channel2::Id(1));
+  ch.Reserve();
+  ch.Write(offset, data);
+  CHECK_EQUAL(data, ch.Read(offset));
+}
+
+TEST(Channel2, WriteReadOverChannelBuffer) {
+  int offset = rand() % Channel2::kDataSize;
+  uint8_t data = rand() % 0xFF;
+  Channel2 ch1(channel_buf, Channel2::Id(1));
+  Channel2 ch2(channel_buf, Channel2::Id(0));
+  ch1.Reserve();
+  ch1.Write(offset, data);
+  ch1.SendSignal(Channel2::Id(0), 1);
+  ch2.CheckIfNewSignalArrived();
+  CHECK_EQUAL(data, ch2.Read(offset));
+}
+
 //
 // Do not write following patterns
 //

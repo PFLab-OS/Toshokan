@@ -90,7 +90,14 @@ public:
     header->src_id = Id::Null();
     header->dest_id = Id::Null();
   }
+  void Write(int offset, uint8_t data) {
+    _address[sizeof(Header) + offset] = data;
+  }
+  uint8_t Read(int offset) {
+    return _address[sizeof(Header) + offset];
+  }
   static const int kBufAddress = 4096;
+  static const int kDataSize;
 private:
   struct Header {
     int32_t type;
@@ -102,3 +109,5 @@ private:
   Header * const _header;
   const Id _my_id;
 };
+
+const int Channel2::kDataSize = Channel2::kBufAddress - sizeof(Channel2::Header);
