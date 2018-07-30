@@ -97,7 +97,6 @@ public:
     return _address[sizeof(Header) + offset];
   }
   static const int kBufAddress = 4096;
-  static const int kDataSize;
 private:
   struct Header {
     int32_t type;
@@ -105,9 +104,11 @@ private:
     Id dest_id;
     int32_t rval;
   } __attribute__((packed));
+  static const int kHeaderSize = sizeof(Channel2::Header);
   uint8_t * const _address;
   Header * const _header;
   const Id _my_id;
+public:
+  static const int kDataSize = kBufAddress - sizeof(Header);
 };
 
-const int Channel2::kDataSize = Channel2::kBufAddress - sizeof(Channel2::Header);
