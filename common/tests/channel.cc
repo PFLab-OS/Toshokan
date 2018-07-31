@@ -44,175 +44,150 @@ TEST_GROUP(Channel2) {
     channel_buf = new uint8_t[Channel2::kBufAddress];
     memset(channel_buf, 0, Channel2::kBufAddress);
     Channel2::InitBuffer(channel_buf);
+    src_ch = new Channel2(channel_buf, src_ch_id);
+    dest_ch = new Channel2(channel_buf, dest_ch_id);
+    another_ch = new Channel2(channel_buf, another_ch_id);
   }
 
   TEST_TEARDOWN() {
+    delete another_ch;
+    delete dest_ch;
+    delete src_ch;
     delete [] channel_buf;
   }
   uint8_t *channel_buf;
+  Channel2 *src_ch;
+  Channel2 *dest_ch;
+  Channel2 *another_ch;
+  Channel2::Id src_ch_id = Channel2::Id(0);
+  Channel2::Id dest_ch_id = Channel2::Id(1);
+  Channel2::Id another_ch_id = Channel2::Id(2);
 };
 
 TEST(Channel2, FirstOneCanReserveChannel) {
-  Channel2 ch(channel_buf, Channel2::Id(1));
-  
-  CHECK_FALSE(ch.Reserve().IsError());
+  CHECK_FALSE(src_ch->Reserve().IsError());
 }
 
 TEST(Channel2, NoOneSent) {
-  Channel2 ch(channel_buf, Channel2::Id(1));
-  
-  CHECK(ch.CheckIfNewSignalArrived().IsError());
+  CHECK(src_ch->CheckIfNewSignalArrived().IsError());
 }
 
 TEST(Channel2, ReservedButNotSent) {
-  Channel2 ch1(channel_buf, Channel2::Id(1));
-  Channel2 ch2(channel_buf, Channel2::Id(0));
-
-  ch1.Reserve();
-  CHECK(ch2.CheckIfNewSignalArrived().IsError());
+  src_ch->Reserve();
+  CHECK(dest_ch->CheckIfNewSignalArrived().IsError());
 }
 
 TEST(Channel2, NoOneReturned) {
-  Channel2 ch1(channel_buf, Channel2::Id(1));
-  Channel2 ch2(channel_buf, Channel2::Id(0));
-
-  ch1.Reserve();
-  ch1.SendSignal(Channel2::Id(0), 1);
-  ch2.CheckIfNewSignalArrived();
-  // ch2.Return(0);
-  CHECK(ch1.CheckIfReturned().IsError());
+  src_ch->Reserve();
+  src_ch->SendSignal(dest_ch_id, 1);
+  dest_ch->CheckIfNewSignalArrived();
+  // dest_ch->Return(0);
+  CHECK(src_ch->CheckIfReturned().IsError());
 }
 
 TEST(Channel2, SendReceiveSignal1) {
-  Channel2 ch1(channel_buf, Channel2::Id(1));
-  Channel2 ch2(channel_buf, Channel2::Id(0));
   int32_t signal = rand();
   
-  ch1.Reserve();
-  ch1.SendSignal(Channel2::Id(0), signal);
-  CHECK_EQUAL(signal, ch2.CheckIfNewSignalArrived().Unwrap());
+  src_ch->Reserve();
+  src_ch->SendSignal(dest_ch_id, signal);
+  CHECK_EQUAL(signal, dest_ch->CheckIfNewSignalArrived().Unwrap());
 }
 
 TEST(Channel2, SendReceiveSignal2) {
-  Channel2 ch1(channel_buf, Channel2::Id(1));
-  Channel2 ch2(channel_buf, Channel2::Id(0));
   for (int i = 0; i < 2; i++) {
     int32_t signal = rand();
   
-    ch1.Reserve();
-    ch1.SendSignal(Channel2::Id(0), signal);
-    CHECK_EQUAL(signal, ch2.CheckIfNewSignalArrived().Unwrap());
-    ch2.Return(0);
-    ch1.Release();
+    src_ch->Reserve();
+    src_ch->SendSignal(dest_ch_id, signal);
+    CHECK_EQUAL(signal, dest_ch->CheckIfNewSignalArrived().Unwrap());
+    dest_ch->Return(0);
+    src_ch->Release();
   }
 }
 
 TEST(Channel2, GetReturnValue1) {
-  Channel2 ch1(channel_buf, Channel2::Id(1));
-  Channel2 ch2(channel_buf, Channel2::Id(0));
   int32_t rval = rand();
 
-  ch1.Reserve();
-  ch1.SendSignal(Channel2::Id(0), 1);
-  ch2.CheckIfNewSignalArrived();
-  ch2.Return(rval);
-  CHECK_EQUAL(rval, ch1.CheckIfReturned().Unwrap());
+  src_ch->Reserve();
+  src_ch->SendSignal(dest_ch_id, 1);
+  dest_ch->CheckIfNewSignalArrived();
+  dest_ch->Return(rval);
+  CHECK_EQUAL(rval, src_ch->CheckIfReturned().Unwrap());
 }
 
 TEST(Channel2, GetReturnValue2) {
-  Channel2 ch1(channel_buf, Channel2::Id(1));
-  Channel2 ch2(channel_buf, Channel2::Id(0));
   for(int i = 0; i < 2; i++) {
     int32_t rval = rand();
 
-    ch1.Reserve();
-    ch1.SendSignal(Channel2::Id(0), 1);
-    ch2.CheckIfNewSignalArrived();
-    ch2.Return(rval);
-    CHECK_EQUAL(rval, ch1.CheckIfReturned().Unwrap());
-    ch1.Release();
+    src_ch->Reserve();
+    src_ch->SendSignal(dest_ch_id, 1);
+    dest_ch->CheckIfNewSignalArrived();
+    dest_ch->Return(rval);
+    CHECK_EQUAL(rval, src_ch->CheckIfReturned().Unwrap());
+    src_ch->Release();
   }
 }
 
 TEST(Channel2, UnableToReserveReservedChannel) {
-  Channel2 ch1(channel_buf, Channel2::Id(1));
-  Channel2 ch2(channel_buf, Channel2::Id(0));
-  
-  ch1.Reserve();
-  CHECK(ch2.Reserve().IsError());
+  src_ch->Reserve();
+  CHECK(dest_ch->Reserve().IsError());
 }
 
 TEST(Channel2, MultipleReceiver) {
-  Channel2 ch1(channel_buf, Channel2::Id(0));
-  Channel2 ch2(channel_buf, Channel2::Id(1));
-  Channel2 ch3(channel_buf, Channel2::Id(2));
-
-  ch1.Reserve();
-  ch1.SendSignal(Channel2::Id(2), 1);
-  ch2.CheckIfNewSignalArrived().IsError();
-  CHECK_FALSE(ch3.CheckIfNewSignalArrived().IsError());
+  src_ch->Reserve();
+  src_ch->SendSignal(another_ch_id, 1);
+  dest_ch->CheckIfNewSignalArrived().IsError();
+  CHECK_FALSE(another_ch->CheckIfNewSignalArrived().IsError());
 }
 
 TEST(Channel2, SomeoneHasToReceive) {
-  Channel2 ch1(channel_buf, Channel2::Id(0));
-  Channel2 ch2(channel_buf, Channel2::Id(1));
-  ch2.Reserve();
-  ch2.SendSignal(Channel2::Id(2), 1);
-  CHECK(ch1.CheckIfNewSignalArrived().IsError());
+  dest_ch->Reserve();
+  dest_ch->SendSignal(another_ch_id, 1);
+  CHECK(src_ch->CheckIfNewSignalArrived().IsError());
 }
 
 TEST(Channel2, ReleaseBeforeReserving) {
-  Channel2 ch1(channel_buf, Channel2::Id(1));
-  Channel2 ch2(channel_buf, Channel2::Id(0));
-  ch1.Reserve();
-  ch1.SendSignal(Channel2::Id(0), 1);
-  ch2.CheckIfNewSignalArrived();
-  ch2.Return(0);
-  ch1.CheckIfReturned();
+  src_ch->Reserve();
+  src_ch->SendSignal(dest_ch_id, 1);
+  dest_ch->CheckIfNewSignalArrived();
+  dest_ch->Return(0);
+  src_ch->CheckIfReturned();
 
-  CHECK(ch1.Reserve().IsError());
+  CHECK(src_ch->Reserve().IsError());
 }
 
 TEST(Channel2, WriteRead) {
   int offset = rand() % Channel2::kDataSize;
   uint8_t data = rand() % 0xFF;
-  Channel2 ch(channel_buf, Channel2::Id(1));
-  ch.Reserve();
-  ch.Write(offset, data);
-  CHECK_EQUAL(data, ch.Read(offset));
+  src_ch->Reserve();
+  src_ch->Write(offset, data);
+  CHECK_EQUAL(data, src_ch->Read(offset));
 }
 
 TEST(Channel2, WriteReadOverChannelBuffer) {
   int offset = rand() % Channel2::kDataSize;
   uint8_t data = rand() % 0xFF;
-  Channel2 ch1(channel_buf, Channel2::Id(1));
-  Channel2 ch2(channel_buf, Channel2::Id(0));
-  ch1.Reserve();
-  ch1.Write(offset, data);
-  ch1.SendSignal(Channel2::Id(0), 1);
-  ch2.CheckIfNewSignalArrived();
-  CHECK_EQUAL(data, ch2.Read(offset));
+  src_ch->Reserve();
+  src_ch->Write(offset, data);
+  src_ch->SendSignal(dest_ch_id, 1);
+  dest_ch->CheckIfNewSignalArrived();
+  CHECK_EQUAL(data, dest_ch->Read(offset));
 }
 
 //
 // Do not write following patterns
 //
 TEST(Channel2, ReserveBeforeSendingSignal) {
-  Channel2 ch(channel_buf, Channel2::Id(1));
-
-  CHECK_THROWS(AssertException, ch.SendSignal(Channel2::Id(0), 1)); 
+  CHECK_THROWS(AssertException, src_ch->SendSignal(dest_ch_id, 1)); 
 }
 
 TEST(Channel2, DoNotReleaseIfNonReserved) {
-  Channel2 ch(channel_buf, Channel2::Id(1));
-  
-  CHECK_THROWS(AssertException, ch.Release()); 
+  CHECK_THROWS(AssertException, src_ch->Release()); 
 }
 
 TEST(Channel2, DoNotSendSignal0) {
-  Channel2 ch(channel_buf, Channel2::Id(1));
-  ch.Reserve();
+  src_ch->Reserve();
 
-  CHECK_THROWS(AssertException, ch.SendSignal(Channel2::Id(0), 0));
+  CHECK_THROWS(AssertException, src_ch->SendSignal(dest_ch_id, 0));
 }
 
