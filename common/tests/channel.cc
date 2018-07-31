@@ -69,11 +69,13 @@ TEST(Channel2, FirstOneCanReserveChannel) {
 }
 
 TEST(Channel2, NoOneSent) {
-  CHECK(src_ch->CheckIfNewSignalArrived().IsError());
+  // src_ch->SendSignal(dest_ch_id, 1);
+  CHECK(dest_ch->CheckIfNewSignalArrived().IsError());
 }
 
 TEST(Channel2, ReservedButNotSent) {
   src_ch->Reserve();
+  // src_ch->SendSignal(dest_ch_id, 1);
   CHECK(dest_ch->CheckIfNewSignalArrived().IsError());
 }
 
@@ -141,9 +143,9 @@ TEST(Channel2, MultipleReceiver) {
 }
 
 TEST(Channel2, SomeoneHasToReceive) {
-  dest_ch->Reserve();
-  dest_ch->SendSignal(another_ch_id, 1);
-  CHECK(src_ch->CheckIfNewSignalArrived().IsError());
+  src_ch->Reserve();
+  src_ch->SendSignal(another_ch_id, 1);
+  CHECK(dest_ch->CheckIfNewSignalArrived().IsError());
 }
 
 TEST(Channel2, ReleaseBeforeReserving) {
