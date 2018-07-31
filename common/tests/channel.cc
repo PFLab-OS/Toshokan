@@ -85,7 +85,7 @@ TEST(Channel2, NoOneReturned) {
   CHECK(src_ch->CheckIfReturned().IsError());
 }
 
-TEST(Channel2, SendReceiveSignal1) {
+TEST(Channel2, SendReceiveSignalOnce) {
   int32_t signal = rand();
   
   src_ch->Reserve();
@@ -93,7 +93,7 @@ TEST(Channel2, SendReceiveSignal1) {
   CHECK_EQUAL(signal, dest_ch->CheckIfNewSignalArrived().Unwrap());
 }
 
-TEST(Channel2, SendReceiveSignal2) {
+TEST(Channel2, SendReceiveSignalTwice) {
   for (int i = 0; i < 2; i++) {
     int32_t signal = rand();
   
@@ -105,7 +105,7 @@ TEST(Channel2, SendReceiveSignal2) {
   }
 }
 
-TEST(Channel2, GetReturnValue1) {
+TEST(Channel2, GetReturnValueOnce) {
   int32_t rval = rand();
 
   src_ch->Reserve();
@@ -115,7 +115,7 @@ TEST(Channel2, GetReturnValue1) {
   CHECK_EQUAL(rval, src_ch->CheckIfReturned().Unwrap());
 }
 
-TEST(Channel2, GetReturnValue2) {
+TEST(Channel2, GetReturnValueTwice) {
   for(int i = 0; i < 2; i++) {
     int32_t rval = rand();
 
