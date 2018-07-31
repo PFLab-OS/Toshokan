@@ -79,6 +79,7 @@ TEST(Channel2, NoOneReturned) {
   ch1.Reserve();
   ch1.SendSignal(Channel2::Id(0), 1);
   ch2.CheckIfNewSignalArrived();
+  // ch2.Return(0);
   CHECK(ch1.CheckIfReturned().IsError());
 }
 
