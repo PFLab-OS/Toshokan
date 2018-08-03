@@ -1,16 +1,14 @@
 #pragma once
-#include <stdlib.h>
 #include <assert.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include "panic.h"
 
-template<class T>
+template <class T>
 class Result {
-public:
-  Result() : _error(true) {
-  }
-  Result(T t) : _t(t), _error(false) {
-  }
+ public:
+  Result() : _error(true) {}
+  Result(T t) : _t(t), _error(false) {}
   ~Result() {
     if (_error && !_checked) {
       panic("Result: error: check the result\n");
@@ -27,7 +25,8 @@ public:
     _checked = true;
     return _error;
   }
-private:
+
+ private:
   T _t;
   const bool _error;
   bool _checked = false;

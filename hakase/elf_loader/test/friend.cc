@@ -1,8 +1,8 @@
 #include <stdint.h>
 #include "common/_memory.h"
 
-int buf1[10]; // for .bss
-int buf2[10] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10}; // for .data
+int buf1[10];                                    // for .bss
+int buf2[10] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};  // for .data
 
 int main();
 
@@ -12,7 +12,7 @@ int main() {
       asm volatile("cli;hlt;hlt;");
     }
   }
-  
+
   int *channel = reinterpret_cast<int *>(MemoryMap::kF2h);
   if (channel[0] == 0) {
     int16_t id;

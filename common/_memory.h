@@ -9,14 +9,14 @@
 
 enum class MemoryMap : uint64_t {
 #define DEFINE_MEMMAP(name, value) k##name = value
-  
+
 #else /* __cplusplus */
-  
+
 enum MemoryMap {
 #define DEFINE_MEMMAP(name, value) kMemoryMap##name = value
-  
+
 #endif /* __cplusplus */
-  
+
   DEFINE_MEMMAP(Jmp0x20, 0x0),
   DEFINE_MEMMAP(Signature, 0x4),
   DEFINE_MEMMAP(RegionOffset, 0x8),

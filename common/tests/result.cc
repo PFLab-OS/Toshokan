@@ -3,14 +3,12 @@
 
 #include "../result.h"
 
-TEST_GROUP(Result) {
-  TEST_SETUP() {
-  }
+TEST_GROUP(Result){TEST_SETUP(){}
 
-  TEST_TEARDOWN() {
-    mock().clear();
-  }
-};
+                   TEST_TEARDOWN(){mock().clear();
+}
+}
+;
 
 TEST(Result, Error) {
   mock().expectNoCall("panic");
@@ -66,8 +64,6 @@ TEST(Result, UnwrapWhenError) {
 // must check result
 TEST(Result, NotcheckedWhenError) {
   mock().expectOneCall("panic");
-  {
-    Result<bool> r;
-  }
+  { Result<bool> r; }
   mock().checkExpectations();
 }

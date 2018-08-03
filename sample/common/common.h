@@ -1,8 +1,8 @@
 #pragma once
 
-#include "type.h"
 #include "channel/hakase.h"
 #include "common/channel_accessor.h"
+#include "type.h"
 
 int16_t get_cpuid();
 void puts(F2H &f2h, const char *str);
