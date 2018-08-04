@@ -69,7 +69,7 @@
                 }).css({
                     "margin-right": "1em",
                 }).on('click',function(my){
-                    if (opt.answer && opt.answer < opt.list.length) {
+                    if (opt.answer != undefined && (opt.answer < opt.list.length)) {
                         if (my == opt.answer) {
                             $answer.text("正解！");
                         } else {
