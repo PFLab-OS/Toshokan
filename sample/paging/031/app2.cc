@@ -11,7 +11,7 @@ Context entry3(Context c) {
 
 Context entry4(Context c) {
   char *buf = (char *)0xC0001000;
-  for(int i = 0; i < 10; i++) {
+  for (int i = 0; i < 10; i++) {
     buf[i] = i;
   }
   c.i--;
