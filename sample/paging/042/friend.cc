@@ -66,7 +66,7 @@ int main() {
   c1 = c1.next(c1);  // call entry2
 
   show_i(f2h, c1.i);
-  
+
   pt1[0] = 0x80600000UL | (1 << 0) | (1 << 1) | (1 << 2);
   asm volatile("invlpg (%0)" ::"b"(0xC0000000UL) : "memory");
   c2 = c2.next(c2);  // call entry4
