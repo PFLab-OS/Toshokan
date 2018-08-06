@@ -23,6 +23,9 @@ public:
       _t->~T();
     }
   }
+  // Do not use substitution.
+  // Use copy constructor instead.
+  // Result<T> &operator=(const Result<T> &);
   T Unwrap() {
     if (_error) {
       panic("Result: error: failed to unwrap\n");
