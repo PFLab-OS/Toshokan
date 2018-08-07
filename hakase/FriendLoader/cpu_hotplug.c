@@ -113,6 +113,7 @@ int cpu_start() {
       }
 
       do {
+	// wait until kMemoryMapId is written by a friend.
         uint64_t i;
         if (read_deploy_area((char *)&i, sizeof(i), kMemoryMapId) < 0) {
           ret1 = -1;

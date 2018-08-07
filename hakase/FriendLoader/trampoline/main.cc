@@ -59,7 +59,7 @@ extern "C" void trampoline_main() {
   int32_t cpuid = id[1];
   uint64_t *pc_st = reinterpret_cast<uint64_t *>(MemoryMap::kPerCoreStruct);
   pc_st[cpuid] = *reinterpret_cast<uint64_t *>(id);
-  *reinterpret_cast<uint64_t *>(id) = 0;
+  *reinterpret_cast<uint64_t *>(id) = 0; // notify to FriendLoader
   asm volatile("wrmsr" ::"c"(0xC0000100 /* MSR_IA32_FS_BASE */), "d"(0),
                "a"(&pc_st[cpuid]));
 
