@@ -223,7 +223,7 @@ TEST(Channel2, WriteReadOverChannelBuffer) {
 //
 // Do not write following patterns
 //
-TEST(Channel2, ReserveBeforeSendingSignal) {
+TEST(Channel2, DoNotSendSignalBeforeReserving) {
   CHECK_THROWS(AssertException, caller_ch->SendSignal(callee_ch_id, GetDummySignal())); 
 }
 
