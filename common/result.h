@@ -1,16 +1,14 @@
 #pragma once
 #include <assert.h>
-#include <stdio.h>
-#include <stdio.h>
 #include <stdint.h>
+#include <stdio.h>
 #include <new>
 #include "panic.h"
 
 template <class T>
 class Result {
-public:
-  Result() : _t(nullptr), _error(true) {
-  }
+ public:
+  Result() : _t(nullptr), _error(true) {}
   Result(const T &t) : _t(reinterpret_cast<T *>(_buf)), _error(false) {
     new (_buf) T(t);
   }
@@ -36,7 +34,8 @@ public:
     _checked = true;
     return _error;
   }
-private:
+
+ private:
   uint8_t _buf[sizeof(T)];
   T *_t;
   const bool _error;

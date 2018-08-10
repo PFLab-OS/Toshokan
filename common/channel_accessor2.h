@@ -1,59 +1,60 @@
 #pragma once
-#include "channel2.h"
 #include <assert.h>
+#include "channel2.h"
 #include "type.h"
 
 /*
  * ChannelAccessor : Wrapper of Channel
  *
- * Caller must use CallerChannelAccessor and callee must use CalleeChannelAccessor
+ * Caller must use CallerChannelAccessor and callee must use
+ * CalleeChannelAccessor
  */
 
-template<int kBufSize>
+template <int kBufSize>
 class CallerChannelAccessor {
-public:
+ public:
   CallerChannelAccessor() = delete;
-  CallerChannelAccessor(Channel2 &ch, Channel2::Id dest, Channel2::Signal signal) : _dest(dest), _signal(signal), _ch(ch) {
-    for(size_t i = 0; i < sizeof(_buffer) / sizeof(_buffer[0]); i++) {
+  CallerChannelAccessor(Channel2 &ch, Channel2::Id dest,
+                        Channel2::Signal signal)
+      : _dest(dest), _signal(signal), _ch(ch) {
+    for (size_t i = 0; i < sizeof(_buffer) / sizeof(_buffer[0]); i++) {
       _buffer[i] = 0;
     }
   }
   // for debugging
-  virtual void Do() {
-  }
-  template<class T>
+  virtual void Do() {}
+  template <class T>
   class Offset {
-  public:
+   public:
     Offset() = delete;
     explicit Offset(int offset) : _offset(offset) {
       assert((offset % sizeof(T)) == 0);
       assert(offset + sizeof(T) <= kBufSize);
     }
-    const int GetValue() {
-      return _offset;
-    }
-  private:
+    const int GetValue() { return _offset; }
+
+   private:
     const int _offset;
   };
-  template<class T>
+  template <class T>
   void Write(Offset<T> offset, T data) {
     assert(!_signal_sended);
     reinterpret_cast<T *>(_buffer)[offset.GetValue() / sizeof(T)] = data;
   }
-  template<class T>
+  template <class T>
   T Read(Offset<T> offset) {
     assert(_signal_sended);
     return reinterpret_cast<T *>(_buffer)[offset.GetValue() / sizeof(T)];
   }
   int32_t Call() {
-    while(_ch.Reserve().IsError()) {
+    while (_ch.Reserve().IsError()) {
     }
-    for(int i = 0; i < kBufSize; i++) {
+    for (int i = 0; i < kBufSize; i++) {
       _ch.Write(i, _buffer[i]);
     }
     _ch.SendSignal(_dest, _signal);
     int32_t rval;
-    while(true) {
+    while (true) {
       auto r = _ch.CheckIfReturned();
       if (r.IsError()) {
         Do();
@@ -63,13 +64,14 @@ public:
       }
     }
     _signal_sended = true;
-    for(int i = 0; i < kBufSize; i++) {
+    for (int i = 0; i < kBufSize; i++) {
       _buffer[i] = _ch.Read(i);
     }
     _ch.Release();
     return rval;
   }
-private:
+
+ private:
   Channel2::Id _dest;
   Channel2::Signal _signal;
   Channel2 &_ch;
@@ -83,30 +85,28 @@ private:
  * !!! An instance of CalleeChannelAccessor must be unique per thread. !!!
  */
 class CalleeChannelAccessor {
-public:
-  CalleeChannelAccessor(Channel2 &ch) : _ch(ch), signal(1) /* dummy signal */ {
-  }
+ public:
+  CalleeChannelAccessor(Channel2 &ch) : _ch(ch), signal(1) /* dummy signal */ {}
   void ReceiveSignal() {
     assert(!_accessible);
     while (!_ch.IsSignalArrived()) {
     }
     _accessible = true;
   }
-  template<class T>
+  template <class T>
   class Offset {
-  public:
+   public:
     Offset() = delete;
     explicit Offset(int offset) : _offset(offset) {
       assert((offset % sizeof(T)) == 0);
       assert(offset + sizeof(T) <= Channel2::kDataSize);
     }
-    const int GetValue() {
-      return _offset;
-    }
-  private:
+    const int GetValue() { return _offset; }
+
+   private:
     const int _offset;
   };
-  template<class T>
+  template <class T>
   void Write(Offset<T> offset, T data) {
     assert(_accessible);
     uint8_t *buf = reinterpret_cast<uint8_t *>(&data);
@@ -114,7 +114,7 @@ public:
       _ch.Write(offset.GetValue() + i, buf[i]);
     }
   }
-  template<class T>
+  template <class T>
   T Read(Offset<T> offset) {
     assert(_accessible);
     uint8_t buf[sizeof(T)];
@@ -132,9 +132,9 @@ public:
     _ch.Return(rval);
     _accessible = false;
   }
-private:
+
+ private:
   Channel2 &_ch;
   Channel2::Signal signal;
   bool _accessible = false;
 };
-

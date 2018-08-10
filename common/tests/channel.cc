@@ -1,20 +1,13 @@
-#include "../channel2.h"
-#include <future>
 #include <string.h>
 #include <chrono>
+#include <future>
+#include "../channel2.h"
 #include "CppUTest/TestHarness.h"
 
-TEST_GROUP(Signal) {
-  TEST_SETUP() {
-  }
-  TEST_TEARDOWN() {
-  }
-};
+TEST_GROUP(Signal){TEST_SETUP(){} TEST_TEARDOWN(){}};
 
 TEST(Signal, CheckNonZero) {
-  CHECK_THROWS(PanicException, ([]() {
-        Channel2::Signal signal(0);
-      })());
+  CHECK_THROWS(PanicException, ([]() { Channel2::Signal signal(0); })());
 }
 
 TEST(Signal, CheckEquality) {
@@ -29,12 +22,7 @@ TEST(Signal, CheckNonEquality) {
   CHECK(signal1 != signal2);
 }
 
-TEST_GROUP(Id) {
-  TEST_SETUP() {
-  }
-  TEST_TEARDOWN() {
-  }
-};
+TEST_GROUP(Id){TEST_SETUP(){} TEST_TEARDOWN(){}};
 
 TEST(Id, CheckEquality) {
   Channel2::Id id1(1);
@@ -84,9 +72,9 @@ TEST_GROUP(Channel2) {
     delete another_ch;
     delete callee_ch;
     delete caller_ch;
-    delete [] channel_buf;
+    delete[] channel_buf;
   }
-  
+
   Channel2::Signal GenerateRandomSignal() {
     int32_t signal_val = rand();
     while (signal_val == 0) {
@@ -94,11 +82,9 @@ TEST_GROUP(Channel2) {
     }
     return Channel2::Signal(signal_val);
   }
-  
-  Channel2::Signal GetDummySignal() {
-    return Channel2::Signal(1);
-  }
-  
+
+  Channel2::Signal GetDummySignal() { return Channel2::Signal(1); }
+
   uint8_t *channel_buf;
   Channel2 *caller_ch;
   Channel2 *callee_ch;
@@ -138,7 +124,7 @@ TEST(Channel2, NoOneReturned) {
 
 TEST(Channel2, SendReceiveSignalOnce) {
   Channel2::Signal signal = GenerateRandomSignal();
-  
+
   caller_ch->Reserve();
   caller_ch->SendSignal(callee_ch_id, signal);
   CHECK(signal == callee_ch->GetArrivedSignal());
@@ -147,7 +133,7 @@ TEST(Channel2, SendReceiveSignalOnce) {
 TEST(Channel2, SendReceiveSignalTwice) {
   for (int i = 0; i < 2; i++) {
     Channel2::Signal signal = GenerateRandomSignal();
-  
+
     caller_ch->Reserve();
     caller_ch->SendSignal(callee_ch_id, signal);
     CHECK(signal == callee_ch->GetArrivedSignal());
@@ -166,7 +152,7 @@ TEST(Channel2, GetReturnValueOnce) {
 }
 
 TEST(Channel2, GetReturnValueTwice) {
-  for(int i = 0; i < 2; i++) {
+  for (int i = 0; i < 2; i++) {
     int32_t rval = rand();
 
     caller_ch->Reserve();
@@ -222,12 +208,13 @@ TEST(Channel2, WriteReadOverChannelBuffer) {
 
 TEST(Channel2, DoNotSendSignalBeforeReserving) {
   // caller_ch->Reserve();
-  CHECK_THROWS(AssertException, caller_ch->SendSignal(callee_ch_id, GetDummySignal())); 
+  CHECK_THROWS(AssertException,
+               caller_ch->SendSignal(callee_ch_id, GetDummySignal()));
 }
 
 TEST(Channel2, DoNotReleaseIfNonReserved) {
   // caller_ch->Reserve();
-  CHECK_THROWS(AssertException, caller_ch->Release()); 
+  CHECK_THROWS(AssertException, caller_ch->Release());
 }
 
 TEST(Channel2, DoNotReturnIfNewSignalNotArrived) {

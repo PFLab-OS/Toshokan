@@ -3,9 +3,7 @@
 
 TEST_GROUP(Result){TEST_SETUP(){}
 
-  TEST_TEARDOWN() {
-  }
-};
+                   TEST_TEARDOWN(){}};
 
 TEST(Result, Error) {
   Result<bool> r;
@@ -41,7 +39,5 @@ TEST(Result, UnwrapWhenError) {
 
 // must check result
 TEST(Result, NotcheckedWhenError) {
-  CHECK_THROWS(PanicException, ([](){
-        Result<bool> r;
-      })());
+  CHECK_THROWS(PanicException, ([]() { Result<bool> r; })());
 }

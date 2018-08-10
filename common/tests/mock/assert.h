@@ -1,11 +1,11 @@
 #pragma once
 #include <exception>
 
-class AssertException : public std::exception {
-};
+class AssertException : public std::exception {};
 
-#define assert(x) if (!(x)) { assert_func(); }
+#define assert(x)  \
+  if (!(x)) {      \
+    assert_func(); \
+  }
 
-static inline void assert_func() {
-  throw AssertException();
-}
+static inline void assert_func() { throw AssertException(); }

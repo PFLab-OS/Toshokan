@@ -13,7 +13,6 @@ jobs:
           command: |
             cd hakase
             make CI=true format
-            test `git diff | wc -l` -eq 0
       - run:
           command: |
             cd hakase
