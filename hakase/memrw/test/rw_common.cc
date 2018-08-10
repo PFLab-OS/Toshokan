@@ -1,6 +1,6 @@
 // read by rw_large.cc & rw_small.cc
-#include <time.h>
 #include <stdlib.h>
+#include <time.h>
 #include "channel/hakase.h"
 #include "memrw/hakase.h"
 #include "tests/test.h"
