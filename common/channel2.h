@@ -53,7 +53,7 @@ public:
       return _val;
     }
   private:
-    const int32_t _val;
+    int32_t _val;
   };
   
   Channel2() = delete;

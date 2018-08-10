@@ -108,18 +108,18 @@ TEST(CallerChannelAccessor, BlockUntilReturn) {
 
 TEST(CallerChannelAccessor, SendSignal) {
   Channel2::Signal signal = GenerateRandomSignal();
-  std::unique_ptr<Channel2::Signal> arrived_signal;
+  Channel2::Signal arrived_signal = GenerateRandomSignal(); // dummy initialization
   
   CallerChannelAccessorEnv env;
   env.Initialize();
   DebugCallerChannelAccessor<0> caller_ca(*env._caller_ch, env._callee_id, signal);
   caller_ca.SetDo([&env, &arrived_signal]() {
       // callee channel will get signal.
-      arrived_signal = std::unique_ptr<Channel2::Signal>(new Channel2::Signal(env._callee_ch->GetArrivedSignal()));
+      arrived_signal = env._callee_ch->GetArrivedSignal();
       env._callee_ch->Return(0); 
     });
   caller_ca.Call();
-  CHECK(signal == *arrived_signal);
+  CHECK(signal == arrived_signal);
 }
 
 TEST(CallerChannelAccessor, GetReturnValue) {
@@ -237,4 +237,5 @@ TEST_GROUP(CalleeChannelAccessor) {
   CalleeChannelAccessor callee_ca;
   CHECK(sent_signal, callee_ca.GetSignal());
 }
+
 */
