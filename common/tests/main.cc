@@ -1,8 +1,7 @@
+#include <stdlib.h>
 #include <time.h>
+#include <new>
 #include "CppUTest/CommandLineTestRunner.h"
-#include "CppUTestExt/MockSupport.h"
-
-void panic_mock(const char*) { mock().actualCall("panic"); }
 
 int main(int argc, char** argv) {
   srand((unsigned)time(NULL));

@@ -1,25 +1,34 @@
 #pragma once
 #include <assert.h>
+#include <stdint.h>
 #include <stdio.h>
-#include <stdlib.h>
+#include <new>
 #include "panic.h"
 
 template <class T>
 class Result {
  public:
-  Result() : _error(true) {}
-  Result(T t) : _t(t), _error(false) {}
-  ~Result() {
+  Result() : _t(nullptr), _error(true) {}
+  Result(const T &t) : _t(reinterpret_cast<T *>(_buf)), _error(false) {
+    new (_buf) T(t);
+  }
+  ~Result() noexcept(false) {
     if (_error && !_checked) {
       panic("Result: error: check the result\n");
     }
+    if (!_error) {
+      _t->~T();
+    }
   }
+  // Do not use substitution.
+  // Use copy constructor instead.
+  // Result<T> &operator=(const Result<T> &);
   T Unwrap() {
     if (_error) {
       panic("Result: error: failed to unwrap\n");
     }
     _checked = true;
-    return _t;
+    return *_t;
   }
   bool IsError() {
     _checked = true;
@@ -27,7 +36,8 @@ class Result {
   }
 
  private:
-  T _t;
+  uint8_t _buf[sizeof(T)];
+  T *_t;
   const bool _error;
   bool _checked = false;
 };
