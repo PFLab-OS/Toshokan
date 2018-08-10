@@ -58,7 +58,7 @@ format:
 	 git ls-files .. \
 	  | grep -E '.*\.cc$$|.*\.h$$' \
 		| xargs -n 1 clang-format -style='{BasedOnStyle: Google}' -i \
-	 $(if $(CI),&& git diff && test `git diff | wc -l` -eq 0))
+	 $(if $(CI),&& git diff && git diff | wc -l | xargs test 0 -eq))
 	@echo "Done."
 
 %:
