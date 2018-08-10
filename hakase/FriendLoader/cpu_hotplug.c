@@ -103,7 +103,9 @@ int cpu_start() {
         continue;
       }
 
-      trampoline_region_set_id(&tregion, i, apicid);
+      if (trampoline_region_set_id(&tregion, i, apicid) < 0) {
+	ret1 = -1;
+      }
 
       ret2 = wakeup_secondary_cpu_via_init(apicid, tregion.paddr);
       if (ret2 < 0) {
@@ -111,6 +113,7 @@ int cpu_start() {
       }
 
       do {
+	// wait until kMemoryMapId is written by a friend.
         uint64_t i;
         if (read_deploy_area((char *)&i, sizeof(i), kMemoryMapId) < 0) {
           ret1 = -1;

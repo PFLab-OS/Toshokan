@@ -1,34 +1,31 @@
-#include "elfhead.h"
-#include "channel/hakase.h"
-#include "common/result.h"
 #include <memory>
 #include <vector>
+#include "channel/hakase.h"
+#include "common/result.h"
+#include "elfhead.h"
 
 // ELF Format requirements
 // * Deployment to 0x0-0x100000(1MB) is prohibited.
 // * PIE is not supported.
 class ElfLoader {
-public:
+ public:
   // analyzer of ELF file
   class ElfFile {
-  public:
+   public:
     // wrapper of Elf64_Ehdr
     class Ehdr {
-    public:
-      Ehdr(uint8_t *raw) : _raw(reinterpret_cast<Elf64_Ehdr *>(raw)) {
-      }
+     public:
+      Ehdr(uint8_t *raw) : _raw(reinterpret_cast<Elf64_Ehdr *>(raw)) {}
       Ehdr() = delete;
       bool IsElf() {
         return _raw->e_ident[0] == ELFMAG0 && _raw->e_ident[1] == ELFMAG1 &&
-          _raw->e_ident[2] == ELFMAG2 && _raw->e_ident[3] == ELFMAG3;
+               _raw->e_ident[2] == ELFMAG2 && _raw->e_ident[3] == ELFMAG3;
       }
       bool IsElf64() { return _raw->e_ident[EI_CLASS] == ELFCLASS64; }
       bool IsOsabiSysv() { return _raw->e_ident[EI_OSABI] == ELFOSABI_SYSV; }
       bool IsOsabiGnu() { return _raw->e_ident[EI_OSABI] == ELFOSABI_GNU; }
       bool IsExecutable() { return _raw->e_type == ET_EXEC; }
-      Elf64_Off GetEntry() {
-        return _raw->e_entry;
-      }
+      Elf64_Off GetEntry() { return _raw->e_entry; }
       Elf64_Off GetShdrOffset(int index) {
         if (_raw->e_shnum > index) {
           return _raw->e_shoff + _raw->e_shentsize * index;
@@ -43,15 +40,15 @@ public:
           return 0;
         }
       }
-    private:
+
+     private:
       Elf64_Ehdr *_raw;
     };
-    
+
     // wrapper of Elf64_Shdr
     class Shdr {
-    public:
-      Shdr(uint8_t *raw) : _raw(reinterpret_cast<Elf64_Shdr *>(raw)) {
-      }
+     public:
+      Shdr(uint8_t *raw) : _raw(reinterpret_cast<Elf64_Shdr *>(raw)) {}
       Shdr() = delete;
       struct SectionInfo {
         uint64_t vaddr;
@@ -66,15 +63,15 @@ public:
         }
         return std::unique_ptr<SectionInfo>();
       }
-    private:
+
+     private:
       Elf64_Shdr *_raw;
     };
 
     // wrapper of ELF64_Phdr
     class Phdr {
-    public:
-      Phdr(uint8_t *raw) : _raw(reinterpret_cast<Elf64_Phdr *>(raw)) {
-      }
+     public:
+      Phdr(uint8_t *raw) : _raw(reinterpret_cast<Elf64_Phdr *>(raw)) {}
       Phdr() = delete;
       struct PhdrInfo {
         uint64_t vaddr;
@@ -91,18 +88,15 @@ public:
         }
         return std::unique_ptr<PhdrInfo>();
       }
-    private:
+
+     private:
       Elf64_Phdr *_raw;
     };
 
     static std::unique_ptr<ElfFile> Load(const char *fname);
     Result<bool> Init(H2F &_h2f);
-    Elf64_Off GetEntry() {
-      return _ehdr->GetEntry();
-    }
-    uint8_t *GetRawPtr(uint64_t offset) {
-      return _data.data() + offset;
-    }
+    Elf64_Off GetEntry() { return _ehdr->GetEntry(); }
+    uint8_t *GetRawPtr(uint64_t offset) { return _data.data() + offset; }
     std::unique_ptr<Shdr> GetShdr(int index) {
       Elf64_Off offset = _ehdr->GetShdrOffset(index);
       if (offset == 0) {
@@ -119,16 +113,17 @@ public:
         return std::unique_ptr<Phdr>(new Phdr(GetRawPtr(offset)));
       }
     }
-  private:
+
+   private:
     std::vector<uint8_t> _data;
     std::unique_ptr<Ehdr> _ehdr;
   };
-  ElfLoader(H2F &h2f, std::unique_ptr<ElfFile> file) : _h2f(h2f), _file(std::move(file)) {
-  }
+  ElfLoader(H2F &h2f, std::unique_ptr<ElfFile> file)
+      : _h2f(h2f), _file(std::move(file)) {}
   Result<bool> Deploy();
   Result<bool> Execute(int16_t apicid);
-private:
+
+ private:
   H2F &_h2f;
   std::unique_ptr<ElfFile> _file;
 };
-

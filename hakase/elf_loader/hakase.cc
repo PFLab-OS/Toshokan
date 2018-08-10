@@ -1,18 +1,19 @@
 #include "hakase.h"
-#include "memrw/hakase.h"
-#include "common/channel_accessor.h"
 #include <stdio.h>
+#include "common/channel_accessor.h"
+#include "memrw/hakase.h"
 
-std::unique_ptr<ElfLoader::ElfFile> ElfLoader::ElfFile::Load(const char *fname) {
+std::unique_ptr<ElfLoader::ElfFile> ElfLoader::ElfFile::Load(
+    const char *fname) {
   std::unique_ptr<ElfLoader::ElfFile> that(new ElfLoader::ElfFile);
   FILE *fp;
 
   fp = fopen(fname, "rb");
-  if (fp == NULL){
+  if (fp == NULL) {
     return std::unique_ptr<ElfLoader::ElfFile>();
   }
 
-  while(true) {
+  while (true) {
     uint8_t buf[2048];
     size_t sz = fread(buf, 1, 2048, fp);
     if (sz == 0) {
@@ -23,22 +24,21 @@ std::unique_ptr<ElfLoader::ElfFile> ElfLoader::ElfFile::Load(const char *fname) 
       that->_data.push_back(buf[i]);
     }
   }
-  
+
   fclose(fp);
 
   return that;
 }
 
-std::unique_ptr<Elf64_Shdr> GetShdr(int offset) {
-  return nullptr;
-}
+std::unique_ptr<Elf64_Shdr> GetShdr(int offset) { return nullptr; }
 
 Result<bool> ElfLoader::ElfFile::Init(H2F &_h2f) {
   if (_data.empty()) {
     return Result<bool>();
   }
   _ehdr.reset(new Ehdr(_data.data()));
-  if (!_ehdr->IsElf() || !_ehdr->IsElf64() || (!_ehdr->IsOsabiSysv() && !_ehdr->IsOsabiGnu())) {
+  if (!_ehdr->IsElf() || !_ehdr->IsElf64() ||
+      (!_ehdr->IsOsabiSysv() && !_ehdr->IsOsabiGnu())) {
     return Result<bool>();
   }
 
@@ -51,7 +51,7 @@ Result<bool> ElfLoader::ElfFile::Init(H2F &_h2f) {
 
 Result<bool> ElfLoader::Deploy() {
   // clear .bss section
-  for(int i = 0; ; i++) {
+  for (int i = 0;; i++) {
     auto shdr = _file->GetShdr(i);
     if (!shdr) {
       break;
@@ -70,7 +70,7 @@ Result<bool> ElfLoader::Deploy() {
   }
 
   // load from file to memory
-  for (int i = 0; ; i++) {
+  for (int i = 0;; i++) {
     auto phdr = _file->GetPhdr(i);
     if (!phdr) {
       break;
@@ -87,7 +87,7 @@ Result<bool> ElfLoader::Deploy() {
       delete buf;
     }
   }
-  
+
   return Result<bool>(true);
 }
 
@@ -97,7 +97,6 @@ Result<bool> ElfLoader::Execute(int16_t apicid) {
   if (ch_ac.Do(apicid) != 0) {
     return Result<bool>();
   }
-  
+
   return Result<bool>(true);
 }
-

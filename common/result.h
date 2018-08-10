@@ -1,5 +1,4 @@
 #pragma once
-#include <stdlib.h>
 #include <assert.h>
 #include <stdio.h>
 #include <stdio.h>
@@ -7,7 +6,7 @@
 #include <new>
 #include "panic.h"
 
-template<class T>
+template <class T>
 class Result {
 public:
   Result() : _t(nullptr), _error(true) {

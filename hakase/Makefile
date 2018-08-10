@@ -1,6 +1,8 @@
 include build_rule.mk
 ifeq ($(HOST),)
 
+TESTS=$(MODULES) channel
+
 .DEFAULT_GOAL:=all
 
 .PHONY: all test clean format prepare_test execute_test start_qemu deploy_to_qemu prepare_script run_script kill_qemu
@@ -11,7 +13,7 @@ all:
 
 test:
 	$(MAKE) prepare_test
-	$(foreach dir, $(MODULES), $(MAKE) -C $(dir)/test pre-deploy &&) :
+	$(foreach dir, $(TESTS), $(MAKE) -C $(dir)/test pre-deploy &&) :
 	$(MAKE) common_test
 	$(MAKE) execute_test
 
@@ -21,7 +23,7 @@ common_test:
 
 clean:
 	@$(foreach dir, $(MODULES), $(MAKE) -C $(dir) clean;)
-	@$(foreach dir, $(MODULES), $(MAKE) -C $(dir)/test clean;)
+	@$(foreach dir, $(TESTS), $(MAKE) -C $(dir)/test clean;)
 	make -C FriendLoader clean
 
 ###########################

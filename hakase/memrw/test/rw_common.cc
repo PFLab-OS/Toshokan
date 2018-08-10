@@ -1,8 +1,8 @@
 // read by rw_large.cc & rw_small.cc
 #include <time.h>
-#include "tests/test.h"
 #include "channel/hakase.h"
 #include "memrw/hakase.h"
+#include "tests/test.h"
 
 int test_main(F2H &f2h, H2F &h2f, I2H &i2h, int argc, const char **argv) {
   static const uint64_t address = 1024 * 1024;
@@ -22,12 +22,13 @@ int test_main(F2H &f2h, H2F &h2f, I2H &i2h, int argc, const char **argv) {
 
   {
     size_t buf_read = 0;
-    while(buf_read < sizeof(debug_buf_before_write)) {
-      buf_read += fread(debug_buf_before_write + buf_read, 1, sizeof(debug_buf_before_write) - buf_read, fp);
+    while (buf_read < sizeof(debug_buf_before_write)) {
+      buf_read += fread(debug_buf_before_write + buf_read, 1,
+                        sizeof(debug_buf_before_write) - buf_read, fp);
     }
   }
 
-  fclose(fp); // to flush buffered data
+  fclose(fp);  // to flush buffered data
 
   // generate random data
   srand((unsigned)time(NULL));
@@ -57,18 +58,20 @@ int test_main(F2H &f2h, H2F &h2f, I2H &i2h, int argc, const char **argv) {
 
   {
     size_t buf_read = 0;
-    while(buf_read < sizeof(debug_buf)) {
-      buf_read += fread(debug_buf + buf_read, 1, sizeof(debug_buf) - buf_read, fp);
+    while (buf_read < sizeof(debug_buf)) {
+      buf_read +=
+          fread(debug_buf + buf_read, 1, sizeof(debug_buf) - buf_read, fp);
     }
   }
-  
+
   fclose(fp);
 
   if (memcmp(debug_buf, buf, kDataSize) != 0) {
     return 1;
   }
-  
-  if (memcmp(debug_buf + kDataSize, debug_buf_before_write + kDataSize, MemoryAccessor::kTransferSize) != 0) {
+
+  if (memcmp(debug_buf + kDataSize, debug_buf_before_write + kDataSize,
+             MemoryAccessor::kTransferSize) != 0) {
     return 1;
   }
   return 0;

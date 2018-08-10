@@ -10,9 +10,13 @@ region_addr:
 	.quad 0
 phys_addr_start:
 	.quad 0
-reserved:	
+reserved:
 	.quad 0
-	
+id:
+	.quad 0
+stack_virt_addr:
+	.quad 0	
+
 entry:
 	cli
 	movw %cs, %ax
@@ -36,7 +40,7 @@ entry:
 	movl %eax, (PDPT)
 	movl $0, (PDPT + 4)
 
-  // setup PD
+	// setup PD
 	movl (phys_addr_start), %eax
 	orl  $(PRESENT_BIT | WRITE_BIT | USER_BIT | HUGEPAGE_BIT), %eax
 	movl %eax, (PD)
@@ -74,7 +78,7 @@ entry:
 
 	// setup gdt
 	movl (region_addr), %edx
-  movl $gdt_desc, (gdt_desc_ptr)
+	movl $gdt_desc, (gdt_desc_ptr)
 	addl %edx, (gdt_desc_ptr)
 	lgdtl gdtr
 
@@ -97,16 +101,13 @@ start:
 	// TODO Issue #1
 	// relocate page tables and gdt descriptors
 
-  movw $0x18, %ax
+	movw $0x18, %ax
 	movw %ax, %ds
 	movw %ax, %ss
-  xorq %rax, %rax
-  movl (ID + 4), %eax // cpuid
-  incl %eax
-  shll $12, %eax // * 0x1000 (stack size)
-  addq $STACK, %rax
-  movq %rax, %rsp
-	  
+	xorq %rax, %rax
+	movl (stack_virt_addr), %eax
+	movq %rax, %rsp
+	
 	jmp trampoline_main
 
 	.balign 8

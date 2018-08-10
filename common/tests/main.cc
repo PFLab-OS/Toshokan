@@ -1,3 +1,4 @@
+#include <time.h>
 #include "CppUTest/CommandLineTestRunner.h"
 #include <stdlib.h>
 #include <time.h>

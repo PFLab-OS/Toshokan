@@ -7,7 +7,7 @@ int16_t get_cpuid() {
 }
 
 void puts(F2H &f2h, const char *str) {
-  while(*str) {
+  while (*str) {
     ChannelAccessor<1> ch_ac(f2h, 2);
     ch_ac.Write<char>(0, *str);
     ch_ac.Do(0);

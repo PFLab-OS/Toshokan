@@ -1,6 +1,6 @@
 #include "app.h"
 
-extern "C" Context entry3(Context c) __attribute__ ((section (".text.entry")));
+extern "C" Context entry3(Context c) __attribute__((section(".text.entry")));
 Context entry4(Context c);
 
 Context entry3(Context c) {
@@ -14,4 +14,3 @@ Context entry4(Context c) {
   c.next = nullptr;
   return c;
 }
-

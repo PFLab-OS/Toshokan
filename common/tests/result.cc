@@ -1,9 +1,7 @@
 #include "../result.h"
 #include "CppUTest/TestHarness.h"
 
-TEST_GROUP(Result) {
-  TEST_SETUP() {
-  }
+TEST_GROUP(Result){TEST_SETUP(){}
 
   TEST_TEARDOWN() {
   }

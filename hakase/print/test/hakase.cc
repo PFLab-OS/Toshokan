@@ -1,7 +1,7 @@
-#include "tests/test.h"
 #include "channel/hakase.h"
-#include "print/hakase.h"
 #include <iostream>
+#include "print/hakase.h"
+#include "tests/test.h"
 
 int test_main(F2H &f2h, H2F &h2f, I2H &i2h, int argc, const char **argv) {
   h2f.Reserve(1);
@@ -10,11 +10,11 @@ int test_main(F2H &f2h, H2F &h2f, I2H &i2h, int argc, const char **argv) {
 
   StringReceiver sr(f2h);
   sr.Do();
-  
+
   auto str = sr.GetString();
   if (!str || *str != "abc\n") {
     return 1;
   }
-  
+
   return 0;
 }

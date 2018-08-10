@@ -5,7 +5,7 @@
 #include <asm/realmode.h>
 #include <linux/slab.h>
 
-static uint8_t jmp_bin[] = {0xeb, 0x1e, 0x66, 0x90}; // jmp 0x20; xchg %ax, &ax
+static uint8_t jmp_bin[] = {0xeb, kMemoryMapTrampolineBinEntry - 2, 0x66, 0x90}; // jmp TrampolineBinEntry; xchg %ax, &ax
 static const size_t trampoline_buf_align = 0x1000;
 static const size_t trampoline_buf_size = 0x4000;
 
@@ -75,7 +75,8 @@ int trampoline_region_init(struct trampoline_region *region,
     // initialize trampoline header
     vaddr64[kMemoryMapRegionOffset / sizeof(*vaddr64)] = region->paddr;
     vaddr64[kMemoryMapPhysAddrStart / sizeof(*vaddr64)] = phys_addr_start;
-    vaddr64[kMemoryMapId / sizeof(*vaddr64)] = 0;  // will be initialized by trampoline_region_set_id()
+    vaddr64[kMemoryMapId / sizeof(*vaddr64)] = 0;            // will be initialized by trampoline_region_set_id()
+    vaddr64[kMemoryMapStackVirtAddr / sizeof(*vaddr64)] = 0; // will be initialized by trampoline_region_set_id()
 
     buf = (uint8_t *)kmalloc(kRegionSize, GFP_KERNEL);
     memcpy_fromio(buf, vaddr, kRegionSize);
@@ -103,8 +104,18 @@ int trampoline_region_init(struct trampoline_region *region,
 
 int trampoline_region_set_id(struct trampoline_region *region, int cpuid, int apicid) {
   int32_t buf[2];
+  uint64_t stack_addr = (cpuid + 1) * 0x1000 + kMemoryMapStack;
+  
   buf[0] = apicid;
   buf[1] = cpuid;
-  return deploy((const char *)buf, sizeof(buf), kMemoryMapId);
+  
+  if (deploy((const char *)buf, sizeof(buf), kMemoryMapId) < 0) {
+    return -1;
+  }
+
+  if (deploy((const char *)&stack_addr, sizeof(stack_addr), kMemoryMapStackVirtAddr) < 0) {
+    return -1;
+  }
+  return 0;
 }
 

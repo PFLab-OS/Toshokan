@@ -1,7 +1,7 @@
-#include "type.h"
-#include "common/_memory.h"
 #include "channel/hakase.h"
+#include "common/_memory.h"
 #include "common/channel_accessor.h"
+#include "type.h"
 
 int16_t get_cpuid() {
   int16_t id;
@@ -10,7 +10,7 @@ int16_t get_cpuid() {
 }
 
 void puts(F2H &f2h, const char *str) {
-  while(*str) {
+  while (*str) {
     ChannelAccessor<1> ch_ac(f2h, 2);
     ch_ac.Write<char>(0, *str);
     ch_ac.Do(0);
@@ -40,6 +40,6 @@ int main() {
   puts(f2h, "bye!");
 
   return_value(f2h, 0);
-  
+
   return 0;
 }

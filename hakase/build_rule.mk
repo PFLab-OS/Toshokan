@@ -24,7 +24,7 @@ define make_wrapper
 	@echo  Running \"make$3\" on the docker environment.
 	@echo "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
 	@docker rm $1 -f > /dev/null 2>&1 || :
-	docker run -d $(if $(CI),,-v $(HOST_DIR):$(SHARE_DIR)) -it --name $1 $2
+	docker run -d $(if $(KVM),--device=/dev/kvm) $(if $(CI),,-v $(HOST_DIR):$(SHARE_DIR)) -it --name $1 $2
 	$(if $(CI),docker cp $(HOST_DIR) $1:$(SHARE_DIR))
 	@echo ""
 	@echo 'docker exec $1 sh -c "cd /share$(RELATIVE_DIR) && make$3"'
@@ -50,17 +50,12 @@ attach_docker:
 	docker exec -it $(BUILD_CONTAINER_NAME) /bin/bash
 
 run_docker:
-	docker run --rm -v $(HOST_DIR):$(SHARE_DIR) -it $(BUILD_CONTAINER) /bin/bash
+	docker run --rm $(if $(KVM),--device=/dev/kvm) -v $(HOST_DIR):$(SHARE_DIR) -it $(BUILD_CONTAINER) /bin/bash
 
 format:
 	@echo "Formatting with clang-format. Please wait..."
 	@$(call docker_wrapper,$(FORMAT_CONTAINER_NAME),$(FORMAT_CONTAINER),\
 	 git ls-files .. \
-	  | grep -e FriendLoader/ \
-	         -e ../friend/ \
-	         -e interrupt/ \
-	         -e channel/ \
-	         -e simple_loader/ \
 	  | grep -E '.*\.cc$$|.*\.h$$' \
 		| xargs -n 1 clang-format -style='{BasedOnStyle: Google}' -i \
 	 $(if $(CI),&& git diff))
