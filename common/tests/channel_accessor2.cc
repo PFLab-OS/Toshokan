@@ -27,14 +27,14 @@ TEST_GROUP(CallerChannelAccessor) {
     std::function<void()> _f;
   };
 
-  struct CallerChannelAccessorEnv {
-    void Initialize() {
+  struct Env {
+    void Init() {
       _channel_buf = new uint8_t[Channel2::kBufAddress];
       Channel2::InitBuffer(_channel_buf);
       _caller_ch = new Channel2(_channel_buf, _caller_id);
       _callee_ch = new Channel2(_channel_buf, _callee_id);
     }
-    ~CallerChannelAccessorEnv() {
+    ~Env() {
       delete _callee_ch;
       delete _caller_ch;
       delete[] _channel_buf;
@@ -76,8 +76,8 @@ TEST(CallerChannelAccessor, DoNotSetOutRangeOffset) {
 }
 
 TEST(CallerChannelAccessor, IsDoCalled) {
-  CallerChannelAccessorEnv env;
-  env.Initialize();
+  Env env;
+  env.Init();
   DebugCallerChannelAccessor<0> caller_ca(*env._caller_ch, env._callee_id, GetDummySignal());
   caller_ca.SetDo([&env]() {
       mock().actualCall("Do");
@@ -91,8 +91,8 @@ TEST(CallerChannelAccessor, IsDoCalled) {
 
 TEST(CallerChannelAccessor, BlockUntilReturn) {
   int count = (rand() % 3) + 2;
-  CallerChannelAccessorEnv env;
-  env.Initialize();
+  Env env;
+  env.Init();
   DebugCallerChannelAccessor<0> caller_ca(*env._caller_ch, env._callee_id, GetDummySignal());
   caller_ca.SetDo([&env, &count]() {
       // do not return until count == 0
@@ -110,8 +110,8 @@ TEST(CallerChannelAccessor, SendSignal) {
   Channel2::Signal signal = GenerateRandomSignal();
   Channel2::Signal arrived_signal = GenerateRandomSignal(); // dummy initialization
   
-  CallerChannelAccessorEnv env;
-  env.Initialize();
+  Env env;
+  env.Init();
   DebugCallerChannelAccessor<0> caller_ca(*env._caller_ch, env._callee_id, signal);
   caller_ca.SetDo([&env, &arrived_signal]() {
       // callee channel will get signal.
@@ -125,8 +125,8 @@ TEST(CallerChannelAccessor, SendSignal) {
 TEST(CallerChannelAccessor, GetReturnValue) {
   int rval = rand();
   
-  CallerChannelAccessorEnv env;
-  env.Initialize();
+  Env env;
+  env.Init();
   DebugCallerChannelAccessor<0> caller_ca(*env._caller_ch, env._callee_id, GetDummySignal());
   caller_ca.SetDo([&env, rval]() {
       // callee channel returns value.
@@ -143,8 +143,8 @@ TEST(CallerChannelAccessor, Write) {
     send_buf[i] = rand();
   }
   
-  CallerChannelAccessorEnv env;
-  env.Initialize();
+  Env env;
+  env.Init();
   DebugCallerChannelAccessor<Channel2::kDataSize> caller_ca(*env._caller_ch, env._callee_id, GetDummySignal());
   
   for(int i = 0; i < kBufSize; i++) {
@@ -170,8 +170,8 @@ TEST(CallerChannelAccessor, Read) {
   for(int i = 0; i < kBufSize; i++) {
     send_buf[i] = rand();
   }
-  CallerChannelAccessorEnv env;
-  env.Initialize();
+  Env env;
+  env.Init();
   DebugCallerChannelAccessor<Channel2::kDataSize> caller_ca(*env._caller_ch, env._callee_id, GetDummySignal());
   caller_ca.SetDo([&env, send_buf]() {
       for(int i = 0; i < Channel2::kDataSize; i++) {
@@ -193,8 +193,8 @@ TEST(CallerChannelAccessor, DoNotReadBeforeCall) {
   static const int kBufSize = Channel2::kDataSize / sizeof(int);
   int buf[kBufSize];
   
-  CallerChannelAccessorEnv env;
-  env.Initialize();
+  Env env;
+  env.Init();
   DebugCallerChannelAccessor<Channel2::kDataSize> caller_ca(*env._caller_ch, env._callee_id, GetDummySignal());
 
   CHECK_THROWS(AssertException, caller_ca.Read(CallerChannelAccessor<Channel2::kDataSize>::Offset<int>(0)));
@@ -205,8 +205,8 @@ TEST(CallerChannelAccessor, DoNotWriteAfterCall) {
   static const int kBufSize = Channel2::kDataSize / sizeof(int);
   int buf[kBufSize];
   
-  CallerChannelAccessorEnv env;
-  env.Initialize();
+  Env env;
+  env.Init();
   DebugCallerChannelAccessor<Channel2::kDataSize> caller_ca(*env._caller_ch, env._callee_id, GetDummySignal());
 
   caller_ca.SetDo([&env]() {
@@ -223,6 +223,25 @@ TEST_GROUP(CalleeChannelAccessor) {
   TEST_TEARDOWN() {
   }
 
+  struct Env {
+    void Init() {
+      _channel_buf = new uint8_t[Channel2::kBufAddress];
+      Channel2::InitBuffer(_channel_buf);
+      _caller_ch = new Channel2(_channel_buf, _caller_id);
+      _callee_ch = new Channel2(_channel_buf, _callee_id);
+    }
+    ~Env() {
+      delete _callee_ch;
+      delete _caller_ch;
+      delete[] _channel_buf;
+    }
+    uint8_t *_channel_buf = nullptr;
+    Channel2::Id _caller_id = Channel2::Id(0);
+    Channel2::Id _callee_id = Channel2::Id(1);
+    Channel2 *_caller_ch = nullptr;
+    Channel2 *_callee_ch = nullptr;
+  };
+
   Channel2::Signal GenerateRandomSignal() {
     int32_t signal_val = rand();
     while (signal_val == 0) {
@@ -230,12 +249,183 @@ TEST_GROUP(CalleeChannelAccessor) {
     }
     return Channel2::Signal(signal_val);
   }
+
+  Channel2::Signal GetDummySignal() {
+    return Channel2::Signal(1);
+  }
 };
 
-/*TEST(CalleeChannelAccessor, GetSignal) {
-  Channel2::Signal signal = GenerateRandomSignal();
-  CalleeChannelAccessor callee_ca;
-  CHECK(sent_signal, callee_ca.GetSignal());
+TEST(CalleeChannelAccessor, SetOffset) {
+  CalleeChannelAccessor::Offset<int> offset(8);
 }
 
-*/
+TEST(CalleeChannelAccessor, DoNotSetUnalignedOffset) {
+  CHECK_THROWS(AssertException, ([]() {
+        CalleeChannelAccessor::Offset<int> offset(3);
+      })());
+}
+
+TEST(CalleeChannelAccessor, DoNotSetOutRangeOffset) {
+  CHECK_THROWS(AssertException, ([]() {
+        CalleeChannelAccessor::Offset<int> offset((((Channel2::kDataSize + 3) / 4) * 4) - 2);
+      })());
+}
+
+TEST(CalleeChannelAccessor, GetSignal) {
+  Channel2::Signal sent_signal = GenerateRandomSignal();
+
+  Env env;
+  env.Init();
+  env._caller_ch->Reserve();
+  env._caller_ch->SendSignal(env._callee_id, sent_signal);
+  
+  CalleeChannelAccessor callee_ca(*env._callee_ch);
+  callee_ca.ReceiveSignal();
+  CHECK(sent_signal == callee_ca.GetSignal());
+}
+
+TEST(CalleeChannelAccessor, ReturnValue) {
+  int32_t rval = rand();
+
+  Env env;
+  env.Init();
+  env._caller_ch->Reserve();
+  env._caller_ch->SendSignal(env._callee_id, GetDummySignal());
+  
+  CalleeChannelAccessor callee_ca(*env._callee_ch);
+  callee_ca.ReceiveSignal();
+  callee_ca.Return(rval);
+  CHECK_EQUAL(rval, env._caller_ch->CheckIfReturned().Unwrap());
+}
+
+TEST(CalleeChannelAccessor, DoNotGetSignalBeforeReceiveSignal) {
+  Env env;
+  env.Init();
+  env._caller_ch->Reserve();
+  env._caller_ch->SendSignal(env._callee_id, GetDummySignal());
+
+  CalleeChannelAccessor callee_ca(*env._callee_ch);
+  //callee_ca.ReceiveSignal();
+  CHECK_THROWS(AssertException, callee_ca.GetSignal());
+}
+
+TEST(CalleeChannelAccessor, DoNotReturnBeforeReceiveSignal) {
+  Env env;
+  env.Init();
+  env._caller_ch->Reserve();
+  env._caller_ch->SendSignal(env._callee_id, GetDummySignal());
+
+  CalleeChannelAccessor callee_ca(*env._callee_ch);
+  //callee_ca.ReceiveSignal();
+  CHECK_THROWS(AssertException, callee_ca.Return(0));
+}
+
+TEST(CalleeChannelAccessor, DoNotGetSignalAfterReturn) {
+  Env env;
+  env.Init();
+  env._caller_ch->Reserve();
+  env._caller_ch->SendSignal(env._callee_id, GetDummySignal());
+
+  CalleeChannelAccessor callee_ca(*env._callee_ch);
+  callee_ca.ReceiveSignal();
+  callee_ca.Return(0);
+
+  CHECK_THROWS(AssertException, callee_ca.GetSignal());
+}
+
+TEST(CalleeChannelAccessor, DoNotReturnAfterReturn) {
+  Env env;
+  env.Init();
+  env._caller_ch->Reserve();
+  env._caller_ch->SendSignal(env._callee_id, GetDummySignal());
+
+  CalleeChannelAccessor callee_ca(*env._callee_ch);
+  callee_ca.ReceiveSignal();
+  callee_ca.Return(0);
+
+  CHECK_THROWS(AssertException, callee_ca.Return(0));
+}
+
+TEST(CalleeChannelAccessor, Read) {
+  static const int kBufSize = Channel2::kDataSize / sizeof(int);
+  int send_buf[kBufSize];
+  int receive_buf[kBufSize];
+  for(int i = 0; i < kBufSize; i++) {
+    send_buf[i] = rand();
+  }
+  
+  Env env;
+  env.Init();
+  env._caller_ch->Reserve();
+  for(int i = 0; i < Channel2::kDataSize; i++) {
+    // write to the buffer.
+    env._caller_ch->Write(i, (reinterpret_cast<const uint8_t *>(send_buf))[i]);
+  }
+  env._caller_ch->SendSignal(env._callee_id, GetDummySignal());
+
+  CalleeChannelAccessor callee_ca(*env._callee_ch);
+  callee_ca.ReceiveSignal();
+  for (int i = 0; i < kBufSize; i++) {
+    // read from the buffer;
+    receive_buf[i] = callee_ca.Read(CalleeChannelAccessor::Offset<int>(i * sizeof(int)));
+  }
+  callee_ca.Return(0);
+
+  MEMCMP_EQUAL(send_buf, receive_buf, Channel2::kDataSize);
+}
+
+TEST(CalleeChannelAccessor, Write) {
+  static const int kBufSize = Channel2::kDataSize / sizeof(int);
+  int send_buf[kBufSize];
+  int receive_buf[kBufSize];
+  for(int i = 0; i < kBufSize; i++) {
+    send_buf[i] = rand();
+  }
+  
+  Env env;
+  env.Init();
+  env._caller_ch->Reserve();
+  env._caller_ch->SendSignal(env._callee_id, GetDummySignal());
+
+  CalleeChannelAccessor callee_ca(*env._callee_ch);
+  callee_ca.ReceiveSignal();
+  for(int i = 0; i < kBufSize; i++) {
+    // write to the buffer.
+    callee_ca.Write(CalleeChannelAccessor::Offset<int>(i * sizeof(int)), send_buf[i]);
+  }
+  callee_ca.Return(0);
+
+  for (int i = 0; i < Channel2::kDataSize; i++) {
+    // read from the buffer;
+    (reinterpret_cast<uint8_t *>(receive_buf))[i] = env._caller_ch->Read(i);
+  }
+
+  MEMCMP_EQUAL(send_buf, receive_buf, Channel2::kDataSize);
+}
+
+TEST(CalleeChannelAccessor, DoNotReadAfterReturn) {
+  Env env;
+  env.Init();
+  env._caller_ch->Reserve();
+  env._caller_ch->SendSignal(env._callee_id, GetDummySignal());
+
+  CalleeChannelAccessor callee_ca(*env._callee_ch);
+  callee_ca.ReceiveSignal();
+  callee_ca.Return(0);
+
+  CHECK_THROWS(AssertException, callee_ca.Read(CalleeChannelAccessor::Offset<int>(0)));
+}
+
+TEST(CalleeChannelAccessor, DoNotWriteAfterReturn) {
+  Env env;
+  env.Init();
+  env._caller_ch->Reserve();
+  env._caller_ch->SendSignal(env._callee_id, GetDummySignal());
+
+  CalleeChannelAccessor callee_ca(*env._callee_ch);
+  callee_ca.ReceiveSignal();
+  callee_ca.Return(0);
+
+  CHECK_THROWS(AssertException, callee_ca.Write(CalleeChannelAccessor::Offset<int>(0), 0));
+}
+
