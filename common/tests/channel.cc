@@ -114,19 +114,24 @@ TEST(Channel2, FirstOneCanReserveChannel) {
 
 TEST(Channel2, NoOneSent) {
   // caller_ch->SendSignal(callee_ch_id, GetDummySignal());
-  CHECK(callee_ch->CheckIfNewSignalArrived().IsError());
+  CHECK_FALSE(callee_ch->IsSignalArrived());
 }
 
 TEST(Channel2, ReservedButNotSent) {
   caller_ch->Reserve();
   // caller_ch->SendSignal(callee_ch_id, GetDummySignal());
-  CHECK(callee_ch->CheckIfNewSignalArrived().IsError());
+  CHECK_FALSE(callee_ch->IsSignalArrived());
+}
+
+TEST(Channel2, CheckIfSignalArrived) {
+  caller_ch->Reserve();
+  caller_ch->SendSignal(callee_ch_id, GetDummySignal());
+  CHECK(callee_ch->IsSignalArrived());
 }
 
 TEST(Channel2, NoOneReturned) {
   caller_ch->Reserve();
   caller_ch->SendSignal(callee_ch_id, GetDummySignal());
-  callee_ch->CheckIfNewSignalArrived();
   // callee_ch->Return(0);
   CHECK(caller_ch->CheckIfReturned().IsError());
 }
@@ -136,7 +141,7 @@ TEST(Channel2, SendReceiveSignalOnce) {
   
   caller_ch->Reserve();
   caller_ch->SendSignal(callee_ch_id, signal);
-  CHECK(signal == callee_ch->CheckIfNewSignalArrived().Unwrap());
+  CHECK(signal == callee_ch->GetArrivedSignal());
 }
 
 TEST(Channel2, SendReceiveSignalTwice) {
@@ -145,7 +150,7 @@ TEST(Channel2, SendReceiveSignalTwice) {
   
     caller_ch->Reserve();
     caller_ch->SendSignal(callee_ch_id, signal);
-    CHECK(signal == callee_ch->CheckIfNewSignalArrived().Unwrap());
+    CHECK(signal == callee_ch->GetArrivedSignal());
     callee_ch->Return(0);
     caller_ch->Release();
   }
@@ -156,7 +161,6 @@ TEST(Channel2, GetReturnValueOnce) {
 
   caller_ch->Reserve();
   caller_ch->SendSignal(callee_ch_id, GetDummySignal());
-  callee_ch->CheckIfNewSignalArrived();
   callee_ch->Return(rval);
   CHECK_EQUAL(rval, caller_ch->CheckIfReturned().Unwrap());
 }
@@ -167,7 +171,6 @@ TEST(Channel2, GetReturnValueTwice) {
 
     caller_ch->Reserve();
     caller_ch->SendSignal(callee_ch_id, GetDummySignal());
-    callee_ch->CheckIfNewSignalArrived();
     callee_ch->Return(rval);
     CHECK_EQUAL(rval, caller_ch->CheckIfReturned().Unwrap());
     caller_ch->Release();
@@ -182,20 +185,18 @@ TEST(Channel2, UnableToReserveReservedChannel) {
 TEST(Channel2, MultipleReceiver) {
   caller_ch->Reserve();
   caller_ch->SendSignal(another_ch_id, GetDummySignal());
-  callee_ch->CheckIfNewSignalArrived().IsError();
-  CHECK_FALSE(another_ch->CheckIfNewSignalArrived().IsError());
+  CHECK(another_ch->IsSignalArrived());
 }
 
-TEST(Channel2, SomeoneHasToReceive) {
+TEST(Channel2, UnrelatedChannelCannotReceive) {
   caller_ch->Reserve();
   caller_ch->SendSignal(another_ch_id, GetDummySignal());
-  CHECK(callee_ch->CheckIfNewSignalArrived().IsError());
+  CHECK_FALSE(callee_ch->IsSignalArrived());
 }
 
 TEST(Channel2, ReleaseBeforeReserving) {
   caller_ch->Reserve();
   caller_ch->SendSignal(callee_ch_id, GetDummySignal());
-  callee_ch->CheckIfNewSignalArrived();
   callee_ch->Return(0);
   caller_ch->CheckIfReturned();
 
@@ -216,17 +217,20 @@ TEST(Channel2, WriteReadOverChannelBuffer) {
   caller_ch->Reserve();
   caller_ch->Write(offset, data);
   caller_ch->SendSignal(callee_ch_id, GetDummySignal());
-  callee_ch->CheckIfNewSignalArrived();
   CHECK_EQUAL(data, callee_ch->Read(offset));
 }
 
-//
-// Do not write following patterns
-//
 TEST(Channel2, DoNotSendSignalBeforeReserving) {
+  // caller_ch->Reserve();
   CHECK_THROWS(AssertException, caller_ch->SendSignal(callee_ch_id, GetDummySignal())); 
 }
 
 TEST(Channel2, DoNotReleaseIfNonReserved) {
+  // caller_ch->Reserve();
   CHECK_THROWS(AssertException, caller_ch->Release()); 
+}
+
+TEST(Channel2, DoNotReturnIfNewSignalNotArrived) {
+  // callee_ch->IsSignalArrived() == false
+  CHECK_THROWS(AssertException, callee_ch->Return(0));
 }

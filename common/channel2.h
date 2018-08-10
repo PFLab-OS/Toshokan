@@ -16,17 +16,13 @@ public:
     Id() = delete;
     explicit Id(const int32_t val) : _val(val) {
     }
-    Id(const Id &id) : _val(id._val) {
-    }
+    Id(const Id &id) = default;
+    Id &operator=(const Id &id) = default;
     bool operator==(const Id &id) {
       return id._val == _val;
     }
     bool operator!=(const Id &id) {
       return id._val != _val;
-    }
-    Id &operator=(const Id &id) {
-      _val = id._val;
-      return *this;
     }
     static bool CompareAndSwap(Id *ptr, const Id &oldval, const Id &newval) {
       return __sync_bool_compare_and_swap(&ptr->_val, oldval._val, newval._val);
@@ -45,8 +41,8 @@ public:
         panic("Signal value must not be 0.");
       }
     };
-    Signal(const Signal &obj) : _val(obj._val) {
-    }
+    Signal(const Signal &obj) = default;
+    Signal &operator=(const Signal &obj) = default;
     bool operator==(const Signal &obj) {
       return obj._val == _val;
     }
@@ -94,15 +90,16 @@ public:
     _header->dest_id = Id::Null();
     _header->src_id = Id::Null();
   }
-  Result<Signal> CheckIfNewSignalArrived() {
+  bool IsSignalArrived() {
     asm volatile("":::"memory");
-    if (_header->dest_id == _my_id && _header->type != 0) {
-      return Result<Signal>(Signal(_header->type));
-    } else {
-      return Result<Signal>();
-    }
+    return (_header->dest_id == _my_id && _header->type != 0);
+  }
+  Signal GetArrivedSignal() {
+    assert(IsSignalArrived());
+    return Signal(_header->type);
   }
   void Return(int32_t rval) {
+    assert(IsSignalArrived());
     _header->rval = rval;
     _header->type = 0;
   }
