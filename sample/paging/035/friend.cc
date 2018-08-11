@@ -24,7 +24,7 @@ int main() {
   }
   asm volatile("movq %0, %%cr3" ::"r"((uint64_t)pml4t + 0x80000000UL));
 
-  for(int i = 0; i < 512; i++) {
+  for (int i = 0; i < 512; i++) {
     pt1[i] = (0x80500000UL + 0x1000UL * i) | (1 << 0) | (1 << 1) | (1 << 2);
   }
 
