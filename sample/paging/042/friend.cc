@@ -51,24 +51,45 @@ int main() {
 
   show_i(f2h, c1.i);
 
+  if (c1.i != 1) {
+    return_value(f2h, 1);
+    return 1;
+  }
+
   Context c2;
   c2.next = (Context(*)(Context))0xC0000000UL;  // entry3
   c2.i = 0;
 
   pt1[0] = 0x80600000UL | (1 << 0) | (1 << 1) | (1 << 2);
   asm volatile("invlpg (%0)" ::"b"(0xC0000000UL) : "memory");
+  pt1[1] = 0;
+  asm volatile("invlpg (%0)" ::"b"(0xC0001000UL) : "memory");
   c2 = c2.next(c2);  // call entry3
 
   show_i(f2h, c2.i);
 
+  if (c2.i != 9) {
+    return_value(f2h, 1);
+    return 1;
+  }
+
   pt1[0] = 0x80500000UL | (1 << 0) | (1 << 1) | (1 << 2);
   asm volatile("invlpg (%0)" ::"b"(0xC0000000UL) : "memory");
+  pt1[1] = 0;
+  asm volatile("invlpg (%0)" ::"b"(0xC0001000UL) : "memory");
   c1 = c1.next(c1);  // call entry2
 
   show_i(f2h, c1.i);
 
+  if (c1.i != 2) {
+    return_value(f2h, 1);
+    return 1;
+  }
+
   pt1[0] = 0x80600000UL | (1 << 0) | (1 << 1) | (1 << 2);
   asm volatile("invlpg (%0)" ::"b"(0xC0000000UL) : "memory");
+  pt1[1] = 0x80700000UL | (1 << 0) | (1 << 1) | (1 << 2);
+  asm volatile("invlpg (%0)" ::"b"(0xC0001000UL) : "memory");
   c2 = c2.next(c2);  // call entry4
 
   show_i(f2h, c2.i);
