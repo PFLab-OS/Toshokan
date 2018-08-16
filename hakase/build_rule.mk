@@ -9,7 +9,7 @@ ifneq ($(HOST),)
 # host environment
 HOST_DIR:=$(abspath $(ROOT_DIR)../)
 SHARE_DIR:=/share
-BUILD_CONTAINER:=livadk/hakase-qemu:984648a0464d2de5638e58b3b38f179ebdcaa5bc
+BUILD_CONTAINER:=livadk/hakase-qemu:80807ebcb9d6d20e93b34370ffebc6497d359306
 BUILD_CONTAINER_NAME:=toshokan
 FORMAT_CONTAINER:=livadk/clang-format:9f1d281b0a30b98fbb106840d9504e2307d3ad8f
 FORMAT_CONTAINER_NAME:=toshokan_format
@@ -24,7 +24,7 @@ define make_wrapper
 	@echo  Running \"make$3\" on the docker environment.
 	@echo "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
 	@docker rm $1 -f > /dev/null 2>&1 || :
-	docker run -d $(if $(KVM),--device=/dev/kvm) $(if $(CI),,-v $(HOST_DIR):$(SHARE_DIR)) -it --name $1 $2
+	docker run -d $(if $(ENV_FILE),--env-file=env.txt) $(if $(KVM),--device=/dev/kvm) $(if $(CI),,-v $(HOST_DIR):$(SHARE_DIR)) -it --name $1 $2
 	$(if $(CI),docker cp $(HOST_DIR) $1:$(SHARE_DIR))
 	@echo ""
 	@echo 'docker exec $1 sh -c "cd /share$(RELATIVE_DIR) && make$3"'
@@ -50,7 +50,7 @@ attach_docker:
 	docker exec -it $(BUILD_CONTAINER_NAME) /bin/bash
 
 run_docker:
-	docker run --rm $(if $(KVM),--device=/dev/kvm) -v $(HOST_DIR):$(SHARE_DIR) -it $(BUILD_CONTAINER) /bin/bash
+	docker run --rm $(if $(ENV_FILE),--env-file=env.txt) $(if $(KVM),--device=/dev/kvm) -v $(HOST_DIR):$(SHARE_DIR) -it $(BUILD_CONTAINER) /bin/bash
 
 format:
 	@echo "Formatting with clang-format. Please wait..."
