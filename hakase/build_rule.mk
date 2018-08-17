@@ -25,7 +25,7 @@ define make_wrapper
 	@echo  Running \"make$3\" on the docker environment.
 	@echo "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"
 	@docker rm $1 -f > /dev/null 2>&1 || :
-	docker run -d $(if $(ENV_FILE),--env-file=$(ENV_FILE) -e ENV_FILE=$(ENV_FILE)) $(if $(KVM),--device=/dev/kvm) $(if $(CI),,-v $(HOST_DIR):$(SHARE_DIR)) -it --name $1 $2
+	docker run -d $(if $(ENV_FILE),--env-file=$(ROOT_DIR)/$(ENV_FILE) -e ENV_FILE=$(ENV_FILE)) $(if $(KVM),--device=/dev/kvm) $(if $(CI),,-v $(HOST_DIR):$(SHARE_DIR)) -it --name $1 $2
 	$(if $(CI),docker cp $(HOST_DIR) $1:$(SHARE_DIR))
 	@echo ""
 	@echo 'docker exec $1 sh -c "cd /share$(RELATIVE_DIR) && make$3"'
@@ -51,7 +51,7 @@ attach_docker:
 	docker exec -it $(BUILD_CONTAINER_NAME) /bin/bash
 
 run_docker:
-	docker run --rm $(if $(ENV_FILE),--env-file=$(ENV_FILE) -e ENV_FILE=$(ENV_FILE)) $(if $(KVM),--device=/dev/kvm) -v $(HOST_DIR):$(SHARE_DIR) -it $(BUILD_CONTAINER) /bin/bash
+	docker run --rm $(if $(ENV_FILE),--env-file=$(ROOT_DIR)/$(ENV_FILE) -e ENV_FILE=$(ENV_FILE)) $(if $(KVM),--device=/dev/kvm) -v $(HOST_DIR):$(SHARE_DIR) -it $(BUILD_CONTAINER) /bin/bash
 
 format:
 	@echo "Formatting with clang-format. Please wait..."

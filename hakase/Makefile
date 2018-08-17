@@ -50,7 +50,7 @@ start_qemu:
 	/root/qemu
 
 deploy_to_qemu:
-	/root/rsync $(DEPLOY_DIR)/\* share
+	echo "put -r $(DEPLOY_DIR)/* share" | /root/sftp
 
 prepare_script:
 	touch $(RUN_SCRIPT)
