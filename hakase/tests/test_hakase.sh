@@ -4,6 +4,10 @@
 
 cd `dirname $0`
 if [ -f $1 ]; then
+    ./run.sh load
+
+    echo 10000 | sudo tee /sys/kernel/debug/friend_loader/zero_clear
+
     ./run.sh run
 
     trap './run.sh stop;' SIGINT
