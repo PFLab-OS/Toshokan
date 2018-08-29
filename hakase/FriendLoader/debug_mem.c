@@ -35,6 +35,36 @@ static ssize_t memory_read(struct file *file, char __user *buf, size_t len, loff
   return len;
 }
 
+static ssize_t memory_write(struct file *file, const char __user *buf, size_t len, loff_t *ppos) {
+  void __iomem *io_addr;
+  phys_addr_t addr = DEPLOY_PHYS_ADDR_START + *ppos;
+  void *tmp_buf;
+
+  if (len > KMALLOC_MAX_SIZE) {
+    len = KMALLOC_MAX_SIZE;
+  }
+  
+  if (*ppos + DEPLOY_PHYS_ADDR_START > DEPLOY_PHYS_ADDR_END) {
+    len = 0;
+  } else if (len + *ppos + DEPLOY_PHYS_ADDR_START > DEPLOY_PHYS_ADDR_END) {
+    len = DEPLOY_PHYS_ADDR_END - *ppos - DEPLOY_PHYS_ADDR_START;
+  }
+
+  tmp_buf = kmalloc(len, GFP_KERNEL);
+
+  len -= copy_from_user(tmp_buf, buf, len);
+
+  io_addr = ioremap(addr, len);
+  memcpy_toio(io_addr, tmp_buf, len); //NG
+  // copy_from_user(io_addr, buf, len); //NG
+  // memcpy_fromio(tmp_buf, io_addr, len); //OK
+  iounmap(io_addr);
+ 
+  kfree(tmp_buf);
+  *ppos += len;
+  return len;
+}
+
 static loff_t memory_llseek(struct file *file, loff_t offset, int origin) {
   switch (origin) {
   case SEEK_END:
@@ -52,6 +82,7 @@ static loff_t memory_llseek(struct file *file, loff_t offset, int origin) {
 static struct file_operations memory_fops = {
   .owner = THIS_MODULE,
   .read = memory_read,
+  .write = memory_write,
   .llseek = memory_llseek,
 };
 

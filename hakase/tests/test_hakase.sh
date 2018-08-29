@@ -6,6 +6,8 @@ cd `dirname $0`
 if [ -f $1 ]; then
     ./run.sh run
 
+    sudo ./a.out
+
     trap './run.sh stop;' SIGINT
 
     sudo ./test_library.sh $*
