@@ -8,7 +8,7 @@
 
 ## Install & Test
 ```
-$ git clone git@github.com:PFLab-OS/Toshokan.git
+$ git clone https://github.com/PFLab-OS/Toshokan.git
 $ cd Toshokan/hakase
 $ make test
 ```
