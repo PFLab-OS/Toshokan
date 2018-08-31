@@ -1,0 +1,13 @@
+rules:
+  - template: build
+    path_extract_vars:
+      - target
+      - depends
+      - clean_targets
+    variables:
+      target: interrupt.o
+      depends:
+        - hakase.cc
+      clean_targets:
+        - "*.o"
+        - "*.d"

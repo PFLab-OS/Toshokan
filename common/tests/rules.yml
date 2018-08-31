@@ -1,0 +1,19 @@
+rules:
+  - template: common_test
+    path_extract_vars:
+      - files
+      - clean_targets
+    variables:
+      files:
+        - main.cc
+        - align.cc
+        - result.cc
+        - mock/channel.cc
+        - mock/debug.cc
+      # - memrw.cc
+      # - channel_accessor.cc
+      clean_targets:
+        - a.out
+        - "*.gcov"
+        - "*.gcda"
+        - "*.gcno"
