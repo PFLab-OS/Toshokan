@@ -8,6 +8,12 @@ if [ -f $1 ]; then
 
     echo 10000 | sudo tee /sys/kernel/debug/friend_loader/zero_clear
 
+    zc=""
+    while [ "$zc" != "0" ]
+    do
+      zc=`sudo cat /sys/kernel/debug/friend_loader/zero_clear`
+    done
+
     ./run.sh run
 
     trap './run.sh stop;' SIGINT

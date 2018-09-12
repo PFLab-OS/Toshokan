@@ -71,23 +71,23 @@ static ssize_t zero_clear_write(struct file *file, const char __user *buf, size_
   char buf_tmp[256];
 
   if(zero_clear_status != 0) {
-    return len;
+    return -EINVAL;
   }
 
   snprintf(buf_tmp, min(len+1, 256), "%s", buf);
 
   if(kstrtouint(buf_tmp, 10, &tmp) != 0) {
-    return len;
+    return -EINVAL;
   }
 
   if(tmp > (DEPLOY_PHYS_MEM_SIZE / PAGE_SIZE) ) {
-    return len;
+    return -EINVAL;
   }
 
   zero_clear_status = tmp;
   schedule_work(&zero_clear_workq);
 
-  return 1;
+  return len;
 
 }
 
