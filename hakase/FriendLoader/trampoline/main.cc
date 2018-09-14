@@ -67,13 +67,13 @@ extern "C" void trampoline_main() {
   uint64_t *pdpt = reinterpret_cast<uint64_t *>(MemoryMap::kPdpt);
   uint64_t *pd = reinterpret_cast<uint64_t *>(MemoryMap::kPd);
 
-  pml4t[0] = (reinterpret_cast<uint64_t>(pdpt) + DEPLOY_PHYS_ADDR_START) | (1 << 0) |
-             (1 << 1) | (1 << 2);
-  pdpt[0] = (reinterpret_cast<uint64_t>(pd) + DEPLOY_PHYS_ADDR_START) | (1 << 0) |
-            (1 << 1) | (1 << 2);
+  pml4t[0] = (reinterpret_cast<uint64_t>(pdpt) + DEPLOY_PHYS_ADDR_START) |
+             (1 << 0) | (1 << 1) | (1 << 2);
+  pdpt[0] = (reinterpret_cast<uint64_t>(pd) + DEPLOY_PHYS_ADDR_START) |
+            (1 << 0) | (1 << 1) | (1 << 2);
   for (int i = 0; i < 512; i++) {
-    pd[i] = (DEPLOY_PHYS_ADDR_START + (0x200000UL * i)) | (1 << 0) | (1 << 1) | (1 << 2) |
-            (1 << 7);
+    pd[i] = (DEPLOY_PHYS_ADDR_START + (0x200000UL * i)) | (1 << 0) | (1 << 1) |
+            (1 << 2) | (1 << 7);
   }
   asm volatile("movq %0, %%cr3;" ::"r"(reinterpret_cast<uint64_t>(pml4t) +
                                        DEPLOY_PHYS_ADDR_START));
