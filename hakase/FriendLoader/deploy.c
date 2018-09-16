@@ -1,8 +1,8 @@
 #include <asm/io.h>
 #include <linux/kernel.h>
 
-#include "common.h"
 #include "deploy.h"
+#include "common/_memory.h"
 
 int deploy(const char *data, size_t size, loff_t offset) {
   void __iomem *io_addr;

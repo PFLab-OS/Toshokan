@@ -38,3 +38,9 @@ enum MemoryMap {
 };
 
 #undef DEFINE_MEMMAP
+
+// File deployment
+// XXX: mem=1GでLinuxが起動していると仮定
+#define DEPLOY_PHYS_ADDR_START 0x40000000UL
+#define DEPLOY_PHYS_ADDR_END 0x80000000UL
+#define DEPLOY_PHYS_MEM_SIZE (DEPLOY_PHYS_ADDR_END - DEPLOY_PHYS_ADDR_START)
