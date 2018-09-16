@@ -1,4 +1,6 @@
 #include <linux/debugfs.h>
+#include <linux/kernel.h>
+#include <linux/workqueue.h>
 #include <linux/slab.h>
 #include <asm/io.h>
 #include <asm/dma.h>
@@ -8,6 +10,12 @@
 
 static struct dentry *topdir;
 static struct dentry *memory;
+static struct dentry *zero_clear;
+
+//TODO using lock 
+static unsigned int zero_clear_status = 0;
+
+struct work_struct zero_clear_workq;
 
 static ssize_t memory_read(struct file *file, char __user *buf, size_t len, loff_t *ppos) {
   void __iomem *io_addr;
@@ -83,11 +91,65 @@ static loff_t memory_llseek(struct file *file, loff_t offset, int origin) {
   return offset;
 }
 
+static ssize_t zero_clear_read(struct file *file, char __user *buf, size_t len, loff_t *ppos) {
+  if(*ppos != 0) {
+    return 0;
+  }
+  snprintf(buf, len, "%u", zero_clear_status);
+  *ppos = strlen(buf) + 1;
+  return strlen(buf) + 1; 
+}
+
+static ssize_t zero_clear_write(struct file *file, const char __user *buf, size_t len, loff_t *ppos) {
+  unsigned int tmp;
+  char buf_tmp[256];
+
+  if(zero_clear_status != 0) {
+    return -EINVAL;
+  }
+
+  snprintf(buf_tmp, min(len+1, 256), "%s", buf);
+
+  if(kstrtouint(buf_tmp, 10, &tmp) != 0) {
+    return -EINVAL;
+  }
+
+  if(tmp > (DEPLOY_PHYS_MEM_SIZE / PAGE_SIZE) ) {
+    return -EINVAL;
+  }
+
+  zero_clear_status = tmp;
+  schedule_work(&zero_clear_workq);
+
+  return len;
+
+}
+
+void memory_zero_clear(struct work_struct *work) {
+  void __iomem *io_addr;
+  int i;
+
+  for(i = 0; i < zero_clear_status; i++) {
+    io_addr = ioremap(DEPLOY_PHYS_ADDR_START + PAGE_SIZE*i, PAGE_SIZE);
+    memset(io_addr, 0, PAGE_SIZE);
+    iounmap(io_addr);
+  }
+
+  zero_clear_status = 0;
+  return;
+}
+
 static struct file_operations memory_fops = {
   .owner = THIS_MODULE,
   .read = memory_read,
   .write = memory_write,
   .llseek = memory_llseek,
+};
+
+static struct file_operations zero_clear_fops = {
+  .owner = THIS_MODULE,
+  .read = zero_clear_read,
+  .write = zero_clear_write,
 };
 
 int __init debugmem_init(void) {
@@ -100,6 +162,13 @@ int __init debugmem_init(void) {
   if (!memory) {
     return -ENOMEM;
   }
+
+  zero_clear = debugfs_create_file("zero_clear", 0400, topdir, NULL, &zero_clear_fops);
+  if (!zero_clear) {
+    return -ENOMEM;
+  }
+
+  INIT_WORK(&zero_clear_workq, memory_zero_clear);
 
   return 0;
 }
