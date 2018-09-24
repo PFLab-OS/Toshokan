@@ -80,7 +80,6 @@ modules.order
 Module.symvers
 Mkfile.old
 dkms.conf
-*.ko
 
 # Code Coverage Files
 *.gcov

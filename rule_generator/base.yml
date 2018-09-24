@@ -1,1 +1,1 @@
-docker_cmd: docker run --rm -v $(CURDIR):/workdir -w /workdir
+

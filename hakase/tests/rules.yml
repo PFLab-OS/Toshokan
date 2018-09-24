@@ -6,9 +6,9 @@ rules:
       - clean_targets
     variables:
       options: "-c"
-      target: interrupt.o
+      target: test.o
       depends:
-        - hakase.cc
+        - test.cc
       clean_targets:
         - "*.o"
         - "*.d"

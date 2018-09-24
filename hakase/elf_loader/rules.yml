@@ -6,7 +6,7 @@ rules:
       - clean_targets
     variables:
       options: "-c"
-      target: interrupt.o
+      target: elf_loader.o
       depends:
         - hakase.cc
       clean_targets:

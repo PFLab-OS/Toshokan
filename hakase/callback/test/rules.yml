@@ -5,10 +5,11 @@ rules:
       - depends
       - clean_targets
     variables:
-      options: "-c"
-      target: interrupt.o
+      target: callback.bin
       depends:
+        - ../../tests/test.o
         - hakase.cc
       clean_targets:
+        - "*.bin"
         - "*.o"
         - "*.d"

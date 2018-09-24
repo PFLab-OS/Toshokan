@@ -2,14 +2,20 @@
 import yaml
 import copy
 import re
+import os.path
 from jinja2 import Template, Environment, FileSystemLoader
 
 def regex_replace(s, find, replace):
-    return re.sub(find, replace, s)
+    if re.search(find, s):
+        return re.sub(find, replace, s)
+    else:
+        return None
 
 env = Environment(loader=FileSystemLoader('.'))
 root = yaml.load(open("rule_generator/dirs.yml", "r+"))
 base_vars = yaml.load(open("rule_generator/base.yml", "r+"))
+if base_vars == None:
+    base_vars = {}
 rules = []
 clean_targets = []
 
@@ -21,9 +27,9 @@ for dir in root["include"]:
     data = yaml.load(open(dir + "/rules.yml", "r+"))
     for var_name in data["rules"][0]["path_extract_vars"]:
         if isinstance(data["rules"][0]["variables"][var_name], list):
-            data["rules"][0]["variables"][var_name] = [dir + "/" + v for v in data["rules"][0]["variables"][var_name]]
+            data["rules"][0]["variables"][var_name] = [os.path.normpath(dir + "/" + v) for v in data["rules"][0]["variables"][var_name]]
         else:
-            data["rules"][0]["variables"][var_name] = dir + "/" + data["rules"][0]["variables"][var_name]
+            data["rules"][0]["variables"][var_name] = os.path.normpath(dir + "/" + data["rules"][0]["variables"][var_name])
 
     vars.update(data["rules"][0]["variables"])
     vars["dir"] = dir
