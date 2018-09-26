@@ -19,7 +19,7 @@ build: hakase/callback/test/callback.bin hakase/FriendLoader/friend_loader.ko
 	script/build_container.sh $(CONTAINER_TAG)
 	docker network create --driver bridge toshokan_net
 	$(DOCKER_CMD) -d --name toshokan_qemu --network toshokan_net --publish 2222:2222 toshokan_qemu_back
-	script/transfer.sh $(CONTAINER_TAG)
+	script/transfer.sh $(CONTAINER_TAG) hakase/callback/test/callback.bin
 	$(SSH_COMMAND) $(QEMU_DIR)/test_hakase.sh $(QEMU_DIR)/callback.bin
 	docker rm -f toshokan_qemu
 
