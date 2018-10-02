@@ -39,9 +39,4 @@ SECTIONS{
   .debug_ranges  0 : { *(.debug_ranges) }
   .debug_line    0 : { *(.debug_line) }
   .debug_str     0 : { *(.debug_str) }
-
-  .unsupported : {
-    *(*)
-    ASSERT(0, "Found non-empty unsupported section in object files.");
-  }
 }
