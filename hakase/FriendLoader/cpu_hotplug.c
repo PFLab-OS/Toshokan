@@ -148,6 +148,8 @@ int cpu_replug(void) {
     }
   }
 
+  trampoline_region_free(&tregion);
+
   kfree(unpluged_cpu_list);
   unpluged_cpu_list = NULL;
 
