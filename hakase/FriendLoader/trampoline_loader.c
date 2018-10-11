@@ -9,7 +9,7 @@
 static uint8_t jmp_bin[] = {0xeb, kMemoryMapTrampolineBinEntry - 2, 0x66, 0x90}; // jmp TrampolineBinEntry; xchg %ax, &ax
 
 int trampoline_region_alloc(struct trampoline_region *region) {
-  phys_addr_t tpaddr = __get_free_page(GFP_DMA|GFP_KERNEL);;
+  phys_addr_t tpaddr = __get_free_page(GFP_DMA|GFP_KERNEL);
 
   if (tpaddr >= 0x100000) {
     pr_err("friend_loader: no suitable memory for trampoline region\n");
@@ -25,7 +25,6 @@ int trampoline_region_alloc(struct trampoline_region *region) {
 
   region->paddr = tpaddr;
 
-  // TODO: free tpaddr
   return 0;
 }
 
