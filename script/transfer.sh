@@ -1,4 +1,4 @@
-#!/bin/sh -x
+#!/bin/sh -e
 
 SFTP_COMMAND=$1
 shift
