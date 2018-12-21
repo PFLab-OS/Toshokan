@@ -5,4 +5,5 @@ include:
   - hakase/interrupt
   - hakase/tests
   - hakase/callback/test
+  - hakase/print/test
   - common/tests

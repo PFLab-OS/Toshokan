@@ -20,14 +20,15 @@ QEMU_DIR:=/home/$(REMOTE_USER)/share
 
 all: hakase/print/print.o hakase/simple_loader/simple_loader.o hakase/elf_loader/elf_loader.o hakase/interrupt/interrupt.o
 
-build: hakase/callback/test/callback.bin hakase/elf_loader/test/elf_loader.bin hakase/elf_loader/test/friend.elf hakase/FriendLoader/friend_loader.ko
+build: hakase/callback/test/callback.bin hakase/print/test/print.bin hakase/elf_loader/test/elf_loader.bin hakase/elf_loader/test/friend.elf hakase/FriendLoader/friend_loader.ko
 	docker rm -f toshokan_qemu || :
 	docker network rm toshokan_net || :
 	script/build_container.sh $(CONTAINER_TAG)
 	docker network create --driver bridge toshokan_net
 	$(DOCKER_CMD) -d --name toshokan_qemu --network toshokan_net -P toshokan_qemu_back
-	script/transfer.sh "$(SFTP_COMMAND)" hakase/callback/test/callback.bin hakase/elf_loader/test/elf_loader.bin hakase/elf_loader/test/friend.elf
+	script/transfer.sh "$(SFTP_COMMAND)" hakase/callback/test/callback.bin hakase/print/test/print.bin hakase/elf_loader/test/elf_loader.bin hakase/elf_loader/test/friend.elf
 	$(SSH_COMMAND) $(QEMU_DIR)/test_hakase.sh $(QEMU_DIR)/callback.bin
+	$(SSH_COMMAND) $(QEMU_DIR)/test_hakase.sh $(QEMU_DIR)/print.bin
 	$(SSH_COMMAND) $(QEMU_DIR)/test_hakase.sh $(QEMU_DIR)/elf_loader.bin $(QEMU_DIR)/friend.elf
 	docker rm -f toshokan_qemu
 
