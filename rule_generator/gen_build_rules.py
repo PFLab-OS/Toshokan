@@ -38,6 +38,6 @@ for dir in root["include"]:
 
 base_vars.update({"rules": rules})
 base_vars.update({"clean_targets": clean_targets})
-open("Makefile", mode='w').write(env.get_template("rule_generator/makefile.tpl").render(base_vars))
+open("build_rules.mk", mode='w').write(env.get_template("rule_generator/makefile.tpl").render(base_vars))
     
 

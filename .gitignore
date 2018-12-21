@@ -70,7 +70,7 @@ Thumbs.db
 *.bin
 *.elf
 build
-Makefile
+build_rules.mk
 
 # Kernel Module Compile Results
 *.mod*
