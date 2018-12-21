@@ -11,6 +11,9 @@ def regex_replace(s, find, replace):
     else:
         return None
 
+def normpath(s):
+    return os.path.normpath(s)
+    
 env = Environment(loader=FileSystemLoader('.'))
 root = yaml.load(open("rule_generator/dirs.yml", "r+"))
 base_vars = yaml.load(open("rule_generator/base.yml", "r+"))
@@ -20,6 +23,7 @@ rules = []
 clean_targets = []
 
 env.filters['regex_replace'] = regex_replace
+env.filters['normpath'] = normpath
 
 for dir in root["include"]:
     vars = copy.deepcopy(base_vars)

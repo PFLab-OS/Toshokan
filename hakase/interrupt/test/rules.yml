@@ -3,11 +3,11 @@ rules:
     path_extract_vars:
       - clean_targets
     variables:
-      target: elf_loader.bin
+      target: interrupt.bin
       cflags: $(HAKASE_CFLAGS)
       depends:
         - ../../tests/test.o
-        - ../elf_loader.o
+        - ../interrupt.o
         - hakase.cc
       clean_targets:
         - "*.bin"
@@ -21,6 +21,8 @@ rules:
       cflags: $(HAKASE_ELFLOADER_BIN_CFLAGS)
       depends:
         - friend.cc
+        - int.cc
+        - int_asm.cc
       clean_targets:
         - "*.elf"
         - "*.bin"

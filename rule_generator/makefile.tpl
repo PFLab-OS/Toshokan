@@ -1,7 +1,8 @@
 DOCKER_CMD=docker run --rm -v $(CURDIR):/workdir -w /workdir
 HAKASE_CFLAGS:=-g -O0 -MMD -MP -Wall --std=c++14 -static -iquote /workdir/hakase -I /workdir/hakase -iquote /workdir -D __HAKASE__
-HAKASE_ELFLOADER_BIN_CFLAGS:=-O0 -Wall --std=c++14 -nostdinc -nostdlib -iquote friend/ -I friend/ -iquote hakase/ -iquote . -D__FRIEND__ -T friend/friend.ld
-FRIEND_CFLAGS:=-g -O0 -Wall --std=c++14 -nostdinc -nostdlib -iquote /workdir/friend/ -I /workdir/friend/ -iquote /workdir -iquote /workdir/hakase -D__FRIEND__ -T /workdir/friend/friend.ld
+FRIEND_CFLAGS:=-O0 -Wall --std=c++14 -nostdinc -nostdlib -iquote /workdir/friend -I /workdir/frien/ -iquote /workdir/hakase -iquote /workdir -D__FRIEND__
+HAKASE_SIMPLELOADER_BIN_CFLAGS:=$(FRIEND_CFLAGS)
+HAKASE_ELFLOADER_BIN_CFLAGS:=$(FRIEND_CFLAGS) -T /workdir/friend/friend.ld
 CONTAINER_TAG:=3a5eabf0fab92b8099129a3185f5fc98808ec8f3
 BUILD_CONTAINER:=livadk/toshokan_build:$(CONTAINER_TAG)
 KERNEL_SRC_CONTAINER:=livadk/toshokan_qemu_kernel:$(CONTAINER_TAG)
@@ -23,7 +24,7 @@ all: hakase/print/print.o hakase/simple_loader/simple_loader.o hakase/elf_loader
 
 test: common_test hakase_test
 
-HAKASE_TEST_BIN:= hakase/callback/test/callback.bin hakase/print/test/print.bin hakase/memrw/test/reading_signature.bin hakase/memrw/test/rw_small.bin hakase/memrw/test/rw_large.bin hakase/elf_loader/test/elf_loader.bin hakase/elf_loader/test/friend.elf
+HAKASE_TEST_BIN:= hakase/callback/test/callback.bin hakase/print/test/print.bin hakase/memrw/test/reading_signature.bin hakase/memrw/test/rw_small.bin hakase/memrw/test/rw_large.bin hakase/simple_loader/test/simple_loader.bin hakase/simple_loader/test/raw hakase/elf_loader/test/elf_loader.bin hakase/elf_loader/test/friend.elf
 hakase_test: $(HAKASE_TEST_BIN) hakase/FriendLoader/friend_loader.ko
 	docker rm -f toshokan_qemu || :
 	docker network rm toshokan_net || :
@@ -36,6 +37,7 @@ hakase_test: $(HAKASE_TEST_BIN) hakase/FriendLoader/friend_loader.ko
 	$(SSH_COMMAND) $(QEMU_DIR)/test_hakase.sh $(QEMU_DIR)/reading_signature.bin
 	$(SSH_COMMAND) $(QEMU_DIR)/test_hakase.sh $(QEMU_DIR)/rw_small.bin
 	$(SSH_COMMAND) $(QEMU_DIR)/test_hakase.sh $(QEMU_DIR)/rw_large.bin
+	$(SSH_COMMAND) $(QEMU_DIR)/test_hakase.sh $(QEMU_DIR)/simple_loader.bin $(QEMU_DIR)/raw
 	$(SSH_COMMAND) $(QEMU_DIR)/test_hakase.sh $(QEMU_DIR)/elf_loader.bin $(QEMU_DIR)/friend.elf
 	docker rm -f toshokan_qemu
 

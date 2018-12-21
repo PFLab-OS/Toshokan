@@ -1,8 +1,6 @@
 rules:
   - template: hakase_bin
     path_extract_vars:
-      - target
-      - depends
       - clean_targets
     variables:
       target: reading_signature.bin
@@ -16,8 +14,6 @@ rules:
         - "*.d"
   - template: hakase_bin
     path_extract_vars:
-      - target
-      - depends
       - clean_targets
     variables:
       target: rw_small.bin
@@ -31,8 +27,6 @@ rules:
         - "*.d"
   - template: hakase_bin
     path_extract_vars:
-      - target
-      - depends
       - clean_targets
     variables:
       target: rw_large.bin

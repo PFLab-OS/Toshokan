@@ -1,8 +1,6 @@
 rules:
   - template: hakase_bin
     path_extract_vars:
-      - target
-      - depends
       - clean_targets
     variables:
       target: print.bin
