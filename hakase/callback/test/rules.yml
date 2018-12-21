@@ -6,6 +6,7 @@ rules:
       - clean_targets
     variables:
       target: callback.bin
+      cflags: $(HAKASE_CFLAGS)
       depends:
         - ../../tests/test.o
         - hakase.cc

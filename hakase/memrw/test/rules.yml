@@ -6,6 +6,7 @@ rules:
       - clean_targets
     variables:
       target: reading_signature.bin
+      cflags: $(HAKASE_CFLAGS)
       depends:
         - ../../tests/test.o
         - reading_signature.cc
@@ -20,6 +21,7 @@ rules:
       - clean_targets
     variables:
       target: rw_small.bin
+      cflags: $(HAKASE_CFLAGS)
       depends:
         - ../../tests/test.o
         - rw_small.cc
@@ -34,6 +36,7 @@ rules:
       - clean_targets
     variables:
       target: rw_large.bin
+      cflags: $(HAKASE_CFLAGS)
       depends:
         - ../../tests/test.o
         - rw_large.cc

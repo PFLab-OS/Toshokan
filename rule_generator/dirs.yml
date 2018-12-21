@@ -7,4 +7,5 @@ include:
   - hakase/callback/test
   - hakase/print/test
   - hakase/memrw/test
+  - hakase/elf_loader/test
   - common/tests

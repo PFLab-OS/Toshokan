@@ -1,5 +1,6 @@
 DOCKER_CMD=docker run --rm -v $(CURDIR):/workdir -w /workdir
 HAKASE_CFLAGS:=-g -O0 -MMD -MP -Wall --std=c++14 -static -iquote /workdir/hakase -I /workdir/hakase -iquote /workdir -D __HAKASE__
+HAKASE_ELFLOADER_BIN_CFLAGS:=-O0 -Wall --std=c++14 -nostdinc -nostdlib -iquote friend/ -I friend/ -iquote hakase/ -iquote . -D__FRIEND__ -T friend/friend.ld
 FRIEND_CFLAGS:=-g -O0 -Wall --std=c++14 -nostdinc -nostdlib -iquote /workdir/friend/ -I /workdir/friend/ -iquote /workdir -iquote /workdir/hakase -D__FRIEND__ -T /workdir/friend/friend.ld
 CONTAINER_TAG:=3a5eabf0fab92b8099129a3185f5fc98808ec8f3
 BUILD_CONTAINER:=livadk/toshokan_build:$(CONTAINER_TAG)
@@ -87,16 +88,6 @@ $(FRIENDLOADER_DIR)/friend_loader.ko: $(FRIENDLOADER_DIR)/*.h $(FRIENDLOADER_DIR
 {% for rule in rules %}
 {{ rule }}
 {% endfor %}
-
-DEPENDS_HAKASE_ELFLOADER_TEST:= hakase/tests/test.o hakase/elf_loader/elf_loader.o hakase/elf_loader/test/hakase.cc
-hakase/elf_loader/test/elf_loader.bin:$(DEPENDS_HAKASE_ELFLOADER_TEST)
-	@echo "CC: (docker)/hakase/elf_loader/test : hakase/elf_loader/test/elf_loader.bin <=$(DEPENDS_HAKASE_ELFLOADER_TEST)"
-	@$(DOCKER_CMD) $(BUILD_CONTAINER) g++ $(HAKASE_CFLAGS) -o /workdir/hakase/elf_loader/test/elf_loader.bin $(addprefix /workdir/,$(DEPENDS_HAKASE_ELFLOADER_TEST))
-
-DEPENDS_HAKASE_ELFLOADER_TEST_BIN:= hakase/elf_loader/test/friend.cc
-hakase/elf_loader/test/friend.elf:$(DEPENDS_HAKASE_ELFLOADER_TEST_BIN)
-	@echo "CC: (docker)/hakase/elf_loader/test : hakase/elf_loader/test/friend.elf <=$(DEPENDS_HAKASE_ELFLOADER_TEST_BIN)"
-	$(DOCKER_CMD) $(BUILD_CONTAINER) g++ -O0 -Wall --std=c++14 -nostdinc -nostdlib -iquote friend/ -I friend/ -iquote hakase/ -iquote . -D__FRIEND__ -T friend/friend.ld $(DEPENDS_HAKASE_ELFLOADER_TEST_BIN) -o hakase/elf_loader/test/friend.elf
 
 DEPENDS_EXEC:= hakase/tests/test.o hakase/elf_loader/elf_loader.o exec.cc
 exec.bin:$(DEPENDS_EXEC)

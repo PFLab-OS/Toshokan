@@ -5,7 +5,7 @@ rules:
       - depends
       - clean_targets
     variables:
-      options: "-c"
+      cflags: $(HAKASE_CFLAGS) -c
       target: test.o
       depends:
         - test.cc

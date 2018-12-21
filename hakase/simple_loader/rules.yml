@@ -5,8 +5,8 @@ rules:
       - depends
       - clean_targets
     variables:
-      options: "-c"
       target: simple_loader.o
+      cflags: $(HAKASE_CFLAGS) -c
       depends:
         - hakase.cc
       clean_targets:

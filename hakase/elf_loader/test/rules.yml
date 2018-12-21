@@ -1,0 +1,32 @@
+rules:
+  - template: hakase_bin
+    path_extract_vars:
+      - target
+      - depends
+      - clean_targets
+    variables:
+      target: elf_loader.bin
+      cflags: $(HAKASE_CFLAGS)
+      depends:
+        - ../../tests/test.o
+        - ../elf_loader.o
+        - hakase.cc
+      clean_targets:
+        - "*.bin"
+        - "*.o"
+        - "*.d"
+  - template: hakase_bin
+    path_extract_vars:
+      - target
+      - depends
+      - clean_targets
+    variables:
+      target: friend.elf
+      cflags: $(HAKASE_ELFLOADER_BIN_CFLAGS)
+      depends:
+        - friend.cc
+      clean_targets:
+        - "*.elf"
+        - "*.bin"
+        - "*.o"
+        - "*.d"
