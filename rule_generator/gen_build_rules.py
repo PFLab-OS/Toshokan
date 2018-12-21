@@ -25,16 +25,17 @@ for dir in root["include"]:
     vars = copy.deepcopy(base_vars)
     
     data = yaml.load(open(dir + "/rules.yml", "r+"))
-    for var_name in data["rules"][0]["path_extract_vars"]:
-        if isinstance(data["rules"][0]["variables"][var_name], list):
-            data["rules"][0]["variables"][var_name] = [os.path.normpath(dir + "/" + v) for v in data["rules"][0]["variables"][var_name]]
-        else:
-            data["rules"][0]["variables"][var_name] = os.path.normpath(dir + "/" + data["rules"][0]["variables"][var_name])
+    for rule in data["rules"]:
+        for var_name in rule["path_extract_vars"]:
+            if isinstance(rule["variables"][var_name], list):
+                rule["variables"][var_name] = [os.path.normpath(dir + "/" + v) for v in rule["variables"][var_name]]
+            else:
+                rule["variables"][var_name] = os.path.normpath(dir + "/" + rule["variables"][var_name])
 
-    vars.update(data["rules"][0]["variables"])
-    vars["dir"] = dir
-    rules.append(env.get_template("rule_generator/" + data["rules"][0]["template"] + ".tpl").render(vars))
-    clean_targets.extend(data["rules"][0]["variables"]["clean_targets"])
+        vars.update(rule["variables"])
+        vars["dir"] = dir
+        rules.append(env.get_template("rule_generator/" + rule["template"] + ".tpl").render(vars))
+        clean_targets.extend(rule["variables"]["clean_targets"])
 
 base_vars.update({"rules": rules})
 base_vars.update({"clean_targets": clean_targets})
