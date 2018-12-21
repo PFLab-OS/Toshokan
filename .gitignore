@@ -69,7 +69,6 @@ Thumbs.db
 # Project files
 *.bin
 *.elf
-build
 build_rules.mk
 
 # Kernel Module Compile Results
