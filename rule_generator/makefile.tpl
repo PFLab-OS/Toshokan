@@ -31,6 +31,15 @@ build: hakase/callback/test/callback.bin hakase/elf_loader/test/elf_loader.bin h
 	$(SSH_COMMAND) $(QEMU_DIR)/test_hakase.sh $(QEMU_DIR)/elf_loader.bin $(QEMU_DIR)/friend.elf
 	docker rm -f toshokan_qemu
 
+format:
+	@echo "Formatting with clang-format. Please wait..."
+	@$(call docker_wrapper,$(FORMAT_CONTAINER_NAME),$(FORMAT_CONTAINER),\
+	 git ls-files .. \
+	  | grep -E '.*\.cc$$|.*\.h$$' \
+		| xargs -n 1 clang-format -style='{BasedOnStyle: Google}' -i \
+	 $(if $(CI),&& git diff && git diff | wc -l | xargs test 0 -eq))
+	@echo "Done."
+
 tmp: exec.bin tmp.elf hakase/FriendLoader/friend_loader.ko
 	docker rm -f toshokan_qemu || :
 	docker network rm toshokan_net || :
@@ -96,6 +105,6 @@ run_build_container:
 	$(DOCKER_CMD) -it $(BUILD_CONTAINER) sh
 
 clean:
-	rm -f Makefile {% for file in clean_targets %} {{ file }}{% endfor %} $(FRIENDLOADER_DIR)/*.o $(TRAMPOLINE_DIR)/*.o $(TRAMPOLINE_DIR)/boot_trampoline.bin
+	rm -f {% for file in clean_targets %} {{ file }}{% endfor %} $(FRIENDLOADER_DIR)/*.o $(TRAMPOLINE_DIR)/*.o $(TRAMPOLINE_DIR)/boot_trampoline.bin
 
 %.o : %.cc
