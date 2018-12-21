@@ -6,4 +6,5 @@ include:
   - hakase/tests
   - hakase/callback/test
   - hakase/print/test
+  - hakase/memrw/test
   - common/tests
