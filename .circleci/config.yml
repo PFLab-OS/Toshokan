@@ -11,9 +11,7 @@ jobs:
             apk --update add make bash
       - run:
           command: |
-            cd hakase
             make CI=true format
       - run:
           command: |
-            cd hakase
             make CI=true test
