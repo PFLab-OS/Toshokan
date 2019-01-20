@@ -4,34 +4,33 @@
 #include "cpu_hotplug.h"
 #include <asm/realmode.h>
 #include <linux/slab.h>
+#include <linux/gfp.h>
 
 static uint8_t jmp_bin[] = {0xeb, kMemoryMapTrampolineBinEntry - 2, 0x66, 0x90}; // jmp TrampolineBinEntry; xchg %ax, &ax
-static const size_t trampoline_buf_align = 0x1000;
-static const size_t trampoline_buf_size = 0x4000;
 
 int trampoline_region_alloc(struct trampoline_region *region) {
-  phys_addr_t tpaddr;
-  uint32_t __iomem *io_addr;
+  phys_addr_t tpaddr = __get_free_page(GFP_DMA|GFP_KERNEL);
 
-  // search signature
-  for (tpaddr = 0x1000; tpaddr < 0x100000; tpaddr += trampoline_buf_align) {
-    if (tpaddr >= 0xA0000 && tpaddr <= 0xBF000) {
-      // this area is reserved. (ref. Multiprocessor Specification)
-      continue;
-    }
-    io_addr = ioremap(tpaddr, 0x1000);
-    if (io_addr == 0) {
-      continue;
-    }
-    if (io_addr[kMemoryMapSignature / sizeof(*io_addr)] == FRIEND_LOADER_TRAMPOLINE_SIGNATURE) {
-      // found
-      region->paddr = tpaddr;
-      iounmap(io_addr);
-      return 0;
-    }
-    iounmap(io_addr);
+  if (tpaddr >= 0x100000) {
+    pr_err("friend_loader: no suitable memory for trampoline region\n");
+    return 1;
   }
-  return -1;
+  
+  if (tpaddr >= 0xA0000 && tpaddr <= 0xBF000) {
+    // this area is reserved. (ref. Multiprocessor Specification)
+    int rval = trampoline_region_alloc(region); // retry
+    free_page(tpaddr);
+    return rval;
+  }
+
+  region->paddr = tpaddr;
+
+  return 0;
+}
+
+void trampoline_region_free(struct trampoline_region *region) {
+  free_page(region->paddr);
+  region->paddr = NULL;
 }
 
 int trampoline_region_init(struct trampoline_region *region,

@@ -6,7 +6,7 @@
 #include <asm/dma.h>
 #include <linux/uaccess.h>
 #include <linux/io.h>
-#include "common.h"
+#include "common/_memory.h"
 
 static struct dentry *topdir;
 static struct dentry *memory;

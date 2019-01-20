@@ -1,0 +1,13 @@
+include:
+  - hakase/print
+  - hakase/simple_loader
+  - hakase/elf_loader
+  - hakase/interrupt
+  - hakase/tests
+  - hakase/callback/test
+  - hakase/print/test
+  - hakase/memrw/test
+  - hakase/simple_loader/test
+  - hakase/elf_loader/test
+  - hakase/interrupt/test
+  - common/tests

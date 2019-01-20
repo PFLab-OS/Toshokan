@@ -69,7 +69,7 @@ Thumbs.db
 # Project files
 *.bin
 *.elf
-build
+build_rules.mk
 
 # Kernel Module Compile Results
 *.mod*
@@ -79,7 +79,6 @@ modules.order
 Module.symvers
 Mkfile.old
 dkms.conf
-*.ko
 
 # Code Coverage Files
 *.gcov

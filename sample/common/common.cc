@@ -6,7 +6,11 @@ int16_t get_cpuid() {
   return id;
 }
 
+static int print_flag = 0;
 void puts(F2H &f2h, const char *str) {
+  while(__sync_bool_compare_and_swap(&print_flag, 0, 1)) {
+    asm volatile("pause");
+  }
   while (*str) {
     ChannelAccessor<1> ch_ac(f2h, 2);
     ch_ac.Write<char>(0, *str);
@@ -16,6 +20,7 @@ void puts(F2H &f2h, const char *str) {
   ChannelAccessor<1> ch_ac(f2h, 2);
   ch_ac.Write<char>(0, '\n');
   ch_ac.Do(0);
+  print_flag = 0;
 }
 
 void return_value(F2H &f2h, int i) {

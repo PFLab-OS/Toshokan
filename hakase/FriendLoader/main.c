@@ -5,9 +5,9 @@
 #include <linux/sysfs.h>
 
 #include "call_interface.h"
-#include "common.h"
 #include "cpu_hotplug.h"
 #include "debug_mem.h"
+#include "common/_memory.h"
 
 MODULE_DESCRIPTION("Friend Loader");
 MODULE_LICENSE("GPL v2");

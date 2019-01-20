@@ -1,0 +1,12 @@
+rules:
+  - template: hakase_bin
+    path_extract_vars:
+      - clean_targets
+    variables:
+      target: simple_loader.o
+      cflags: $(HAKASE_CFLAGS) -c
+      depends:
+        - hakase.cc
+      clean_targets:
+        - "*.o"
+        - "*.d"

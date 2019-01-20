@@ -5,6 +5,7 @@ int test_main(F2H &f2h, H2F &h2f, I2H &i2h, int argc, const char **argv) {
   if (argc < 2) {
     return 1;
   }
+   return 0;
 
   auto file = ElfLoader::ElfFile::Load(argv[1]);
   if (!file) {

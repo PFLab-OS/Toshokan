@@ -1,0 +1,15 @@
+rules:
+  - template: hakase_bin
+    path_extract_vars:
+      - clean_targets
+    variables:
+      target: print.bin
+      cflags: $(HAKASE_CFLAGS)
+      depends:
+        - ../../tests/test.o
+        - ../print.o
+        - hakase.cc
+      clean_targets:
+        - "*.bin"
+        - "*.o"
+        - "*.d"
