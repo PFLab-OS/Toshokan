@@ -1,4 +1,4 @@
-#include "hakase.h"
+#include "interrupt.h"
 
 bool InterruptController::ProcessInterrupt(int64_t &vnum) {
   vnum = _i2h.OldRead<int64_t>(0);

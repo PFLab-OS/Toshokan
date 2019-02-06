@@ -70,6 +70,9 @@ Thumbs.db
 *.bin
 *.elf
 build_rules.mk
+bin/
+CMakeCache.txt
+CMakeFiles/
 
 # Kernel Module Compile Results
 *.mod*

@@ -1,4 +1,4 @@
-#include "interrupt/hakase.h"
+#include "interrupt.h"
 #include "common/_memory.h"
 #include "elf_loader/hakase.h"
 #include "tests/test.h"
