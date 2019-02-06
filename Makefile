@@ -4,7 +4,12 @@ default:
 
 build_rules.mk:
 	-rm -rf build_rules.mk
-	docker run --rm -v $(CURDIR):/workdir$(CURDIR) -w /workdir$(CURDIR) livadk/jinja2:ae8602a4bdc5a04cecb552d01e717233eae46fa3 python3 /workdir$(CURDIR)/rule_generator/gen_build_rules.py
+	docker rm -f toshokan_rule_generator || :
+	docker run -it -d -w /workdir --name toshokan_rule_generator livadk/jinja2:ae8602a4bdc5a04cecb552d01e717233eae46fa3 sh
+	rsync --blocking-io -q -e 'docker exec -i' -rltDv . toshokan_rule_generator:/workdir
+	docker exec -i toshokan_rule_generator python3 /workdir/rule_generator/gen_build_rules.py
+	rsync --blocking-io -q -e 'docker exec -i' -rltDv toshokan_rule_generator:/workdir/ .
+	docker rm -f toshokan_rule_generator
 	chmod -w build_rules.mk
 
 Makefile: ;
