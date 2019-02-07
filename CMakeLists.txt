@@ -1,8 +1,5 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 2.8.0)
 
-set(HAKASE_CFLAGS -g -O0 -MMD -MP -Wall --std=c++14 -static -iquote hakase -I hakase -iquote . -D __HAKASE__)
-set(FRIEND_CFLAGS -O0 -Wall --std=c++14 -nostdinc -nostdlib -iquote friend -I friend -iquote hakase -iquote . -D__FRIEND__)
-set(HAKASE_SIMPLELOADER_BIN_CFLAGS ${FRIEND_CFLAGS})
 set(HAKASE_ELFLOADER_BIN_CFLAGS ${FRIEND_CFLAGS} -T friend/friend.ld)
 set(CONTAINER_TAG 3a5eabf0fab92b8099129a3185f5fc98808ec8f3)
 set(BUILD_CONTAINER livadk/toshokan_build:${CONTAINER_TAG})
@@ -18,11 +15,21 @@ set(REMOTE_USER hakase)
 #set(SFTP_COMMAND sftp nuc)
 #set(REMOTE_USER liva)
 
-set(CMAKE_CXX_COMPILER bin/g++)
-set(CMAKE_CXX_FLAGS "-g -O0 -MMD -MP -Wall --std=c++14 -static -iquote hakase -I hakase -iquote . -D __HAKASE__")
+set(CMAKE_ASM_COMPILER ${CMAKE_CURRENT_SOURCE_DIR}/bin/g++)
+set(CMAKE_C_COMPILER ${CMAKE_CURRENT_SOURCE_DIR}/bin/g++)
+set(CMAKE_CXX_COMPILER ${CMAKE_CURRENT_SOURCE_DIR}/bin/g++)
 
 add_custom_target(generate_wrappers
   COMMAND script/generate_wrappers.sh ${BUILD_CONTAINER})
 
-add_executable(hakase/interrupt/test/interrupt.bin hakase/tests/test.o hakase/elf_loader/hakase.cc hakase/interrupt.cc hakase/interrupt/test/hakase.cc)
-add_dependencies(hakase/interrupt/test/interrupt.bin generate_wrappers)
+function(add_executable_with_deps bin)
+  add_executable(${bin} ${ARGN})
+  add_dependencies(${bin} generate_wrappers)
+endfunction()
+
+set(HAKASE_CXX_FLAGS "-g -O0 -MMD -MP -Wall --std=c++14 -static -isystem ${CMAKE_CURRENT_SOURCE_DIR}/hakase -iquote ${CMAKE_CURRENT_SOURCE_DIR} -D __HAKASE__")
+set(FRIEND_CXX_FLAGS "-O0 -Wall --std=c++14 -nostdinc -nostdlib -isystem ${CMAKE_CURRENT_SOURCE_DIR}/friend -iquote ${CMAKE_CURRENT_SOURCE_DIR}/hakase -iquote ${CMAKE_CURRENT_SOURCE_DIR} -D__FRIEND__")
+set(FRIEND_ELF_CXX_FLAGS "${FRIEND_CXX_FLAGS} -T ${CMAKE_CURRENT_SOURCE_DIR}/friend/friend.ld")
+add_subdirectory(hakase/tests/)
+
+

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "type.h"
+#include <stdint.h>
 
 /*
  * format of trampoline region

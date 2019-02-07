@@ -1,5 +1,5 @@
 #include "CppUTestExt/MockSupport.h"
-#include "channel/hakase.h"
+#include "channel.h"
 #include "debug.h"
 
 int Channel::SendSignal(int16_t type) {

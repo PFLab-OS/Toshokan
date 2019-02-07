@@ -1,7 +1,8 @@
 #pragma once
 #include <assert.h>
-#include "channel/hakase.h"
-#include "type.h"
+#include "channel.h"
+#include <stdint.h>
+#include <stddef.h>
 
 template <int kBufSize = Channel::kDataAreaSizeMax>
 class ChannelAccessor {
