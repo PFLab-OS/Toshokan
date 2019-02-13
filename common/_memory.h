@@ -1,6 +1,10 @@
 #pragma once
 
+#ifdef __FRIEND_LOADER__
+#include <linux/types.h>
+#else
 #include <stdint.h>
+#endif /* __FRIEND_LOADER__ */
 
 /*
  * format of trampoline region
