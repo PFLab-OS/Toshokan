@@ -1,12 +1,29 @@
 Import('hakase_env friend_env friend_elf_env')
-hakase_env.Program(target='print/print.bin', source=["test.cc", "../print.cc", "print/hakase.cc"])
-hakase_env.Program(target='memrw/reading_signature.bin', source=["test.cc", "memrw/reading_signature.cc"])
-hakase_env.Program(target='memrw/rw_small.bin', source=["test.cc", "memrw/rw_small.cc"])
-hakase_env.Program(target='memrw/rw_large.bin', source=["test.cc", "memrw/rw_large.cc"])
-hakase_env.Program(target='simple_loader/simple_loader.bin', source=["test.cc", "../simple_loader.cc", "simple_loader/hakase.cc"])
-hakase_env.Program(target='interrupt/interrupt.bin', source=["test.cc", "../elf_loader.cc", "../interrupt.cc", "interrupt/hakase.cc"])
-hakase_env.Program(target='elf_loader/elf_loader.bin', source=["test.cc", "../elf_loader.cc", "../interrupt.cc", "elf_loader/hakase.cc"])
+
+test_targets = []
+
+def define_simple_tests(target, source):
+    hakase_env.Program(target=target, source=source)
+    test_targets.append([target])
+
+define_simple_tests(target='callback/callback.bin', source=["test.cc", "callback/hakase.cc"])
+define_simple_tests(target='print/print.bin', source=["test.cc", "../print.cc", "print/hakase.cc"])
+define_simple_tests(target='memrw/reading_signature.bin', source=["test.cc", "memrw/reading_signature.cc"])
+define_simple_tests(target='memrw/rw_small.bin', source=["test.cc", "memrw/rw_small.cc"])
+define_simple_tests(target='memrw/rw_large.bin', source=["test.cc", "memrw/rw_large.cc"])
+
 friend_raw_env = friend_env.Clone(LINKFLAGS=friend_env.Dictionary('LINKFLAGS') + ' -T {0}/simple_loader/raw.ld'.format(Dir('.').abspath))
+
+hakase_env.Program(target='simple_loader/simple_loader.bin', source=["test.cc", "../simple_loader.cc", "simple_loader/hakase.cc"])
 friend_raw_env.Program(target='simple_loader/raw', source=["simple_loader/raw.cc"])
+test_targets.append(['simple_loader/simple_loader.bin', 'simple_loader/raw'])
+
+hakase_env.Program(target='elf_loader/elf_loader.bin', source=["test.cc", "../elf_loader.cc", "../interrupt.cc", "elf_loader/hakase.cc"])
 friend_elf_env.Program(target='elf_loader/friend.elf', source=["elf_loader/friend.cc"])
+test_targets.append(['elf_loader/elf_loader.bin', 'elf_loader/friend.elf'])
+
+hakase_env.Program(target='interrupt/interrupt.bin', source=["test.cc", "../elf_loader.cc", "../interrupt.cc", "interrupt/hakase.cc"])
 friend_elf_env.Program(target='interrupt/friend.elf', source=["interrupt/friend.cc", "interrupt/int.cc", "interrupt/int_asm.S"])
+test_targets.append(['interrupt/interrupt.bin', 'interrupt/friend.elf'])
+
+Return('test_targets')

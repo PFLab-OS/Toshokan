@@ -39,16 +39,45 @@ friend_env = base_env.Clone(ASFLAGS=friend_flag, CXXFLAGS=friend_flag, LINKFLAGS
 friend_elf_env = base_env.Clone(ASFLAGS=friend_elf_flag, CXXFLAGS=friend_elf_flag, LINKFLAGS=friend_elf_flag)
 
 Export('hakase_env friend_env friend_elf_env')
-SConscript(dirs=['hakase/tests'])
+hakase_test_targets = SConscript(dirs=['hakase/tests'])
 
-base_env.Clone(ASFLAGS=trampoline_flag, LINKFLAGS=trampoline_flag, CFLAGS=trampoline_flag, CXXFLAGS=trampoline_flag).Program(target='hakase/FriendLoader/trampoline/boot_trampoline.bin', source=['hakase/FriendLoader/trampoline/bootentry.S', 'hakase/FriendLoader/trampoline/main.cc'])
+# FriendLoader & trampoline
+trampoline_env = base_env.Clone(ASFLAGS=trampoline_flag, LINKFLAGS=trampoline_flag, CFLAGS=trampoline_flag, CXXFLAGS=trampoline_flag)
+trampoline_env.Program(target='hakase/FriendLoader/trampoline/boot_trampoline.bin', source=['hakase/FriendLoader/trampoline/bootentry.S', 'hakase/FriendLoader/trampoline/main.cc'])
 Command('hakase/FriendLoader/trampoline/bin.o', 'hakase/FriendLoader/trampoline/boot_trampoline.bin', [
-          docker_module_build_cmd + 'objcopy -I binary -O elf64-x86-64 -B i386:x86-64 $SOURCES $TARGET',
-	  docker_module_build_cmd + 'script/check_trampoline_bin_size.sh $TARGET'])
+    docker_module_build_cmd + 'sh -c "cd hakase/FriendLoader/trampoline; objcopy -I binary -O elf64-x86-64 -B i386:x86-64 boot_trampoline.bin bin.o"',
+    docker_module_build_cmd + 'script/check_trampoline_bin_size.sh $TARGET'])
 Command('hakase/FriendLoader/friend_loader.ko', [Glob('hakase/FriendLoader/*.h'), Glob('hakase/FriendLoader/*.c'), 'hakase/FriendLoader/trampoline/bin.o'], docker_module_build_cmd + 'sh -c "cd {0}; KERN_VERSION=4.13.0-45-generic make all"'.format('hakase/FriendLoader'))
 
+# format
 AlwaysBuild(Alias('format', [], [
     'echo "Formatting with clang-format. Please wait..."',
     docker_format_cmd + 'sh -c "git ls-files . | grep -E \'.*\\.cc$$|.*\\.h$$\' | xargs -n 1 clang-format -style=\'{BasedOnStyle: Google}\' -i"',
     'echo "Done."']))
 #$(if $(CI),&& git diff && git diff | wc -l | xargs test 0 -eq)
+
+AlwaysBuild(Alias('test2', '', ['echo {0}'.format('@'.join(map((lambda target: ','.join(target)), hakase_test_targets)))]))
+
+ssh_cmd = docker_cmd + '-it --network toshokan_net livadk/toshokan_ssh:' + container_tag + ' ssh -o ConnectTimeout=3 -o LogLevel=quiet -o StrictHostKeyChecking=no -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile=/dev/null -i /id_rsa -p 2222 hakase@toshokan_qemu'
+sftp_cmd = docker_cmd + '-i --network toshokan_net livadk/toshokan_ssh:' + container_tag + ' sftp -o ConnectTimeout=3 -o LogLevel=quiet -o StrictHostKeyChecking=no -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile=/dev/null -i /id_rsa -P 2222 hakase@toshokan_qemu'
+
+hakase_test_bin = 'hakase/tests/callback/callback.bin hakase/tests/print/print.bin hakase/tests/memrw/reading_signature.bin hakase/tests/memrw/rw_small.bin hakase/tests/memrw/rw_large.bin hakase/tests/simple_loader/simple_loader.bin hakase/tests/simple_loader/raw hakase/tests/elf_loader/elf_loader.bin hakase/tests/elf_loader/friend.elf'
+qemu_dir = '/home/hakase/share'
+
+AlwaysBuild(Alias('prepare', '', 'script/build_container.sh ' + container_tag))
+
+# test pattern
+AlwaysBuild(Alias('test', 'prepare', [
+    'docker rm -f toshokan_qemu || :',
+    'docker network rm toshokan_net || :',
+    'docker network create --driver bridge toshokan_net',
+    docker_cmd + '-d --name toshokan_qemu --network toshokan_net -P toshokan_qemu_back',
+    'script/transfer.sh "{0}" {1}'.format(sftp_cmd, hakase_test_bin),
+    '{0} {1}/test_hakase.sh {1}/callback.bin'.format(ssh_cmd, qemu_dir),
+    '{0} {1}/test_hakase.sh {1}/print.bin'.format(ssh_cmd, qemu_dir),
+    '{0} {1}/test_hakase.sh {1}/reading_signature.bin'.format(ssh_cmd, qemu_dir),
+    '{0} {1}/test_hakase.sh {1}/rw_small.bin'.format(ssh_cmd, qemu_dir),
+    '{0} {1}/test_hakase.sh {1}/rw_large.bin'.format(ssh_cmd, qemu_dir),
+    '{0} {1}/test_hakase.sh {1}/simple_loader.bin {1}/raw'.format(ssh_cmd, qemu_dir),
+    '{0} {1}/test_hakase.sh {1}/elf_loader.bin {1}/friend.elf'.format(ssh_cmd, qemu_dir),
+    'docker rm -f toshokan_qemu']))
