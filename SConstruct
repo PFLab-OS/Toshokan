@@ -61,18 +61,18 @@ AlwaysBuild(Alias('test2', '', ['echo {0}'.format('@'.join(map((lambda target: '
 ssh_cmd = docker_cmd + '-it --network toshokan_net livadk/toshokan_ssh:' + container_tag + ' ssh -o ConnectTimeout=3 -o LogLevel=quiet -o StrictHostKeyChecking=no -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile=/dev/null -i /id_rsa -p 2222 hakase@toshokan_qemu'
 sftp_cmd = docker_cmd + '-i --network toshokan_net livadk/toshokan_ssh:' + container_tag + ' sftp -o ConnectTimeout=3 -o LogLevel=quiet -o StrictHostKeyChecking=no -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile=/dev/null -i /id_rsa -P 2222 hakase@toshokan_qemu'
 
-hakase_test_bin = 'hakase/tests/callback/callback.bin hakase/tests/print/print.bin hakase/tests/memrw/reading_signature.bin hakase/tests/memrw/rw_small.bin hakase/tests/memrw/rw_large.bin hakase/tests/simple_loader/simple_loader.bin hakase/tests/simple_loader/raw hakase/tests/elf_loader/elf_loader.bin hakase/tests/elf_loader/elf_loader.elf hakase/tests/interrupt/interrupt.bin hakase/tests/interrupt/interrupt.elf'
+hakase_test_bin = ['hakase/tests/callback/callback.bin', 'hakase/tests/print/print.bin', 'hakase/tests/memrw/reading_signature.bin', 'hakase/tests/memrw/rw_small.bin', 'hakase/tests/memrw/rw_large.bin', 'hakase/tests/simple_loader/simple_loader.bin', 'hakase/tests/simple_loader/raw', 'hakase/tests/elf_loader/elf_loader.bin', 'hakase/tests/elf_loader/elf_loader.elf', 'hakase/tests/interrupt/interrupt.bin', 'hakase/tests/interrupt/interrupt.elf']
 qemu_dir = '/home/hakase/share'
 
 AlwaysBuild(Alias('prepare', '', 'script/build_container.sh ' + container_tag))
 
 # test pattern
-AlwaysBuild(Alias('test', 'prepare', [
+test = AlwaysBuild(Alias('test', hakase_test_bin.append('prepare'), [
     'docker rm -f toshokan_qemu || :',
     'docker network rm toshokan_net || :',
     'docker network create --driver bridge toshokan_net',
     docker_cmd + '-d --name toshokan_qemu --network toshokan_net -P toshokan_qemu_back',
-    'script/transfer.sh "{0}" {1}'.format(sftp_cmd, hakase_test_bin),
+    'script/transfer.sh "{0}" {1}'.format(sftp_cmd, ' '.join(hakase_test_bin)),
     '{0} {1}/test_hakase.sh {1}/callback.bin'.format(ssh_cmd, qemu_dir),
     '{0} {1}/test_hakase.sh {1}/print.bin'.format(ssh_cmd, qemu_dir),
     '{0} {1}/test_hakase.sh {1}/reading_signature.bin'.format(ssh_cmd, qemu_dir),
@@ -82,3 +82,5 @@ AlwaysBuild(Alias('test', 'prepare', [
     '{0} {1}/test_hakase.sh {1}/elf_loader.bin {1}/elf_loader.elf'.format(ssh_cmd, qemu_dir),
     '{0} {1}/test_hakase.sh {1}/interrupt.bin {1}/interrupt.elf'.format(ssh_cmd, qemu_dir),
     'docker rm -f toshokan_qemu']))
+
+Default(test)
