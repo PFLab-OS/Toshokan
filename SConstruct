@@ -61,7 +61,7 @@ AlwaysBuild(Alias('test2', '', ['echo {0}'.format('@'.join(map((lambda target: '
 ssh_cmd = docker_cmd + '-it --network toshokan_net livadk/toshokan_ssh:' + container_tag + ' ssh -o ConnectTimeout=3 -o LogLevel=quiet -o StrictHostKeyChecking=no -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile=/dev/null -i /id_rsa -p 2222 hakase@toshokan_qemu'
 sftp_cmd = docker_cmd + '-i --network toshokan_net livadk/toshokan_ssh:' + container_tag + ' sftp -o ConnectTimeout=3 -o LogLevel=quiet -o StrictHostKeyChecking=no -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile=/dev/null -i /id_rsa -P 2222 hakase@toshokan_qemu'
 
-hakase_test_bin = 'hakase/tests/callback/callback.bin hakase/tests/print/print.bin hakase/tests/memrw/reading_signature.bin hakase/tests/memrw/rw_small.bin hakase/tests/memrw/rw_large.bin hakase/tests/simple_loader/simple_loader.bin hakase/tests/simple_loader/raw hakase/tests/elf_loader/elf_loader.bin hakase/tests/elf_loader/friend.elf'
+hakase_test_bin = 'hakase/tests/callback/callback.bin hakase/tests/print/print.bin hakase/tests/memrw/reading_signature.bin hakase/tests/memrw/rw_small.bin hakase/tests/memrw/rw_large.bin hakase/tests/simple_loader/simple_loader.bin hakase/tests/simple_loader/raw hakase/tests/elf_loader/elf_loader.bin hakase/tests/elf_loader/elf_loader.elf hakase/tests/interrupt/interrupt.bin hakase/tests/interrupt/interrupt.elf'
 qemu_dir = '/home/hakase/share'
 
 AlwaysBuild(Alias('prepare', '', 'script/build_container.sh ' + container_tag))
@@ -79,5 +79,6 @@ AlwaysBuild(Alias('test', 'prepare', [
     '{0} {1}/test_hakase.sh {1}/rw_small.bin'.format(ssh_cmd, qemu_dir),
     '{0} {1}/test_hakase.sh {1}/rw_large.bin'.format(ssh_cmd, qemu_dir),
     '{0} {1}/test_hakase.sh {1}/simple_loader.bin {1}/raw'.format(ssh_cmd, qemu_dir),
-    '{0} {1}/test_hakase.sh {1}/elf_loader.bin {1}/friend.elf'.format(ssh_cmd, qemu_dir),
+    '{0} {1}/test_hakase.sh {1}/elf_loader.bin {1}/elf_loader.elf'.format(ssh_cmd, qemu_dir),
+    '{0} {1}/test_hakase.sh {1}/interrupt.bin {1}/interrupt.elf'.format(ssh_cmd, qemu_dir),
     'docker rm -f toshokan_qemu']))

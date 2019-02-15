@@ -19,11 +19,11 @@ friend_raw_env.Program(target='simple_loader/raw', source=["simple_loader/raw.cc
 test_targets.append(['simple_loader/simple_loader.bin', 'simple_loader/raw'])
 
 hakase_env.Program(target='elf_loader/elf_loader.bin', source=["test.cc", "../elf_loader.cc", "../interrupt.cc", "elf_loader/hakase.cc"])
-friend_elf_env.Program(target='elf_loader/friend.elf', source=["elf_loader/friend.cc"])
-test_targets.append(['elf_loader/elf_loader.bin', 'elf_loader/friend.elf'])
+friend_elf_env.Program(target='elf_loader/elf_loader.elf', source=["elf_loader/friend.cc"])
+test_targets.append(['elf_loader/elf_loader.bin', 'elf_loader/elf_loader.elf'])
 
 hakase_env.Program(target='interrupt/interrupt.bin', source=["test.cc", "../elf_loader.cc", "../interrupt.cc", "interrupt/hakase.cc"])
-friend_elf_env.Program(target='interrupt/friend.elf', source=["interrupt/friend.cc", "interrupt/int.cc", "interrupt/int_asm.S"])
-test_targets.append(['interrupt/interrupt.bin', 'interrupt/friend.elf'])
+friend_elf_env.Program(target='interrupt/interrupt.elf', source=["interrupt/friend.cc", "interrupt/int.cc", "interrupt/int_asm.S"])
+test_targets.append(['interrupt/interrupt.bin', 'interrupt/interrupt.elf'])
 
 Return('test_targets')
