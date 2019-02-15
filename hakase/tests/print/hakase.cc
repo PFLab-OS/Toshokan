@@ -1,5 +1,5 @@
-#include "channel.h"
 #include <iostream>
+#include "channel.h"
 #include "print.h"
 #include "tests/test.h"
 

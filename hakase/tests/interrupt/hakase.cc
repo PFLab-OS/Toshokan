@@ -1,6 +1,6 @@
-#include "interrupt.h"
 #include "common/_memory.h"
 #include "elf_loader.h"
+#include "interrupt.h"
 #include "tests/test.h"
 
 int test_main(F2H &f2h, H2F &h2f, I2H &i2h, int argc, const char **argv) {

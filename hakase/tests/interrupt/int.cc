@@ -1,8 +1,8 @@
 #include "int.h"
+#include <stdint.h>
 #include "channel.h"
 #include "common/_memory.h"
 #include "common/channel_accessor.h"
-#include <stdint.h>
 
 struct idt_entity {
   uint32_t entry[4];

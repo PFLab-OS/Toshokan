@@ -1,8 +1,8 @@
 #pragma once
 #include <assert.h>
-#include "channel.h"
-#include <stdint.h>
 #include <stddef.h>
+#include <stdint.h>
+#include "channel.h"
 
 template <int kBufSize = Channel::kDataAreaSizeMax>
 class ChannelAccessor {

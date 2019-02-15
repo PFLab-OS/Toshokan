@@ -7,10 +7,10 @@
 int test_main(F2H &f2h, H2F &h2f, I2H &i2h, int argc, const char **argv) {
   static const uint64_t kAddress = 0;
 
-  // signature: jmp TrampolineBinEntry; xchg %ax, &ax (see hakase/FriendLoader/trampoline_loader.c)
+  // signature: jmp TrampolineBinEntry; xchg %ax, &ax (see
+  // hakase/FriendLoader/trampoline_loader.c)
   const uint8_t signature[] = {
-      0xeb, static_cast<int>(MemoryMap::kTrampolineBinEntry) - 2,
-      0x66, 0x90};
+      0xeb, static_cast<int>(MemoryMap::kTrampolineBinEntry) - 2, 0x66, 0x90};
 
   uint8_t buf[sizeof(signature) / sizeof(*signature)];
   MemoryAccessor::Reader mr(h2f, 1, kAddress, buf,
