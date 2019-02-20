@@ -1,4 +1,4 @@
-EnsureSConsVersion(3, 0)
+EnsureSConsVersion(3, 0, 0)
 EnsurePythonVersion(2, 5)
 Decider('MD5-timestamp')
 
@@ -21,9 +21,9 @@ def docker_format_cmd(arg, workdir=curdir):
 
 def build_wrapper(env, target, source):
   with open("bin/g++", mode='w') as f:
-    f.write('#!/bin/sh\n' \
-            'args="$@"\n' \
-            + docker_build_cmd('g++ $args'))
+    f.write('\n'.join(['#!/bin/sh',
+                       'args="$@"',
+                       docker_build_cmd('g++ $args')]))
   os.chmod('bin/g++', os.stat('bin/g++').st_mode | stat.S_IEXEC)
   return None
   
@@ -61,12 +61,12 @@ AlwaysBuild(Alias('format', [], [
     'echo "Done."']))
 #$(if $(CI),&& git diff && git diff | wc -l | xargs test 0 -eq)
 
-qemu_dir = '/home/hakase/share'
+qemu_dir = '/home/hakase/'
 
 def ssh_cmd(arg):
-    return docker_cmd('-it --network toshokan_net livadk/toshokan_ssh:' + container_tag + ' ssh -o ConnectTimeout=3 -o LogLevel=quiet -o StrictHostKeyChecking=no -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile=/dev/null -i /id_rsa -p 2222 hakase@toshokan_qemu cd {0} \&\& {1}'.format(qemu_dir, arg))
-def sftp_cmd():
-    return docker_cmd('-i --network toshokan_net livadk/toshokan_ssh:' + container_tag + ' sftp -o ConnectTimeout=3 -o LogLevel=quiet -o StrictHostKeyChecking=no -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile=/dev/null -i /id_rsa -P 2222 hakase@toshokan_qemu')
+    return docker_cmd('-i --network toshokan_net livadk/toshokan_ssh:' + container_tag + ' ssh -o ConnectTimeout=3 -o LogLevel=quiet -o StrictHostKeyChecking=no -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile=/dev/null -i /id_rsa -p 2222 hakase@toshokan_qemu cd {0} \&\& {1}'.format(qemu_dir, arg))
+def transfer_cmd(fname):
+    return ssh_cmd('dd status=none of={0} < {1} \&\& chmod +rx {0}'.format(os.path.basename(fname), fname))
 
 hakase_test_bin = ['hakase/tests/callback/callback.bin', 'hakase/tests/print/print.bin', 'hakase/tests/memrw/reading_signature.bin', 'hakase/tests/memrw/rw_small.bin', 'hakase/tests/memrw/rw_large.bin', 'hakase/tests/simple_loader/simple_loader.bin', 'hakase/tests/simple_loader/raw', 'hakase/tests/elf_loader/elf_loader.bin', 'hakase/tests/elf_loader/elf_loader.elf', 'hakase/tests/interrupt/interrupt.bin', 'hakase/tests/interrupt/interrupt.elf']
 
@@ -81,13 +81,17 @@ def expand_hakase_test_targets_to_lists(prefix):
     return list(map(lambda ele: reduce(add_path_func, ele, ''), hakase_test_targets))
 
 # test pattern
-test = AlwaysBuild(Alias('test', expand_hakase_test_targets_to_depends() + ['prepare'], [
+test = AlwaysBuild(Alias('test', ['bin/g++'] + expand_hakase_test_targets_to_depends() + ['prepare'], [
     'docker rm -f toshokan_qemu || :',
     'docker network rm toshokan_net || :',
     'docker network create --driver bridge toshokan_net',
     docker_cmd('-d --name toshokan_qemu --network toshokan_net -P toshokan_qemu_back'),
-    'script/transfer.sh "{0}" {1}'.format(sftp_cmd(), ' '.join(expand_hakase_test_targets_to_lists('./build/')))] +
-    list(map(lambda ele: ssh_cmd(' ./test_hakase.sh ' + ele), expand_hakase_test_targets_to_lists('./'))) +
+    transfer_cmd('hakase/FriendLoader/friend_loader.ko'),
+    transfer_cmd('hakase/tests/test_hakase.sh'),
+    transfer_cmd('hakase/tests/test_library.sh'),
+    transfer_cmd('hakase/FriendLoader/run.sh')] +
+    list(map(lambda ele: transfer_cmd(ele), expand_hakase_test_targets_to_depends())) +
+    list(map(lambda ele: ssh_cmd('./test_hakase.sh ' + ele), expand_hakase_test_targets_to_lists('./'))) +
     ['docker rm -f toshokan_qemu']))
 
 Default(test)
