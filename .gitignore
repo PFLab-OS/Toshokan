@@ -69,11 +69,10 @@ Thumbs.db
 # Project files
 *.bin
 *.elf
-build_rules.mk
 bin/
-cmake_install.cmake
-CMakeCache.txt
-CMakeFiles/
+build/
+.docker/
+.sconsign.dblite
 hakase/tests/simple_loader/raw
 
 # Kernel Module Compile Results
