@@ -10,20 +10,20 @@ from functools import reduce
 curdir = Dir('.').abspath
 container_tag = "3a5eabf0fab92b8099129a3185f5fc98808ec8f3"
 
-def docker_cmd(arg, workdir=curdir):
-    return 'docker run --rm -v {0}:{0} -w {1} {2}'.format(curdir, workdir, arg)
+def docker_cmd(container, arg, workdir=curdir):
+    return ['docker run --rm -v {0}:{0} -w {1} {2} {3}'.format(curdir, workdir, container, arg)]
 def docker_build_cmd(arg, workdir=curdir):
-    return docker_cmd('livadk/toshokan_build:' + container_tag + ' ' + arg, workdir)
+    return docker_cmd('livadk/toshokan_build:' + container_tag, arg, workdir)
 def docker_module_build_cmd(arg, workdir=curdir):
-    return docker_cmd('livadk/toshokan_qemu_kernel:' + container_tag + ' ' + arg, workdir)
+    return docker_cmd('livadk/toshokan_qemu_kernel:' + container_tag, arg, workdir)
 def docker_format_cmd(arg, workdir=curdir):
-    return docker_cmd('livadk/clang-format:9f1d281b0a30b98fbb106840d9504e2307d3ad8f ' + arg, workdir)
+    return docker_cmd('livadk/clang-format:9f1d281b0a30b98fbb106840d9504e2307d3ad8f', arg, workdir)
 
 def build_wrapper(env, target, source):
   with open("bin/g++", mode='w') as f:
     f.write('\n'.join(['#!/bin/sh',
-                       'args="$@"',
-                       docker_build_cmd('g++ $args')]))
+                       'args="$@"'] +
+                       docker_build_cmd('g++ $args')))
   os.chmod('bin/g++', os.stat('bin/g++').st_mode | stat.S_IEXEC)
   return None
   
@@ -49,22 +49,22 @@ hakase_test_targets = SConscript(dirs=['hakase/tests'])
 # FriendLoader & trampoline
 trampoline_env = base_env.Clone(ASFLAGS=trampoline_flag, LINKFLAGS=trampoline_flag, CFLAGS=trampoline_flag, CXXFLAGS=trampoline_flag)
 trampoline_env.Program(target='hakase/FriendLoader/trampoline/boot_trampoline.bin', source=['hakase/FriendLoader/trampoline/bootentry.S', 'hakase/FriendLoader/trampoline/main.cc'])
-Command('hakase/FriendLoader/trampoline/bin.o', 'hakase/FriendLoader/trampoline/boot_trampoline.bin', [
-    docker_module_build_cmd('objcopy -I binary -O elf64-x86-64 -B i386:x86-64 boot_trampoline.bin bin.o', curdir + '/hakase/FriendLoader/trampoline'),
-    docker_module_build_cmd('script/check_trampoline_bin_size.sh $TARGET')])
+Command('hakase/FriendLoader/trampoline/bin.o', 'hakase/FriendLoader/trampoline/boot_trampoline.bin',
+    docker_module_build_cmd('objcopy -I binary -O elf64-x86-64 -B i386:x86-64 boot_trampoline.bin bin.o', curdir + '/hakase/FriendLoader/trampoline') +
+    docker_module_build_cmd('script/check_trampoline_bin_size.sh $TARGET'))
 Command('hakase/FriendLoader/friend_loader.ko', [Glob('hakase/FriendLoader/*.h'), Glob('hakase/FriendLoader/*.c'), 'hakase/FriendLoader/trampoline/bin.o'], docker_module_build_cmd('KERN_VERSION=4.13.0-45-generic make all', curdir + 'hakase/FriendLoader'))
 
 # format
-AlwaysBuild(Alias('format', [], [
-    'echo "Formatting with clang-format. Please wait..."',
-    docker_format_cmd('sh -c "git ls-files . | grep -E \'.*\\.cc$$|.*\\.h$$\' | xargs -n 1 clang-format -style=\'{BasedOnStyle: Google}\' -i"'),
-    'echo "Done."']))
+AlwaysBuild(Alias('format', [], 
+    ['echo "Formatting with clang-format. Please wait..."'] +
+    docker_format_cmd('sh -c "git ls-files . | grep -E \'.*\\.cc$$|.*\\.h$$\' | xargs -n 1 clang-format -style=\'{BasedOnStyle: Google}\' -i"') +
+    ['echo "Done."']))
 #$(if $(CI),&& git diff && git diff | wc -l | xargs test 0 -eq)
 
 qemu_dir = '/home/hakase/'
 
 def ssh_cmd(arg):
-    return docker_cmd('-i --network toshokan_net livadk/toshokan_ssh:' + container_tag + ' ssh -o ConnectTimeout=3 -o LogLevel=quiet -o StrictHostKeyChecking=no -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile=/dev/null -i /id_rsa -p 2222 hakase@toshokan_qemu cd {0} \&\& {1}'.format(qemu_dir, arg))
+    return docker_cmd('-i --network toshokan_net livadk/toshokan_ssh:' + container_tag, 'ssh -o ConnectTimeout=3 -o LogLevel=quiet -o StrictHostKeyChecking=no -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile=/dev/null -i /id_rsa -p 2222 hakase@toshokan_qemu cd {0} \&\& {1}'.format(qemu_dir, arg))
 def transfer_cmd(fname):
     return ssh_cmd('dd status=none of={0} < {1} \&\& chmod +rx {0}'.format(os.path.basename(fname), fname))
 
@@ -74,24 +74,25 @@ AlwaysBuild(Alias('prepare', '', 'script/build_container.sh ' + container_tag))
 
 def expand_hakase_test_targets_to_depends():
     add_path_func = lambda ele: './build/' + ele
-    return list(reduce(lambda list, ele: list + map(add_path_func, ele), hakase_test_targets, []))
+    return reduce(lambda list, ele: list + map(add_path_func, ele), hakase_test_targets, [])
 
 def expand_hakase_test_targets_to_lists(prefix):
     add_path_func = lambda str, ele: str + ' ' + prefix + ele
     return list(map(lambda ele: reduce(add_path_func, ele, ''), hakase_test_targets))
 
+print(reduce(lambda list, ele: list + transfer_cmd(ele), expand_hakase_test_targets_to_depends(), []))
 # test pattern
 test = AlwaysBuild(Alias('test', ['bin/g++'] + expand_hakase_test_targets_to_depends() + ['prepare'], [
     'docker rm -f toshokan_qemu || :',
     'docker network rm toshokan_net || :',
     'docker network create --driver bridge toshokan_net',
-    docker_cmd('-d --name toshokan_qemu --network toshokan_net -P toshokan_qemu_back'),
-    transfer_cmd('hakase/FriendLoader/friend_loader.ko'),
-    transfer_cmd('hakase/tests/test_hakase.sh'),
-    transfer_cmd('hakase/tests/test_library.sh'),
-    transfer_cmd('hakase/FriendLoader/run.sh')] +
-    list(map(lambda ele: transfer_cmd(ele), expand_hakase_test_targets_to_depends())) +
-    list(map(lambda ele: ssh_cmd('./test_hakase.sh ' + ele), expand_hakase_test_targets_to_lists('./'))) +
+    'docker run -d --name toshokan_qemu --network toshokan_net -P toshokan_qemu_back'] +
+    transfer_cmd('hakase/FriendLoader/friend_loader.ko') +
+    transfer_cmd('hakase/tests/test_hakase.sh') +
+    transfer_cmd('hakase/tests/test_library.sh') +
+    transfer_cmd('hakase/FriendLoader/run.sh') +
+    reduce(lambda list, ele: list + transfer_cmd(ele), expand_hakase_test_targets_to_depends(), []) +
+    reduce(lambda list, ele: list + ssh_cmd('./test_hakase.sh ' + ele), expand_hakase_test_targets_to_lists('./'), []) +
     ['docker rm -f toshokan_qemu']))
 
 Default(test)
