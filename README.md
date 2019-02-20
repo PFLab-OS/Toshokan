@@ -6,6 +6,9 @@
 * scons (> 3.0)
 * python (> 2.5)
 
+You can use `pip install scons` to install the latest version of scons.
+OS package managers(e.g. apt, yum) often try to install older versions. Be careful.
+
 ## Install & Test
 ```
 $ git clone https://github.com/PFLab-OS/Toshokan.git
@@ -14,5 +17,5 @@ $ scons prepare
 $ scons
 ```
 
-The message (`All tests have successfully finished!`) will be shown if self-check tests are passed.
+If self-check tests are passed, The message (`All tests have successfully finished!`) will be shown.
 
