@@ -11,7 +11,15 @@ curdir = Dir('.').abspath
 container_tag = "3a5eabf0fab92b8099129a3185f5fc98808ec8f3"
 
 def docker_cmd(container, arg, workdir=curdir):
-    return ['docker run --rm -v {0}:{0} -w {1} {2} {3}'.format(curdir, workdir, container, arg)]
+  if int(ARGUMENTS.get('CI', 0)) == 1:
+    return ['docker rm -f toshokan_scons_container > /dev/null 2>&1 || :',
+            'docker run -d -it -w {0} --name toshokan_scons_container {1} sh'.format(workdir, container),
+	    'docker cp {0}/. toshokan_scons_container:{0}'.format(curdir),
+	    'docker exec -i toshokan_scons_container {0}'.format(arg),
+	    'docker cp toshokan_scons_container:{0}/. {0}'.format(curdir),
+	    'docker rm -f toshokan_scons_container']
+  else:
+    return ['docker run -i --rm -v {0}:{0} -w {1} {2} {3}'.format(curdir, workdir, container, arg)]
 def docker_build_cmd(arg, workdir=curdir):
     return docker_cmd('livadk/toshokan_build:' + container_tag, arg, workdir)
 def docker_module_build_cmd(arg, workdir=curdir):
@@ -64,7 +72,7 @@ AlwaysBuild(Alias('format', [],
 qemu_dir = '/home/hakase/'
 
 def ssh_cmd(arg):
-    return docker_cmd('-i --network toshokan_net livadk/toshokan_ssh:' + container_tag, 'ssh -o ConnectTimeout=3 -o LogLevel=quiet -o StrictHostKeyChecking=no -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile=/dev/null -i /id_rsa -p 2222 hakase@toshokan_qemu cd {0} \&\& {1}'.format(qemu_dir, arg))
+    return docker_cmd('--network toshokan_net livadk/toshokan_ssh:' + container_tag, 'ssh -o ConnectTimeout=3 -o LogLevel=quiet -o StrictHostKeyChecking=no -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile=/dev/null -i /id_rsa -p 2222 hakase@toshokan_qemu cd {0} \&\& {1}'.format(qemu_dir, arg))
 def transfer_cmd(fname):
     return ssh_cmd('dd status=none of={0} < {1} \&\& chmod +rx {0}'.format(os.path.basename(fname), fname))
 
@@ -80,10 +88,9 @@ def expand_hakase_test_targets_to_lists(prefix):
     add_path_func = lambda str, ele: str + ' ' + prefix + ele
     return list(map(lambda ele: reduce(add_path_func, ele, ''), hakase_test_targets))
 
-print(reduce(lambda list, ele: list + transfer_cmd(ele), expand_hakase_test_targets_to_depends(), []))
 # test pattern
 test = AlwaysBuild(Alias('test', ['bin/g++'] + expand_hakase_test_targets_to_depends() + ['prepare'], [
-    'docker rm -f toshokan_qemu || :',
+    'docker rm -f toshokan_qemu 2>&1 || :',
     'docker network rm toshokan_net || :',
     'docker network create --driver bridge toshokan_net',
     'docker run -d --name toshokan_qemu --network toshokan_net -P toshokan_qemu_back'] +

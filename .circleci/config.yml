@@ -8,10 +8,11 @@ jobs:
       - setup_remote_docker
       - run:
           command: |
-            apk --update add make bash
+            apk --update add python py-pip make bash
+            pip install scons
       - run:
           command: |
-            make CI=true format
+            scons CI=1 format
       - run:
           command: |
-            make CI=true test
+            scons CI=1 test
