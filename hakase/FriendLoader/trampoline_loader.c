@@ -30,7 +30,7 @@ int trampoline_region_alloc(struct trampoline_region *region) {
 
 void trampoline_region_free(struct trampoline_region *region) {
   free_page(region->paddr);
-  region->paddr = NULL;
+  region->paddr = 0;
 }
 
 int trampoline_region_init(struct trampoline_region *region,

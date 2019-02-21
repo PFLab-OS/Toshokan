@@ -69,7 +69,12 @@ Thumbs.db
 # Project files
 *.bin
 *.elf
-build_rules.mk
+bin/
+build/
+.docker/
+.circleci/
+.sconsign.dblite
+hakase/tests/simple_loader/raw
 
 # Kernel Module Compile Results
 *.mod*
