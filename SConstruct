@@ -10,6 +10,12 @@ from functools import reduce
 curdir = Dir('.').abspath
 container_tag = "3a5eabf0fab92b8099129a3185f5fc98808ec8f3"
 
+env = DefaultEnvironment().Clone(
+                  ENV=os.environ,
+                  AS='{0}/bin/g++'.format(curdir),
+                  CC='{0}/bin/g++'.format(curdir),
+                  CXX='{0}/bin/g++'.format(curdir))
+
 def docker_cmd(container, arg, workdir=curdir):
   if int(ARGUMENTS.get('CI', 0)) == 1:
     return ['docker rm -f toshokan_scons_container > /dev/null 2>&1 || :',
@@ -35,11 +41,7 @@ def build_wrapper(env, target, source):
   os.chmod('bin/g++', os.stat('bin/g++').st_mode | stat.S_IEXEC)
   return None
   
-Command('bin/g++', None, build_wrapper)
-
-base_env = DefaultEnvironment().Clone(AS='{0}/bin/g++'.format(curdir),
-                       CC='{0}/bin/g++'.format(curdir),
-		       CXX='{0}/bin/g++'.format(curdir))
+env.Command('bin/g++', None, build_wrapper)
 
 hakase_flag = '-g -O0 -MMD -MP -Wall --std=c++14 -static -isystem {0}/hakase -iquote {0} -D __HAKASE__'.format(curdir)
 friend_flag = '-O0 -Wall --std=c++14 -nostdinc -nostdlib -isystem {0}/friend -iquote {0}/hakase -iquote {0} -D__FRIEND__'.format(curdir)
@@ -47,23 +49,28 @@ friend_elf_flag = friend_flag + ' -T {0}/friend/friend.ld'.format(curdir)
 trampoline_flag = '-Os --std=c++14 -nostdinc -nostdlib -ffreestanding -fno-builtin -fomit-frame-pointer -fno-exceptions -fno-asynchronous-unwind-tables -fno-unwind-tables -iquote {0}/friend -iquote {0}/hakase -iquote {0} -D__FRIEND__ -T {0}/hakase/FriendLoader/trampoline/boot_trampoline.ld'.format(curdir)
 trampoline_ld_flag = '-Os -nostdlib -T {0}/boot_trampoline.ld'.format(curdir)
 
-hakase_env = base_env.Clone(ASFLAGS=hakase_flag, CXXFLAGS=hakase_flag, LINKFLAGS=hakase_flag)
-friend_env = base_env.Clone(ASFLAGS=friend_flag, CXXFLAGS=friend_flag, LINKFLAGS=friend_flag)
-friend_elf_env = base_env.Clone(ASFLAGS=friend_elf_flag, CXXFLAGS=friend_elf_flag, LINKFLAGS=friend_elf_flag)
+hakase_env = env.Clone(ASFLAGS=hakase_flag, CXXFLAGS=hakase_flag, LINKFLAGS=hakase_flag)
+friend_env = env.Clone(ASFLAGS=friend_flag, CXXFLAGS=friend_flag, LINKFLAGS=friend_flag)
+friend_elf_env = env.Clone(ASFLAGS=friend_elf_flag, CXXFLAGS=friend_elf_flag, LINKFLAGS=friend_elf_flag)
 
 Export('hakase_env friend_env friend_elf_env')
 hakase_test_targets = SConscript(dirs=['hakase/tests'])
 
 # FriendLoader & trampoline
-trampoline_env = base_env.Clone(ASFLAGS=trampoline_flag, LINKFLAGS=trampoline_flag, CFLAGS=trampoline_flag, CXXFLAGS=trampoline_flag)
+trampoline_env = env.Clone(ASFLAGS=trampoline_flag, LINKFLAGS=trampoline_flag, CFLAGS=trampoline_flag, CXXFLAGS=trampoline_flag)
 trampoline_env.Program(target='hakase/FriendLoader/trampoline/boot_trampoline.bin', source=['hakase/FriendLoader/trampoline/bootentry.S', 'hakase/FriendLoader/trampoline/main.cc'])
-Command('hakase/FriendLoader/trampoline/bin.o', 'hakase/FriendLoader/trampoline/boot_trampoline.bin',
+env.Command('hakase/FriendLoader/trampoline/bin.o', 'hakase/FriendLoader/trampoline/boot_trampoline.bin',
     docker_module_build_cmd('objcopy -I binary -O elf64-x86-64 -B i386:x86-64 boot_trampoline.bin bin.o', curdir + '/hakase/FriendLoader/trampoline') +
     docker_module_build_cmd('script/check_trampoline_bin_size.sh $TARGET'))
-Command('hakase/FriendLoader/friend_loader.ko', [Glob('hakase/FriendLoader/*.h'), Glob('hakase/FriendLoader/*.c'), 'hakase/FriendLoader/trampoline/bin.o'], docker_module_build_cmd('KERN_VERSION=4.13.0-45-generic make all', curdir + 'hakase/FriendLoader'))
+env.Command('hakase/FriendLoader/friend_loader.ko', [Glob('hakase/FriendLoader/*.h'), Glob('hakase/FriendLoader/*.c'), 'hakase/FriendLoader/trampoline/bin.o'], docker_module_build_cmd('KERN_VERSION=4.13.0-45-generic make all', curdir + 'hakase/FriendLoader'))
+
+# local circleci
+AlwaysBuild(env.Alias('circleci', [], 
+    ['circleci config validate',
+    'circleci build']))
 
 # format
-AlwaysBuild(Alias('format', [], 
+AlwaysBuild(env.Alias('format', [], 
     ['echo "Formatting with clang-format. Please wait..."'] +
     docker_format_cmd('sh -c "git ls-files . | grep -E \'.*\\.cc$$|.*\\.h$$\' | xargs -n 1 clang-format -style=\'{BasedOnStyle: Google}\' -i"') +
     ['echo "Done."']))
@@ -78,7 +85,7 @@ def transfer_cmd(fname):
 
 hakase_test_bin = ['hakase/tests/callback/callback.bin', 'hakase/tests/print/print.bin', 'hakase/tests/memrw/reading_signature.bin', 'hakase/tests/memrw/rw_small.bin', 'hakase/tests/memrw/rw_large.bin', 'hakase/tests/simple_loader/simple_loader.bin', 'hakase/tests/simple_loader/raw', 'hakase/tests/elf_loader/elf_loader.bin', 'hakase/tests/elf_loader/elf_loader.elf', 'hakase/tests/interrupt/interrupt.bin', 'hakase/tests/interrupt/interrupt.elf']
 
-AlwaysBuild(Alias('prepare', '', 'script/build_container.sh ' + container_tag))
+AlwaysBuild(env.Alias('prepare', '', 'script/build_container.sh ' + container_tag))
 
 def expand_hakase_test_targets_to_depends():
     add_path_func = lambda ele: './build/' + ele
@@ -89,7 +96,7 @@ def expand_hakase_test_targets_to_lists(prefix):
     return list(map(lambda ele: reduce(add_path_func, ele, ''), hakase_test_targets))
 
 # test pattern
-test = AlwaysBuild(Alias('test', ['bin/g++'] + expand_hakase_test_targets_to_depends() + ['prepare'], [
+test = AlwaysBuild(env.Alias('test', ['bin/g++'] + expand_hakase_test_targets_to_depends() + ['prepare'], [
     'docker rm -f toshokan_qemu 2>&1 || :',
     'docker network rm toshokan_net || :',
     'docker network create --driver bridge toshokan_net',
