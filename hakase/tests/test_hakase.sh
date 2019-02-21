@@ -6,7 +6,7 @@ cd `dirname $0`
 if [ -f $1 ]; then
     ./run.sh load
 
-    echo 10000 | sudo tee /sys/kernel/debug/friend_loader/zero_clear
+    sudo sh -c "echo 1000 > /sys/kernel/debug/friend_loader/zero_clear"
 
     zc=""
     while [ "$zc" != "0" ]

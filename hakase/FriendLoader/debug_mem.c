@@ -96,8 +96,8 @@ static ssize_t zero_clear_read(struct file *file, char __user *buf, size_t len, 
     return 0;
   }
   snprintf(buf, len, "%u", zero_clear_status);
-  *ppos = strlen(buf) + 1;
-  return strlen(buf) + 1; 
+  *ppos = strlen(buf);
+  return strlen(buf); 
 }
 
 static ssize_t zero_clear_write(struct file *file, const char __user *buf, size_t len, loff_t *ppos) {
@@ -108,7 +108,12 @@ static ssize_t zero_clear_write(struct file *file, const char __user *buf, size_
     return -EINVAL;
   }
 
-  snprintf(buf_tmp, min(len+1, 256), "%s", buf);
+  if (len > 256) {
+    return -EINVAL;
+  }
+
+  copy_from_user(buf_tmp, buf, len);
+  buf_tmp[len - 1] = '\0';
 
   if(kstrtouint(buf_tmp, 10, &tmp) != 0) {
     return -EINVAL;
@@ -158,12 +163,12 @@ int __init debugmem_init(void) {
     return -ENOMEM;
   }
   
-  memory = debugfs_create_file("memory", 0400, topdir, NULL, &memory_fops);
+  memory = debugfs_create_file("memory", 0600, topdir, NULL, &memory_fops);
   if (!memory) {
     return -ENOMEM;
   }
 
-  zero_clear = debugfs_create_file("zero_clear", 0400, topdir, NULL, &zero_clear_fops);
+  zero_clear = debugfs_create_file("zero_clear", 0600, topdir, NULL, &zero_clear_fops);
   if (!zero_clear) {
     return -ENOMEM;
   }
