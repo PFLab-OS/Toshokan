@@ -16,8 +16,10 @@ env = DefaultEnvironment().Clone(
                   CC='{0}/bin/g++'.format(curdir),
                   CXX='{0}/bin/g++'.format(curdir))
 
+ci = True if int(ARGUMENTS.get('CI', 0)) == 1 else False
+
 def docker_cmd(container, arg, workdir=curdir):
-  if int(ARGUMENTS.get('CI', 0)) == 1:
+  if ci:
     return ['docker rm -f toshokan_scons_container > /dev/null 2>&1 || :',
             'docker run -d -it -w {0} --name toshokan_scons_container {1} sh'.format(workdir, container),
 	    'docker cp {0}/. toshokan_scons_container:{0}'.format(curdir),
@@ -72,9 +74,8 @@ AlwaysBuild(env.Alias('circleci', [],
 # format
 AlwaysBuild(env.Alias('format', [], 
     ['echo "Formatting with clang-format. Please wait..."'] +
-    docker_format_cmd('sh -c "git ls-files . | grep -E \'.*\\.cc$$|.*\\.h$$\' | xargs -n 1 clang-format -style=\'{BasedOnStyle: Google}\' -i"') +
+    docker_format_cmd('sh -c "git ls-files . | grep -E \'.*\\.cc$$|.*\\.h$$\' | xargs -n 1 clang-format -style=\'{{BasedOnStyle: Google}}\' -i{0}"'.format('&& git diff && git diff | wc -l | xargs test 0 -eq' if ci else '')) +
     ['echo "Done."']))
-#$(if $(CI),&& git diff && git diff | wc -l | xargs test 0 -eq)
 
 qemu_dir = '/home/hakase/'
 
