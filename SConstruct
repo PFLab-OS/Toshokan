@@ -8,7 +8,7 @@ import stat
 from functools import reduce
 
 curdir = Dir('.').abspath
-container_tag = "6828016f340c6d2acd63a8f9ce7278b91d10f812"
+container_tag = "f2b80767b9db6398efdc5dcf1e3cc6f15aebb050"
 
 env = DefaultEnvironment().Clone(
                   ENV=os.environ,
@@ -45,18 +45,22 @@ def build_wrapper(env, target, source):
   
 env.Command('bin/g++', None, build_wrapper)
 
-hakase_flag = '-g -O0 -MMD -MP -Wall --std=c++14 -static -isystem {0}/hakase -iquote {0} -D __HAKASE__'.format(curdir)
-friend_flag = '-O0 -Wall --std=c++14 -nostdinc -nostdlib -isystem {0}/friend -iquote {0}/hakase -iquote {0} -D__FRIEND__'.format(curdir)
+hakase_flag = '-g -O0 -MMD -MP -Wall --std=c++14 -static -isystem {0}/hakase -isystem {0} -D __HAKASE__'.format(curdir)
+friend_flag = '-O0 -Wall --std=c++14 -nostdinc -nostdlib -isystem {0}/friend -isystem {0} -D__FRIEND__'.format(curdir)
 friend_elf_flag = friend_flag + ' -T {0}/friend/friend.ld'.format(curdir)
-trampoline_flag = '-Os --std=c++14 -nostdinc -nostdlib -ffreestanding -fno-builtin -fomit-frame-pointer -fno-exceptions -fno-asynchronous-unwind-tables -fno-unwind-tables -iquote {0}/friend -iquote {0}/hakase -iquote {0} -D__FRIEND__ -T {0}/hakase/FriendLoader/trampoline/boot_trampoline.ld'.format(curdir)
+trampoline_flag = '-Os --std=c++14 -nostdinc -nostdlib -ffreestanding -fno-builtin -fomit-frame-pointer -fno-exceptions -fno-asynchronous-unwind-tables -fno-unwind-tables -isystem {0}/friend -isystem {0} -D__FRIEND__ -T {0}/hakase/FriendLoader/trampoline/boot_trampoline.ld'.format(curdir)
 trampoline_ld_flag = '-Os -nostdlib -T {0}/boot_trampoline.ld'.format(curdir)
+cpputest_flag = '--std=c++14 --coverage -isystem {0}/common/tests/mock -isystem {0} -isystem {0}/hakase/ -pthread'.format(curdir)
 
 hakase_env = env.Clone(ASFLAGS=hakase_flag, CXXFLAGS=hakase_flag, LINKFLAGS=hakase_flag)
 friend_env = env.Clone(ASFLAGS=friend_flag, CXXFLAGS=friend_flag, LINKFLAGS=friend_flag)
 friend_elf_env = env.Clone(ASFLAGS=friend_elf_flag, CXXFLAGS=friend_elf_flag, LINKFLAGS=friend_elf_flag)
+cpputest_env = env.Clone(ASFLAGS=cpputest_flag, CXXFLAGS=cpputest_flag, LINKFLAGS=cpputest_flag)
 
-Export('hakase_env friend_env friend_elf_env')
+Export('hakase_env friend_env friend_elf_env cpputest_env')
 hakase_test_targets = SConscript(dirs=['hakase/tests'])
+
+SConscript(dirs=['common/tests'])
 
 # FriendLoader & trampoline
 trampoline_env = env.Clone(ASFLAGS=trampoline_flag, LINKFLAGS=trampoline_flag, CFLAGS=trampoline_flag, CXXFLAGS=trampoline_flag)
@@ -101,8 +105,12 @@ env.Command("build/run.sh", "hakase/FriendLoader/run.sh", Copy("$TARGET", "$SOUR
 env.Command("build/test_hakase.sh", "hakase/tests/test_hakase.sh", Copy("$TARGET", "$SOURCE"))
 env.Command("build/test_library.sh", "hakase/tests/test_library.sh", Copy("$TARGET", "$SOURCE"))
 
+
+
+AlwaysBuild(env.Alias('common_test', ['common/tests/cpputest'], docker_build_cmd('./common/tests/cpputest')))
+
 # test pattern
-test = AlwaysBuild(env.Alias('test', ['bin/g++', 'build/friend_loader.ko', 'build/run.sh', 'build/test_hakase.sh', 'build/test_library.sh'] + expand_hakase_test_targets_to_depends() + ['prepare'], [
+test = AlwaysBuild(env.Alias('test', ['bin/g++', 'common_test', 'build/friend_loader.ko', 'build/run.sh', 'build/test_hakase.sh', 'build/test_library.sh'] + expand_hakase_test_targets_to_depends() + ['prepare'], [
     'docker rm -f toshokan_qemu 2>&1 || :',
     'docker network rm toshokan_net || :',
     'docker network create --driver bridge toshokan_net',

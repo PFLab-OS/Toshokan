@@ -75,6 +75,7 @@ build/
 .circleci/
 .sconsign.dblite
 hakase/tests/simple_loader/raw
+common/tests/cpputest
 
 # Kernel Module Compile Results
 *.mod*
