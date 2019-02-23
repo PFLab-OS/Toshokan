@@ -6,6 +6,21 @@
 #include <linux/slab.h>
 #include <linux/gfp.h>
 
+/*
+DOC START
+ 
+# architecture/trampoline
+When FriendLoader initiates a friend core, it sets a trampoline code for the core.
+The objective of trampoline code is to initialize processor core states, and wait messages from hakase through channels.
+
+The trampoline code is copied at <1MB page and at 1GB-1GB+4KB page.
+The former page is used by the processor boot sequence. When a friend core is woken up by INIT IPI, it starts its execution on
+the former page. After virtual memory initialization (at trampoline/bootentry.S), the trampoline code jumps to the latter page 
+and continues its execution.
+ 
+DOC END
+*/
+
 static uint8_t jmp_bin[] = {0xeb, kMemoryMapTrampolineBinEntry - 2, 0x66, 0x90}; // jmp TrampolineBinEntry; xchg %ax, &ax
 
 int trampoline_region_alloc(struct trampoline_region *region) {

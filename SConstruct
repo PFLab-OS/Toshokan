@@ -120,3 +120,5 @@ test = AlwaysBuild(env.Alias('test', ['bin/g++', 'common_test', 'build/friend_lo
     ['docker rm -f toshokan_qemu']))
 
 Default(test)
+
+AlwaysBuild(env.Alias('doc', '', 'find . \( -name \*.cc -or -name \*.c -or -name \*.h -or -name \*.S \) | xargs cat | awk \'/DOC START/,/DOC END/\' | grep -v "DOC START" | grep -v "DOC END"'))
