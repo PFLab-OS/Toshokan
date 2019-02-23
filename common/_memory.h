@@ -14,7 +14,7 @@ DOC START
 0GB-1GB for hakase & Linux
 1GB-2GB for friend (reserved by Linux kernel boot parameter, Linux does not use this region)
 
-An the top of the friend region, there is a trampoline header which includes infomation passed from FriendLoader.
+At the top of the friend region, there is a trampoline header which includes infomation passed from FriendLoader.
 You can see the the detail of it at enum MemoryMap.
 
 ## virtual memory
