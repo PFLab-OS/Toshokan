@@ -11,7 +11,7 @@ DOC START
  
 # architecture/trampoline
 When FriendLoader initiates a friend core, it sets a trampoline code for the core.
-The objective of trampoline code is to initialize processor core states, and wait messages from hakase through channels.
+The objective of the trampoline code is to initialize processor core states, and waits messages from hakase through channels.
 
 The trampoline code is copied at <1MB page and at 1GB-1GB+4KB page.
 The former page is used by the processor boot sequence. When a friend core is woken up by INIT IPI, it starts its execution on
