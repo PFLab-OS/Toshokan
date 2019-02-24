@@ -1,7 +1,7 @@
 #pragma once
 #include <assert.h>
-#include "channel2.h"
 #include <stdint.h>
+#include "channel2.h"
 
 /*
  * ChannelAccessor : Wrapper of Channel

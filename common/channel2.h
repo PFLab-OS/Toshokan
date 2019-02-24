@@ -1,20 +1,21 @@
 #pragma once
 #include <assert.h>
-#include "result.h"
 #include <stdint.h>
+#include "result.h"
 
 /*
  * Channel : communication channel between hakase and friend
  * !!! Do not call Channel class directly. Use ChannelAccessor instead. !!!
  *
  * when you use channel,
- *  - each id must be unique in a system. Typically, you can set processor core id
- *    as an id.
+ *  - each id must be unique in a system. Typically, you can set processor core
+ * id as an id.
  *  - do not expect high performance.(on both latency and throughput)
- *    If it's needed, create another communication mechanism(e.g. shared memory).
- *  - send all data through channel. You had better not use pointer to pass data.
- *    Hakase and friend have different virtual memory space. It is very difficult to access
- *    from one to the other.
+ *    If it's needed, create another communication mechanism(e.g. shared
+ * memory).
+ *  - send all data through channel. You had better not use pointer to pass
+ * data. Hakase and friend have different virtual memory space. It is very
+ * difficult to access from one to the other.
  */
 class Channel2 {
  public:

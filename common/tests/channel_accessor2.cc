@@ -9,7 +9,7 @@ TEST_GROUP(CallerChannelAccessor) {
   TEST_TEARDOWN() { mock().clear(); }
 
   // to hook CallerChannelAccessor::Do()
-   class DebugCallerChannelAccessor : public CallerChannelAccessor {
+  class DebugCallerChannelAccessor : public CallerChannelAccessor {
    public:
     DebugCallerChannelAccessor(Channel2 &ch, Channel2::Id dest,
                                Channel2::Signal signal)
@@ -61,15 +61,17 @@ TEST(CallerChannelAccessor, DoNotSetUnalignedOffset) {
 }
 
 TEST(CallerChannelAccessor, DoNotSetOutRangeOffset) {
-  CHECK_THROWS(AssertException,
-               ([]() { CallerChannelAccessor::Offset<int> offset(Channel2::kDataSize + 8); })());
+  CHECK_THROWS(
+      AssertException, ([]() {
+        CallerChannelAccessor::Offset<int> offset(Channel2::kDataSize + 8);
+      })());
 }
 
 TEST(CallerChannelAccessor, IsDoCalled) {
   Env env;
   env.Init();
   DebugCallerChannelAccessor caller_ca(*env._caller_ch, env._callee_id,
-                                          GetDummySignal());
+                                       GetDummySignal());
   caller_ca.SetDo([&env]() {
     mock().actualCall("Do");
 
@@ -85,7 +87,7 @@ TEST(CallerChannelAccessor, BlockUntilReturn) {
   Env env;
   env.Init();
   DebugCallerChannelAccessor caller_ca(*env._caller_ch, env._callee_id,
-                                          GetDummySignal());
+                                       GetDummySignal());
   caller_ca.SetDo([&env, &count]() {
     // do not return until count == 0
     if (count == 0) {
@@ -105,8 +107,7 @@ TEST(CallerChannelAccessor, SendSignal) {
 
   Env env;
   env.Init();
-  DebugCallerChannelAccessor caller_ca(*env._caller_ch, env._callee_id,
-                                          signal);
+  DebugCallerChannelAccessor caller_ca(*env._caller_ch, env._callee_id, signal);
   caller_ca.SetDo([&env, &arrived_signal]() {
     // callee channel will get signal.
     arrived_signal = env._callee_ch->GetArrivedSignal();
@@ -122,7 +123,7 @@ TEST(CallerChannelAccessor, GetReturnValue) {
   Env env;
   env.Init();
   DebugCallerChannelAccessor caller_ca(*env._caller_ch, env._callee_id,
-                                          GetDummySignal());
+                                       GetDummySignal());
   caller_ca.SetDo([&env, rval]() {
     // callee channel returns value.
     env._callee_ch->Return(rval);
@@ -140,13 +141,12 @@ TEST(CallerChannelAccessor, Write) {
 
   Env env;
   env.Init();
-  DebugCallerChannelAccessor caller_ca(
-      *env._caller_ch, env._callee_id, GetDummySignal());
+  DebugCallerChannelAccessor caller_ca(*env._caller_ch, env._callee_id,
+                                       GetDummySignal());
 
   for (int i = 0; i < kBufSize; i++) {
     // write to the buffer.
-    caller_ca.Write(CallerChannelAccessor::Offset<int>(
-                        i * sizeof(int)),
+    caller_ca.Write(CallerChannelAccessor::Offset<int>(i * sizeof(int)),
                     send_buf[i]);
   }
 
@@ -170,8 +170,8 @@ TEST(CallerChannelAccessor, Read) {
   }
   Env env;
   env.Init();
-  DebugCallerChannelAccessor caller_ca(
-      *env._caller_ch, env._callee_id, GetDummySignal());
+  DebugCallerChannelAccessor caller_ca(*env._caller_ch, env._callee_id,
+                                       GetDummySignal());
   caller_ca.SetDo([&env, send_buf]() {
     for (int i = 0; i < Channel2::kDataSize; i++) {
       // callee channel writes to the buffer.
@@ -185,8 +185,7 @@ TEST(CallerChannelAccessor, Read) {
   for (int i = 0; i < kBufSize; i++) {
     // read from the buffer.
     receive_buf[i] =
-        caller_ca.Read(CallerChannelAccessor::Offset<int>(
-            i * sizeof(int)));
+        caller_ca.Read(CallerChannelAccessor::Offset<int>(i * sizeof(int)));
   }
   MEMCMP_EQUAL(receive_buf, send_buf, Channel2::kDataSize);
 }
@@ -197,12 +196,11 @@ TEST(CallerChannelAccessor, DoNotReadBeforeCall) {
 
   Env env;
   env.Init();
-  DebugCallerChannelAccessor caller_ca(
-      *env._caller_ch, env._callee_id, GetDummySignal());
+  DebugCallerChannelAccessor caller_ca(*env._caller_ch, env._callee_id,
+                                       GetDummySignal());
 
   CHECK_THROWS(AssertException,
-               caller_ca.Read(
-                   CallerChannelAccessor::Offset<int>(0)));
+               caller_ca.Read(CallerChannelAccessor::Offset<int>(0)));
   // caller_ca.Call();
 }
 
@@ -212,15 +210,13 @@ TEST(CallerChannelAccessor, DoNotWriteAfterCall) {
 
   Env env;
   env.Init();
-  DebugCallerChannelAccessor caller_ca(
-      *env._caller_ch, env._callee_id, GetDummySignal());
+  DebugCallerChannelAccessor caller_ca(*env._caller_ch, env._callee_id,
+                                       GetDummySignal());
 
   caller_ca.SetDo([&env]() { env._callee_ch->Return(0); });
   caller_ca.Call();
-  CHECK_THROWS(
-      AssertException,
-      caller_ca.Write(
-          CallerChannelAccessor::Offset<int>(0), 0));
+  CHECK_THROWS(AssertException,
+               caller_ca.Write(CallerChannelAccessor::Offset<int>(0), 0));
 }
 
 TEST_GROUP(CalleeChannelAccessor) {

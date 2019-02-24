@@ -8,19 +8,22 @@
 
 /*
 DOC START
- 
+
 # architecture/memory
 ## physical memory
 0GB-1GB for hakase & Linux
-1GB-2GB for friend (reserved by Linux kernel boot parameter, Linux does not use this region)
+1GB-2GB for friend (reserved by Linux kernel boot parameter, Linux does not use
+this region)
 
-At the top of the friend region, there is a trampoline header which includes information passed from FriendLoader.
-You can see the the detail of it at enum MemoryMap.
+At the top of the friend region, there is a trampoline header which includes
+information passed from FriendLoader. You can see the the detail of it at enum
+MemoryMap.
 
 ## virtual memory
 The virtual memory of friend OS is initialized by trampoline.
-A Friend OS can set its own virtual memory space. When you try to initialize memory space from scratch, 
-keep attention not to unmap some important pages.(e.g. channels, the trampoline header)
+A Friend OS can set its own virtual memory space. When you try to initialize
+memory space from scratch, keep attention not to unmap some important
+pages.(e.g. channels, the trampoline header)
 
 DOC END
 */
