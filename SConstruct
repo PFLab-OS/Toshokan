@@ -107,7 +107,7 @@ env.Command("build/test_library.sh", "hakase/tests/test_library.sh", Copy("$TARG
 
 
 
-AlwaysBuild(env.Alias('common_test', ['common/tests/cpputest'], docker_build_cmd('./common/tests/cpputest')))
+AlwaysBuild(env.Alias('common_test', ['common/tests/cpputest'], docker_build_cmd('./common/tests/cpputest -c -v')))
 
 # test pattern
 test = AlwaysBuild(env.Alias('test', ['bin/g++', 'common_test', 'build/friend_loader.ko', 'build/run.sh', 'build/test_hakase.sh', 'build/test_library.sh'] + expand_hakase_test_targets_to_depends() + ['prepare'], [
