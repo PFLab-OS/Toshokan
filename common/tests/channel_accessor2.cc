@@ -283,6 +283,19 @@ TEST(CalleeChannelAccessor, GetSignal) {
   CHECK(sent_signal == callee_ca.GetSignal());
 }
 
+TEST(CalleeChannelAccessor, GetId) {
+  Channel2::Signal sent_signal = GenerateRandomSignal();
+
+  Env env;
+  env.Init();
+  env._caller_ch->Reserve();
+  env._caller_ch->SendSignal(env._callee_id, sent_signal);
+
+  CalleeChannelAccessor callee_ca(*env._callee_ch);
+  callee_ca.ReceiveSignal();
+  CHECK(env._caller_id == callee_ca.GetId());
+}
+
 TEST(CalleeChannelAccessor, ReturnValue) {
   int32_t rval = rand();
 
@@ -308,6 +321,17 @@ TEST(CalleeChannelAccessor, DoNotGetSignalBeforeReceiveSignal) {
   CHECK_THROWS(AssertException, callee_ca.GetSignal());
 }
 
+TEST(CalleeChannelAccessor, DoNotGetIdBeforeReceiveSignal) {
+  Env env;
+  env.Init();
+  env._caller_ch->Reserve();
+  env._caller_ch->SendSignal(env._callee_id, GetDummySignal());
+
+ CalleeChannelAccessor callee_ca(*env._callee_ch);
+  // callee_ca.ReceiveSignal();
+  CHECK_THROWS(AssertException, callee_ca.GetId());
+}
+
 TEST(CalleeChannelAccessor, DoNotReturnBeforeReceiveSignal) {
   Env env;
   env.Init();
@@ -317,6 +341,19 @@ TEST(CalleeChannelAccessor, DoNotReturnBeforeReceiveSignal) {
   CalleeChannelAccessor callee_ca(*env._callee_ch);
   // callee_ca.ReceiveSignal();
   CHECK_THROWS(AssertException, callee_ca.Return(0));
+}
+
+TEST(CalleeChannelAccessor, DoNotGetIdAfterReturn) {
+  Env env;
+  env.Init();
+  env._caller_ch->Reserve();
+  env._caller_ch->SendSignal(env._callee_id, GetDummySignal());
+
+  CalleeChannelAccessor callee_ca(*env._callee_ch);
+  callee_ca.ReceiveSignal();
+  callee_ca.Return(0);
+
+  CHECK_THROWS(AssertException, callee_ca.GetId());
 }
 
 TEST(CalleeChannelAccessor, DoNotGetSignalAfterReturn) {

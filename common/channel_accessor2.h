@@ -125,6 +125,10 @@ class CalleeChannelAccessor {
     assert(_accessible);
     return _ch.GetArrivedSignal();
   }
+  Channel2::Id GetId() {
+    assert(_accessible);
+    return _ch.GetSenderId();
+  }
   void Return(int32_t rval) {
     assert(_accessible);
     _ch.Return(rval);
