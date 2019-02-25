@@ -97,6 +97,10 @@ class Channel2 {
     assert(IsSignalArrived());
     return Signal(_header->type);
   }
+  Id GetSenderId() {
+    assert(IsSignalArrived());
+    return _header->src_id;
+  }
   void Return(int32_t rval) {
     assert(IsSignalArrived());
     _header->rval = rval;

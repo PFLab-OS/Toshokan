@@ -142,6 +142,27 @@ TEST(Channel2, SendReceiveSignalTwice) {
   }
 }
 
+TEST(Channel2, GetSenderIdOnce) {
+  Channel2::Signal signal = GenerateRandomSignal();
+
+  caller_ch->Reserve();
+  caller_ch->SendSignal(callee_ch_id, signal);
+  CHECK(caller_ch_id == callee_ch->GetSenderId());
+}
+
+TEST(Channel2, GetSenderIdTwice) {
+  for (int i = 0; i < 2; i++) {
+    Channel2::Signal signal = GenerateRandomSignal();
+
+    caller_ch->Reserve();
+    caller_ch->SendSignal(callee_ch_id, signal);
+    CHECK(caller_ch_id == callee_ch->GetSenderId());
+    callee_ch->Return(0);
+    caller_ch->Release();
+  }
+}
+
+
 TEST(Channel2, GetReturnValueOnce) {
   int32_t rval = rand();
 
@@ -215,6 +236,16 @@ TEST(Channel2, DoNotSendSignalBeforeReserving) {
 TEST(Channel2, DoNotReleaseIfNonReserved) {
   // caller_ch->Reserve();
   CHECK_THROWS(AssertException, caller_ch->Release());
+}
+
+TEST(Channel2, DoNotTryToGetArrivedSignalBeforeCheckIt) {
+  // callee_ch->IsSignalArrived() == false
+  CHECK_THROWS(AssertException, callee_ch->GetArrivedSignal());
+}
+
+TEST(Channel2, DoNotTryToGetSenderIdBeforeCheckIt) {
+  // callee_ch->IsSignalArrived() == false
+  CHECK_THROWS(AssertException, callee_ch->GetSenderId());
 }
 
 TEST(Channel2, DoNotReturnIfNewSignalNotArrived) {
