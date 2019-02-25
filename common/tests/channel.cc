@@ -6,10 +6,6 @@
 
 TEST_GROUP(Signal){TEST_SETUP(){} TEST_TEARDOWN(){}};
 
-TEST(Signal, CheckNonZero) {
-  CHECK_THROWS(PanicException, ([]() { Channel2::Signal signal(0); })());
-}
-
 TEST(Signal, CheckEquality) {
   Channel2::Signal signal1(1);
   Channel2::Signal signal2(1);
@@ -225,6 +221,12 @@ TEST(Channel2, WriteReadOverChannelBuffer) {
   caller_ch->Write(offset, data);
   caller_ch->SendSignal(callee_ch_id, GetDummySignal());
   CHECK_EQUAL(data, callee_ch->Read(offset));
+}
+
+TEST(Channel2, DoNotSendNullSignal) {
+  caller_ch->Reserve();
+  CHECK_THROWS(AssertException,
+               caller_ch->SendSignal(callee_ch_id, Channel2::Signal::Null()));
 }
 
 TEST(Channel2, DoNotSendSignalBeforeReserving) {
