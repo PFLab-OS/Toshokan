@@ -11,7 +11,7 @@
 # unload: unload kernel module
 
 if [ $# -ge 1 ]; then
-    cat /proc/cmdline | grep "memmap=0x40000000\$0x40000000" > /dev/null 2>&1 || (echo "error: physical memory is not isolated for hakase"; exit 1)
+    cat /proc/cmdline | grep "memmap=0x70000\$4K memmap=0x40000000\$0x40000000" > /dev/null 2>&1 || (echo "error: physical memory is not isolated for hakase"; exit 1)
     if [ ! -e friend_loader.ko ]; then
         echo "error: make friend loader kernel module first!"
         exit 1

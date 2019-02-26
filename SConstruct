@@ -8,7 +8,7 @@ import stat
 from functools import reduce
 
 curdir = Dir('.').abspath
-container_tag = "39f19cc08cdad3a2e3fc2878acc1a16eabefafde"
+container_tag = "8e102f8eb08a45ea56eb3c9ac7a52efde76e6e71"
 
 env = DefaultEnvironment().Clone(
                   ENV=os.environ,

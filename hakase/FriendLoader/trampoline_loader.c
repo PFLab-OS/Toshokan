@@ -24,27 +24,16 @@ DOC END
 static uint8_t jmp_bin[] = {0xeb, kMemoryMapTrampolineBinEntry - 2, 0x66, 0x90}; // jmp TrampolineBinEntry; xchg %ax, &ax
 
 int trampoline_region_alloc(struct trampoline_region *region) {
-  phys_addr_t tpaddr = __get_free_page(GFP_DMA|GFP_KERNEL);
-
-  if (tpaddr >= 0x100000) {
-    pr_err("friend_loader: no suitable memory for trampoline region\n");
-    return 1;
-  }
-  
-  if (tpaddr >= 0xA0000 && tpaddr <= 0xBF000) {
-    // this area is reserved. (ref. Multiprocessor Specification)
-    int rval = trampoline_region_alloc(region); // retry
-    free_page(tpaddr);
-    return rval;
-  }
-
-  region->paddr = tpaddr;
+  // restriction of trampoline region from the viewpoint of x86 architecture
+  //                                     (ref. Multiprocessor Specification)
+  // - paddr must be <0x100000
+  // - 0xA0000-0xBF000 is reserved.
+  region->paddr = 0x70000;
 
   return 0;
 }
 
 void trampoline_region_free(struct trampoline_region *region) {
-  free_page(region->paddr);
   region->paddr = 0;
 }
 
