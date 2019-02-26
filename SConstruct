@@ -123,3 +123,4 @@ AlwaysBuild(env.Alias('doc', '', 'find . \( -name \*.cc -or -name \*.c -or -name
 
 # support functions
 AlwaysBuild(env.Alias('monitor', '', docker_cmd('--network toshokan_net livadk/toshokan_ssh:' + container_tag, 'nc toshokan_qemu 4445')))
+AlwaysBuild(env.Alias('ssh', '', docker_cmd('-t --network toshokan_net livadk/toshokan_ssh:' + container_tag, 'ssh toshokan_qemu')))
