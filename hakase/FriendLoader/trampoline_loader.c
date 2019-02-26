@@ -13,11 +13,13 @@ DOC START
 When FriendLoader initiates a friend core, it sets a trampoline code for the core.
 The objective of the trampoline code is to initialize processor core states, and waits messages from hakase through channels.
 
-The trampoline code is copied at <1MB page and at 1GB-1GB+4KB page.
+The trampoline code is copied at 0x70000-0x70000+4KB page and at 1GB-1GB+4KB page.
 The former page is used by the processor boot sequence. When a friend core is woken up by INIT IPI, it starts its execution on
 the former page. After virtual memory initialization (at trampoline/bootentry.S), the trampoline code jumps to the latter page 
 and continues its execution.
- 
+
+The address 0x70000 is reserved by the boot parameter of Linux kernel. (memmap=0x70000\$4K)
+
 DOC END
 */
 
