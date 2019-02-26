@@ -211,7 +211,7 @@ int cpu_start() {
   int i;
   ret1 = 0;
 
-  if (trampoline_region_alloc(&tregion) < 0) {
+  if (trampoline_region_alloc(&tregion) != 0) {
     return -1;
   }
 
