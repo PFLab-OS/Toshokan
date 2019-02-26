@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -e
 # arg1: binary file name
 # arg2...: arguments
 
