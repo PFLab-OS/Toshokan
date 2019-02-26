@@ -158,7 +158,6 @@ TEST(Channel2, GetSenderIdTwice) {
   }
 }
 
-
 TEST(Channel2, GetReturnValueOnce) {
   int32_t rval = rand();
 

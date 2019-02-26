@@ -327,7 +327,7 @@ TEST(CalleeChannelAccessor, DoNotGetIdBeforeReceiveSignal) {
   env._caller_ch->Reserve();
   env._caller_ch->SendSignal(env._callee_id, GetDummySignal());
 
- CalleeChannelAccessor callee_ca(*env._callee_ch);
+  CalleeChannelAccessor callee_ca(*env._callee_ch);
   // callee_ca.ReceiveSignal();
   CHECK_THROWS(AssertException, callee_ca.GetId());
 }

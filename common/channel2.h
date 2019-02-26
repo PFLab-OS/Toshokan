@@ -38,17 +38,14 @@ class Channel2 {
   class Signal {
    public:
     constexpr Signal() : _val(0) {}
-    explicit constexpr Signal(const int32_t val) : _val(val) {
-    };
+    explicit constexpr Signal(const int32_t val) : _val(val){};
     Signal(const Signal &obj) = default;
     Signal &operator=(const Signal &obj) = default;
     bool operator==(const Signal &obj) { return obj._val == _val; }
     bool operator!=(const Signal &obj) { return obj._val != _val; }
     int32_t GetVal() { return _val; }
-    
-    static constexpr Signal Null() {
-      return Signal(0);
-    }
+
+    static constexpr Signal Null() { return Signal(0); }
 
    private:
     int32_t _val;
@@ -134,4 +131,3 @@ class Channel2 {
  public:
   static const int kDataSize = kBufAddress - sizeof(Header);
 };
-
