@@ -120,3 +120,6 @@ test = AlwaysBuild(env.Alias('test', ['bin/g++', 'common_test', 'build/friend_lo
 Default(test)
 
 AlwaysBuild(env.Alias('doc', '', 'find . \( -name \*.cc -or -name \*.c -or -name \*.h -or -name \*.S \) | xargs cat | awk \'/DOC START/,/DOC END/\' | grep -v "DOC START" | grep -v "DOC END" | grep -E --color=always "$|#.*$"'))
+
+# support functions
+AlwaysBuild(env.Alias('monitor', '', docker_cmd('--network toshokan_net livadk/toshokan_ssh:' + container_tag, 'nc toshokan_qemu 4445')))
