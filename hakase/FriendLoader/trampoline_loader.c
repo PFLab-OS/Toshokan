@@ -13,7 +13,7 @@ DOC START
 When FriendLoader initiates a friend core, it sets a trampoline code for the core.
 The objective of the trampoline code is to initialize processor core states, and waits messages from hakase through channels.
 
-The trampoline code is copied at 0x70000-0x70000+4KB page and at 1GB-1GB+4KB page.
+The trampoline code is copied at 0x70000(TRAMPOLINE_ADDR)-0x70000+4KB page and at 1GB-1GB+4KB page.
 The former page is used by the processor boot sequence. When a friend core is woken up by INIT IPI, it starts its execution on
 the former page. After virtual memory initialization (at trampoline/bootentry.S), the trampoline code jumps to the latter page 
 and continues its execution.
@@ -26,17 +26,21 @@ DOC END
 static uint8_t jmp_bin[] = {0xeb, kMemoryMapTrampolineBinEntry - 2, 0x66, 0x90}; // jmp TrampolineBinEntry; xchg %ax, &ax
 
 int trampoline_region_alloc(struct trampoline_region *region) {
-  // restriction of trampoline region from the viewpoint of x86 architecture
+  // restriction of TRAMPOLINE_ADDR from the viewpoint of x86 architecture
   //                                     (ref. Multiprocessor Specification)
   // - paddr must be <0x100000
   // - 0xA0000-0xBF000 is reserved.
-  region->paddr = 0x70000;
+  region->paddr = TRAMPOLINE_ADDR;
 
   return 0;
 }
 
 void trampoline_region_free(struct trampoline_region *region) {
   region->paddr = 0;
+}
+
+static uint64_t add_base_addr_to_segment_descriptor(uint64_t desc) {
+  return desc | ((DEPLOY_PHYS_ADDR_START & 0xFFFFFF) << 16) | ((DEPLOY_PHYS_ADDR_START >> 24) << 56);
 }
 
 int trampoline_region_init(struct trampoline_region *region,
@@ -78,8 +82,13 @@ int trampoline_region_init(struct trampoline_region *region,
     }
 
     // initialize trampoline header
-    vaddr64[kMemoryMapRegionOffset / sizeof(*vaddr64)] = region->paddr;
     vaddr64[kMemoryMapPhysAddrStart / sizeof(*vaddr64)] = phys_addr_start;
+    // null descriptor
+    vaddr64[kMemoryMapGdtPtr32 / sizeof(*vaddr64) + 0] = 0;
+    // kernel code descriptor
+    vaddr64[kMemoryMapGdtPtr32 / sizeof(*vaddr64) + 1] = add_base_addr_to_segment_descriptor(0x00CF9A000000FFFFUL);
+    // kernel data descriptor
+    vaddr64[kMemoryMapGdtPtr32 / sizeof(*vaddr64) + 2] = add_base_addr_to_segment_descriptor(0x00CF92000000FFFFUL);
     vaddr64[kMemoryMapId / sizeof(*vaddr64)] = 0;            // will be initialized by trampoline_region_set_id()
     vaddr64[kMemoryMapStackVirtAddr / sizeof(*vaddr64)] = 0; // will be initialized by trampoline_region_set_id()
 
@@ -89,17 +98,12 @@ int trampoline_region_init(struct trampoline_region *region,
     iounmap(vaddr);
   }
 
-  // make copy of trampoline region at deploy area
-  if (deploy((const char *)buf, kRegionSize, region->paddr) < 0) {
-    pr_err("friend_loader: deploy failed\n");
-    return -1;
-  }
   if (deploy((const char *)buf, kRegionSize, 0) < 0) {
     pr_err("friend_loader: deploy failed\n");
     return -1;
   }
 
-  if (deploy_zero(kMemoryMapPml4t, kMemoryMapStack + 0x1000 * get_cpu_num() - kMemoryMapPml4t) < 0) {
+  if (deploy_zero(kMemoryMapPml4t, kMemoryMapStack + kStackSize * get_cpu_num() - kMemoryMapPml4t) < 0) {
     pr_err("friend_loader: deploy failed\n");
     return -1;
   }
@@ -109,7 +113,7 @@ int trampoline_region_init(struct trampoline_region *region,
 
 int trampoline_region_set_id(struct trampoline_region *region, int cpuid, int apicid) {
   int32_t buf[2];
-  uint64_t stack_addr = (cpuid + 1) * 0x1000 + kMemoryMapStack;
+  uint64_t stack_addr = (cpuid + 1) * kStackSize + kMemoryMapStack;
   
   buf[0] = apicid;
   buf[1] = cpuid;
@@ -124,3 +128,43 @@ int trampoline_region_set_id(struct trampoline_region *region, int cpuid, int ap
   return 0;
 }
 
+int pagetable_init(void) {
+  int i;
+  uint64_t entry;
+
+  entry = (kMemoryMapPdpt + DEPLOY_PHYS_ADDR_START) |
+    (1 << 0) | (1 << 1) | (1 << 2);
+  if (deploy((const char *)&entry, sizeof(uint64_t), kMemoryMapPml4t) < 0) {
+    return -1;
+  }
+  entry = (kMemoryMapPd + DEPLOY_PHYS_ADDR_START) |
+    (1 << 0) | (1 << 1) | (1 << 2);
+  if (deploy((const char *)&entry, sizeof(uint64_t), kMemoryMapPdpt) < 0) {
+    return -1;
+  }
+  entry = (kMemoryMapTmpPd + DEPLOY_PHYS_ADDR_START) |
+    (1 << 0) | (1 << 1) | (1 << 2);
+  if (deploy((const char *)&entry, sizeof(uint64_t), kMemoryMapPdpt + 8) < 0) {
+    return -1;
+  }
+  
+  for (i = 0; i < 512; i++) {
+    entry = (DEPLOY_PHYS_ADDR_START + (0x200000UL * i)) |
+      (1 << 0) | (1 << 1) | (1 << 2) | (1 << 7);
+    if (deploy((const char *)&entry, sizeof(uint64_t), kMemoryMapPd + sizeof(uint64_t) * i) < 0) {
+      return -1;
+    }
+  }
+  entry = DEPLOY_PHYS_ADDR_START |
+    (1 << 0) | (1 << 1) | (1 << 2) | (1 << 7);
+  if (deploy((const char *)&entry, sizeof(uint64_t), kMemoryMapTmpPd) < 0) {
+    return -1;
+  }
+  return 0;
+}
+
+// clean up a temporary page table
+void pagetable_clean(void) {
+  uint64_t entry = 0;
+  deploy((const char *)&entry, sizeof(uint64_t), kMemoryMapPdpt + 8);
+}

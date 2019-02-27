@@ -8,7 +8,7 @@ import stat
 from functools import reduce
 
 curdir = Dir('.').abspath
-container_tag = "8e102f8eb08a45ea56eb3c9ac7a52efde76e6e71"
+container_tag = "48fce99332c7c2ea0a95aa42087310667444ea1e"
 
 env = DefaultEnvironment().Clone(
                   ENV=os.environ,
@@ -68,7 +68,7 @@ trampoline_env.Program(target='hakase/FriendLoader/trampoline/boot_trampoline.bi
 env.Command('hakase/FriendLoader/trampoline/bin.o', 'hakase/FriendLoader/trampoline/boot_trampoline.bin',
     docker_module_build_cmd('objcopy -I binary -O elf64-x86-64 -B i386:x86-64 boot_trampoline.bin bin.o', curdir + '/hakase/FriendLoader/trampoline') +
     docker_module_build_cmd('script/check_trampoline_bin_size.sh $TARGET'))
-env.Command('hakase/FriendLoader/friend_loader.ko', [Glob('hakase/FriendLoader/*.h'), Glob('hakase/FriendLoader/*.c'), 'hakase/FriendLoader/trampoline/bin.o'], docker_module_build_cmd('sh -c "KERN_VER=4.13.0-45-generic make all"', curdir + '/hakase/FriendLoader'))
+AlwaysBuild(env.Command('hakase/FriendLoader/friend_loader.ko', [Glob('hakase/FriendLoader/*.h'), Glob('hakase/FriendLoader/*.c'), 'hakase/FriendLoader/trampoline/bin.o'], docker_module_build_cmd('sh -c "KERN_VER=4.13.0-45-generic make all"', curdir + '/hakase/FriendLoader')))
 
 # local circleci
 AlwaysBuild(env.Alias('circleci', [], 

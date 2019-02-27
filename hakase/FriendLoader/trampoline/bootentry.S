@@ -6,9 +6,11 @@
 	.globl entry
 	
 	/* written by FriendLoader */
-region_addr:
-	.quad 0
 phys_addr_start:
+	.quad 0
+gdt_desc32:
+	.quad 0
+	.quad 0
 	.quad 0
 reserved:
 	.quad 0
@@ -23,30 +25,34 @@ entry:
 	movw %ax, %ds
 
 	//
-	// setup paging
+	// switch to protect mode
 	//
-	movl (region_addr), %edx
+	lgdtl gdtr32
+
+	// set PE bit
+	movl %cr0, %eax
+	orl $(1 << 0), %eax
+	movl %eax, %cr0
+	ljmpl $0x08, $entry32
+	
+	.balign 8
+	.word 0
+gdtr32:
+	.word 8*4 - 1
+	.long gdt_desc32 + TRAMPOLINE_ADDR
+
+.code32
+entry32:
+	movw $0x10, %ax
+	movw %ax, %ds
+	
+	//
+	// setup paging
+	// page tables are initialized by FriendLoader/trampoline_loader.c
+	//
+	movl (phys_addr_start), %edx
 	leal PML4T(%edx), %edi
 	
-	// setup PML4T
-	leal PDPT(%edx), %eax
-	orl  $(PRESENT_BIT | WRITE_BIT | USER_BIT), %eax
-	movl %eax, (PML4T)
-	movl $0, (PML4T + 4)
-
-	// setup PDPT
-	leal PD(%edx), %eax
-	orl  $(PRESENT_BIT | WRITE_BIT | USER_BIT), %eax
-	movl %eax, (PDPT)
-	movl $0, (PDPT + 4)
-
-	// setup PD
-	movl (phys_addr_start), %eax
-	orl  $(PRESENT_BIT | WRITE_BIT | USER_BIT | HUGEPAGE_BIT), %eax
-	movl %eax, (PD)
-	movl (phys_addr_start + 4), %eax
-	movl %eax, (PD + 4)
-
 	// load cr3
 	movl %edi, %cr3
 	
@@ -65,26 +71,19 @@ entry:
 	orl $(1 << 8), %eax
 	wrmsr
 
-	// set PG&PE bit
+	// set PG bit
 	movl %cr0, %eax
-	orl  $((1 << 31) | (1 << 0)), %eax
-	andl $(~((1 << 30) | (1 << 29))), %eax
+	orl  $(1 << 31), %eax
+	andl $(~((1 << 30) | (1 << 29))), %eax // ensure cache enable & write back
 	movl %eax, %cr0
 
 	// We enabled paging.
-	// CPU will keep running this code, but the physical address is changed.
-	// physical address: (phys_addr) + (region_addr) + %rip
-	// linear address: (region_addr) + %rip  # as 16bit segmentation is valid
-
+	
 	// setup gdt
-	movl (region_addr), %edx
-	movl $gdt_desc, (gdt_desc_ptr)
-	addl %edx, (gdt_desc_ptr)
 	lgdtl gdtr
 
 	// jump to start
-	movl $start, (gdtr_ptr)
-	ljmpl *(gdtr_ptr)
+	ljmpl $0x10, $start
 
 
 stop:	
@@ -97,24 +96,19 @@ start:
 	// Now we use gdt_desc (64bit segmentation)
 	// physical address: (phys_addr) + %rip
 	// linear address: %rip
-	  
-	// TODO Issue #1
-	// relocate page tables and gdt descriptors
 
 	movw $0x18, %ax
 	movw %ax, %ds
 	movw %ax, %ss
-	xorq %rax, %rax
-	movl (stack_virt_addr), %eax
+	movq (stack_virt_addr), %rax
 	movq %rax, %rsp
-	
+	xorq %rax, %rax
 	jmp trampoline_main
 
 	.balign 8
-gdt_desc:
-	// null descriptor
-	.quad 0
-	.quad 0
+gdt_desc:	
+	.quad 0                   // null descriptor
+	.quad 0                   // null descriptor
 	.quad 0x00209a0000000000  // kernel code descriptor
 	.quad 0x0000920000000000  // kernel data descriptor
 	.quad 0x0020fa0000000000  // user code descriptor
@@ -123,9 +117,4 @@ gdt_desc:
 	.word 0
 gdtr:
 	.word 8*6 - 1
-gdt_desc_ptr:	
-	.quad 0
-
-gdtr_ptr:
-	.long 0
-	.long 0x10
+	.quad gdt_desc
