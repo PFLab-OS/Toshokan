@@ -18,8 +18,8 @@ if [ -f $1 ]; then
 
     trap './run.sh stop;' SIGINT
 
-    sudo ./test_library.sh $*
-    rval=$?
+    rval=0
+    sudo ./test_library.sh $* || rval=$?
 
     trap SIGINT
     

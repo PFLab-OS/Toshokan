@@ -1,11 +1,11 @@
-#!/bin/bash -e
+#!/bin/bash
 # arg1: binary file name
 # arg2...: arguments
 
 cd `dirname $0`
 if [ -f $1 ]; then
-    $*
-    ret=$?
+    ret=0
+    $* || ret=$?
     if [ $ret -eq 0 ]; then
         echo -e "\e[32m$1: PASSED\e[m"
         exit 0
