@@ -225,7 +225,7 @@ TEST(Channel2, WriteReadOverChannelBuffer) {
 TEST(Channel2, DoNotSendNullSignal) {
   caller_ch->Reserve();
   CHECK_THROWS(AssertException,
-               caller_ch->SendSignal(callee_ch_id, Channel2::Signal::Null()));
+               caller_ch->SendSignal(callee_ch_id, Channel2::Signal::kNull()));
 }
 
 TEST(Channel2, DoNotSendSignalBeforeReserving) {

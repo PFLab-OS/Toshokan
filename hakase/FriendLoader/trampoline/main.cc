@@ -1,12 +1,13 @@
 #include "channel.h"
+#include "channel_accessor2.h"
 #include "panic.h"
 
 // callback test
-void callback(H2F &h2f, F2H &f2h) {
-  h2f.Return(0);
-  f2h.Reserve(0);
-  f2h.SendSignal(1);
-  f2h.Release();
+void callback(CalleeChannelAccessor &callee_ca, F2H2 &f2h) {
+  Channel2::Id id = callee_ca.GetId();
+  callee_ca.Return(0);
+  CallerChannelAccessor caller_ca(f2h, id, Channel2::Signal::kCallback());
+  caller_ca.Call();
 }
 
 // print request test
@@ -66,27 +67,40 @@ extern "C" void trampoline_main() {
   asm volatile("wrmsr" ::"c"(0xC0000100 /* MSR_IA32_FS_BASE */), "d"(0),
                "a"(&pc_st[cpuid]));
 
-  H2F h2f;
-  F2H f2h;
+  H2F2 h2f;
+  F2H2 f2h;
+
+  if (cpuid == 1) {
+    Channel2::InitBuffer(reinterpret_cast<uint8_t *>(MemoryMap::kH2f));
+    Channel2::InitBuffer(reinterpret_cast<uint8_t *>(MemoryMap::kF2h));
+    Channel2::InitBuffer(reinterpret_cast<uint8_t *>(MemoryMap::kI2h));
+  }
 
   while (true) {
-    int16_t type;
-    h2f.WaitNewSignal(type);
-    switch (type) {
-      case 0:
-        panic();
-      case 1:
-        callback(h2f, f2h);
-        break;
-      case 2:
-        print(h2f, f2h);
-        break;
-      case 3:
-        exec_bin(h2f, f2h);
-        break;
-      case 4:
-        rw_memory(h2f, f2h);
-        break;
+    CalleeChannelAccessor callee_ca(h2f);
+    callee_ca.ReceiveSignal();
+    Channel2::Signal signal = callee_ca.GetSignal();
+    if (signal == Channel2::Signal::kCallback()) {
+      callback(callee_ca, f2h);
     }
+
+    // int16_t type;
+    // h2f.WaitNewSignal(type);
+    // switch (type) {
+    //   case 0:
+    //     panic();
+    //   case 1:
+    //     callback(h2f, f2h);
+    //     break;
+    //   case 2:
+    //     print(h2f, f2h);
+    //     break;
+    //   case 3:
+    //     exec_bin(h2f, f2h);
+    //     break;
+    //   case 4:
+    //     rw_memory(h2f, f2h);
+    //     break;
+    // }
   }
 }

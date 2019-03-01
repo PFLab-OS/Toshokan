@@ -7,23 +7,23 @@ def define_simple_tests(target, source):
     test_targets.append([target])
 
 define_simple_tests(target='callback.bin', source=["test.cc", "callback/hakase.cc"])
-define_simple_tests(target='print.bin', source=["test.cc", "../print.cc", "print/hakase.cc"])
-define_simple_tests(target='reading_signature.bin', source=["test.cc", "memrw/reading_signature.cc"])
-define_simple_tests(target='rw_small.bin', source=["test.cc", "memrw/rw_small.cc"])
-define_simple_tests(target='rw_large.bin', source=["test.cc", "memrw/rw_large.cc"])
+#define_simple_tests(target='print.bin', source=["test.cc", "../print.cc", "print/hakase.cc"])
+#define_simple_tests(target='reading_signature.bin', source=["test.cc", "memrw/reading_signature.cc"])
+#define_simple_tests(target='rw_small.bin', source=["test.cc", "memrw/rw_small.cc"])
+#define_simple_tests(target='rw_large.bin', source=["test.cc", "memrw/rw_large.cc"])
 
 friend_raw_env = friend_env.Clone(LINKFLAGS=friend_env.Dictionary('LINKFLAGS') + ' -T {0}/simple_loader/raw.ld'.format(Dir('.').abspath))
 
 hakase_env.Program(target='../../build/simple_loader.bin', source=["test.cc", "../simple_loader.cc", "simple_loader/hakase.cc"])
 friend_raw_env.Program(target='../../build/raw', source=["simple_loader/raw.cc"])
-test_targets.append(['simple_loader.bin', 'raw'])
+#test_targets.append(['simple_loader.bin', 'raw'])
 
 hakase_env.Program(target='../../build/elf_loader.bin', source=["test.cc", "../elf_loader.cc", "../interrupt.cc", "elf_loader/hakase.cc"])
 friend_elf_env.Program(target='../../build/elf_loader.elf', source=["elf_loader/friend.cc"])
-test_targets.append(['elf_loader.bin', 'elf_loader.elf'])
+#test_targets.append(['elf_loader.bin', 'elf_loader.elf'])
 
 hakase_env.Program(target='../../build/interrupt.bin', source=["test.cc", "../elf_loader.cc", "../interrupt.cc", "interrupt/hakase.cc"])
 friend_elf_env.Program(target='../../build/interrupt.elf', source=["interrupt/friend.cc", "interrupt/int.cc", "interrupt/int_asm.S"])
-test_targets.append(['interrupt.bin', 'interrupt.elf'])
+#test_targets.append(['interrupt.bin', 'interrupt.elf'])
 
 Return('test_targets')

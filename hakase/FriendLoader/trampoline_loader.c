@@ -113,7 +113,14 @@ int trampoline_region_init(struct trampoline_region *region,
 
 int trampoline_region_set_id(struct trampoline_region *region, int cpuid, int apicid) {
   int32_t buf[2];
-  uint64_t stack_addr = (cpuid + 1) * kStackSize + kMemoryMapStack;
+  uint64_t stack_addr;
+
+  if (cpuid <= 0) {
+    // cpuid 0 must be reserved for hakase
+    return -1;
+  }
+
+  stack_addr = cpuid * kStackSize + kMemoryMapStack;
   
   buf[0] = apicid;
   buf[1] = cpuid;

@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <sys/mman.h>
 #include <unistd.h>
-#include "channel.h"
+#include "channel2.h"
 
 int main(int argc, const char **argv) {
   int configfd_h2f = open("/sys/module/friend_loader/call/h2f", O_RDWR);
@@ -25,9 +25,9 @@ int main(int argc, const char **argv) {
     perror("mmap operation failed");
     return 255;
   }
-  F2H f2h(f2h_address);
-  H2F h2f(h2f_address);
-  I2H i2h(i2h_address);
+  F2H2 f2h(f2h_address);
+  H2F2 h2f(h2f_address);
+  I2H2 i2h(i2h_address);
 
   int rval = test_main(f2h, h2f, i2h, argc, argv);
 

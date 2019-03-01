@@ -245,7 +245,7 @@ int cpu_start() {
         continue;
       }
 
-      if (trampoline_region_set_id(&tregion, i, apicid) < 0) {
+      if (trampoline_region_set_id(&tregion, i + 1, apicid) < 0) {
 	ret1 = -1;
       }
 

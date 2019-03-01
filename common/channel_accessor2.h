@@ -1,14 +1,17 @@
 #pragma once
 #include <assert.h>
+#include <stddef.h>
 #include <stdint.h>
 #include "channel2.h"
 
 /*
- * ChannelAccessor : Wrapper of Channel
- *
- * Caller must use CallerChannelAccessor and callee must use
- * CalleeChannelAccessor
- */
+DOC START
+# channel/ChannelAccessor
+ChannelAccessor class: Wrapper of Channel
+
+CallerChannelAccessor can be used by Caller and CalleeChannelAccessor can be
+used by Callee DOC END
+*/
 
 class CallerChannelAccessor {
  public:
@@ -20,8 +23,10 @@ class CallerChannelAccessor {
       _buffer[i] = 0;
     }
   }
+#ifdef __CPPUTEST__
   // for debugging
   virtual void Do() {}
+#endif /* __CPPUTEST__ */
   template <class T>
   class Offset {
    public:
@@ -47,6 +52,7 @@ class CallerChannelAccessor {
   }
   int32_t Call() {
     while (_ch.Reserve().IsError()) {
+      asm volatile("pause":::"memory");
     }
     for (int i = 0; i < Channel2::kDataSize; i++) {
       _ch.Write(i, _buffer[i]);
@@ -56,11 +62,15 @@ class CallerChannelAccessor {
     while (true) {
       auto r = _ch.CheckIfReturned();
       if (r.IsError()) {
+#ifdef __CPPUTEST__
+	// for debugging
         Do();
+#endif /* __CPPUTEST__ */
       } else {
         rval = r.Unwrap();
         break;
       }
+      asm volatile("pause":::"memory");
     }
     _signal_sended = true;
     for (int i = 0; i < Channel2::kDataSize; i++) {
@@ -88,6 +98,7 @@ class CalleeChannelAccessor {
   void ReceiveSignal() {
     assert(!_accessible);
     while (!_ch.IsSignalArrived()) {
+      asm volatile("pause":::"memory");
     }
     _accessible = true;
   }

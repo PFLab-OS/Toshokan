@@ -1,2 +1,2 @@
 Import('cpputest_env')
-cpputest_env.Program(target='cpputest', source=['main.cc', 'align.cc', 'result.cc', 'channel.cc', 'channel_accessor2.cc', 'mock/channel.cc', 'mock/debug.cc'], LIBS=['CppUTest', 'CppUTestExt'])
+cpputest_env.Program(target='cpputest', source=['main.cc', 'align.cc', 'result.cc', 'channel_accessor2.cc'], LIBS=['CppUTest', 'CppUTestExt'])

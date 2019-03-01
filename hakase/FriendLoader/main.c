@@ -58,13 +58,14 @@ static int boot_flag_set(const char *val, struct kernel_param *kp) {
 
   if (n == 1) {
     if (cpu_start() == 0) {
-      pr_info("friend_loader: starting cpu from 0x%lx\n",
+      pr_info("friend_loader: starting processor cores from 0x%lx\n",
               DEPLOY_PHYS_ADDR_START);
     } else {
       pr_warn("friend_loader: cpu_start failed\n");
       return -EIO;
     }
   } else if (n == 0) {
+    pr_info("friend_loader: stop processor cores\n");
     int ret = cpu_replug();
     if (ret < 0) {
       pr_warn("friend_loade_exit: cpu_replug failed: %d\n", ret);

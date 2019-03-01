@@ -8,3 +8,6 @@ KERN_SRC ?= /lib/modules/$(KERN_VER)/build
 
 all:
 	$(MAKE) -C $(KERN_SRC) M=$(CURDIR) modules
+
+clean:
+	rm -f $(friend_loader-objs)
