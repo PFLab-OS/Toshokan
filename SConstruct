@@ -8,7 +8,7 @@ import stat
 from functools import reduce
 
 curdir = Dir('.').abspath
-container_tag = "48fce99332c7c2ea0a95aa42087310667444ea1e"
+container_tag = "6e424eb310d01b80624a2c0504857f7dcb081a8b"
 
 env = DefaultEnvironment().Clone(
                   ENV=os.environ,
@@ -35,7 +35,7 @@ def docker_module_build_cmd(arg, workdir=curdir):
 def docker_format_cmd(arg, workdir=curdir):
     return docker_cmd('livadk/clang-format:9f1d281b0a30b98fbb106840d9504e2307d3ad8f', arg, workdir)
 
-def build_wrapper(env, target, source):
+def build_wrapper():
   with open("bin/g++", mode='w') as f:
     f.write('\n'.join(['#!/bin/sh',
                        'args="$@"'] +
@@ -43,7 +43,7 @@ def build_wrapper(env, target, source):
   os.chmod('bin/g++', os.stat('bin/g++').st_mode | stat.S_IEXEC)
   return None
   
-env.Command('bin/g++', None, build_wrapper)
+build_wrapper()
 
 hakase_flag = '-g -O0 -MMD -MP -Wall --std=c++14 -static -D __HAKASE__'
 friend_flag = '-O0 -Wall --std=c++14 -nostdinc -nostdlib -D__FRIEND__'
