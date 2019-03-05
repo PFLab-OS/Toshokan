@@ -33,7 +33,7 @@ def docker_build_cmd(arg, workdir=curdir):
 def docker_module_build_cmd(arg, workdir=curdir):
     return docker_cmd('livadk/toshokan_qemu_kernel:' + container_tag, arg, workdir)
 def docker_format_cmd(arg, workdir=curdir):
-    return docker_cmd('livadk/clang-format:9f1d281b0a30b98fbb106840d9504e2307d3ad8f', arg, workdir)
+    return docker_cmd('-v /etc/group:/etc/group:ro -v /etc/passwd:/etc/passwd:ro -u `id -u $USER`:`id -g $USER` livadk/clang-format:9f1d281b0a30b98fbb106840d9504e2307d3ad8f', arg, workdir)
 
 def build_wrapper():
   if not os.path.exists('bin'):
@@ -87,7 +87,7 @@ AlwaysBuild(env.Alias('circleci', [],
 # format
 AlwaysBuild(env.Alias('format', [], 
     ['echo "Formatting with clang-format. Please wait..."'] +
-    docker_format_cmd('sh -c "git ls-files . | grep -E \'.*\\.cc$$|.*\\.h$$\' | xargs -n 1 clang-format -style=\'{{BasedOnStyle: Google}}\' -i{0}"'.format('&& git diff && git diff | wc -l | xargs test 0 -eq' if ci else '')) +
+    docker_format_cmd('sh -c "git ls-files . | grep -E \'.*\\.cc$$|.*\\.h$$\' | xargs -n 1 clang-format -i -style=\'{{BasedOnStyle: Google}}\' {0}"'.format('&& git diff && git diff | wc -l | xargs test 0 -eq' if ci else '')) +
     ['echo "Done."']))
 
 qemu_dir = '/home/hakase/'

@@ -1,7 +1,7 @@
 #pragma once
 #include <stdint.h>
-#include <string.h>
 #include <stdio.h>
+#include <string.h>
 #include "channel_accessor2.h"
 #include "result.h"
 
@@ -19,7 +19,7 @@ class MemoryAccessorBase {
 
 class Writer : public MemoryAccessorBase {
  public:
- Writer(Channel2 &ch, Channel2::Id id, const uint64_t address, void *buf,
+  Writer(Channel2 &ch, Channel2::Id id, const uint64_t address, void *buf,
          size_t size)
       : _ch(ch),
         _id(id),
@@ -34,13 +34,17 @@ class Writer : public MemoryAccessorBase {
           (_size - offset) > kTransferSize ? kTransferSize : (_size - offset);
 
       CallerChannelAccessor caller_ca(_ch, _id, Channel2::Signal::kRwMemory());
-      
-      caller_ca.Write<uint32_t>(CallerChannelAccessor::Offset<uint32_t>(0), static_cast<uint32_t>(Signature::kWrite));
-      caller_ca.Write<size_t>(CallerChannelAccessor::Offset<size_t>(8), _address + offset);
+
+      caller_ca.Write<uint32_t>(CallerChannelAccessor::Offset<uint32_t>(0),
+                                static_cast<uint32_t>(Signature::kWrite));
+      caller_ca.Write<size_t>(CallerChannelAccessor::Offset<size_t>(8),
+                              _address + offset);
       caller_ca.Write<size_t>(CallerChannelAccessor::Offset<size_t>(16), size);
 
       for (size_t i = 0; i < size; i++) {
-        caller_ca.Write<uint8_t>(CallerChannelAccessor::Offset<uint8_t>(kTransferDataOffset + i), _buf[offset + i]);
+        caller_ca.Write<uint8_t>(
+            CallerChannelAccessor::Offset<uint8_t>(kTransferDataOffset + i),
+            _buf[offset + i]);
       }
       if (caller_ca.Call() != 0) {
         return Result<bool>();
@@ -60,7 +64,7 @@ class Writer : public MemoryAccessorBase {
 
 class Reader : public MemoryAccessorBase {
  public:
- Reader(Channel2 &ch, Channel2::Id id, const uint64_t address, void *buf,
+  Reader(Channel2 &ch, Channel2::Id id, const uint64_t address, void *buf,
          size_t size)
       : _ch(ch),
         _id(id),
@@ -75,15 +79,18 @@ class Reader : public MemoryAccessorBase {
           (_size - offset) > kTransferSize ? kTransferSize : (_size - offset);
 
       CallerChannelAccessor caller_ca(_ch, _id, Channel2::Signal::kRwMemory());
-      caller_ca.Write<uint32_t>(CallerChannelAccessor::Offset<uint32_t>(0), static_cast<uint32_t>(Signature::kRead));
-      caller_ca.Write<size_t>(CallerChannelAccessor::Offset<size_t>(8), _address + offset);
+      caller_ca.Write<uint32_t>(CallerChannelAccessor::Offset<uint32_t>(0),
+                                static_cast<uint32_t>(Signature::kRead));
+      caller_ca.Write<size_t>(CallerChannelAccessor::Offset<size_t>(8),
+                              _address + offset);
       caller_ca.Write<size_t>(CallerChannelAccessor::Offset<size_t>(16), size);
 
       if (caller_ca.Call() != 0) {
         return Result<bool>();
       }
       for (size_t i = 0; i < size; i++) {
-        _buf[offset + i] = caller_ca.Read<uint8_t>(CallerChannelAccessor::Offset<uint8_t>(kTransferDataOffset + i));
+        _buf[offset + i] = caller_ca.Read<uint8_t>(
+            CallerChannelAccessor::Offset<uint8_t>(kTransferDataOffset + i));
       }
     }
     return Result<bool>(true);

@@ -1,6 +1,6 @@
 #include <assert.h>
-#include "channel_accessor2.h"
 #include "_memory.h"
+#include "channel_accessor2.h"
 #include "memrw.h"
 #include "tests/test.h"
 
