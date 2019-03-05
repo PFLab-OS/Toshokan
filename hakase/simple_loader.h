@@ -2,8 +2,8 @@
 #include <stdint.h>
 #include <memory>
 #include <vector>
-#include "channel.h"
-#include "common/result.h"
+#include "channel2.h"
+#include "result.h"
 
 static const uint64_t kDeployAddressStart = 0x100000;
 
@@ -43,12 +43,12 @@ class SimpleLoader {
     uint64_t _offset = 0;
   };
 
-  SimpleLoader(H2F &h2f, std::unique_ptr<BinaryFile> file)
+  SimpleLoader(H2F2 &h2f, std::unique_ptr<BinaryFile> file)
       : _h2f(h2f), _file(std::move(file)) {}
   SimpleLoader() = delete;
   Result<bool> Deploy();
 
  private:
-  H2F &_h2f;
+  H2F2 &_h2f;
   std::unique_ptr<BinaryFile> _file;
 };

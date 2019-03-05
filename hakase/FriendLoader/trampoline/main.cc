@@ -17,10 +17,10 @@ void print(H2F &h2f, F2H &f2h) {
 }
 
 // execute binary
-void exec_bin(H2F &h2f, F2H &f2h) {
-  uint64_t address = h2f.OldRead<uint64_t>(0);
+void exec_bin(CalleeChannelAccessor &callee_ca) {
+  uint64_t address = callee_ca.Read<uint64_t>(CalleeChannelAccessor::Offset<uint64_t>(0));
   // TODO check address
-  h2f.Return(0);
+  callee_ca.Return(0);
   asm volatile("call *%0" ::"r"(address));
 }
 
@@ -83,7 +83,10 @@ extern "C" void trampoline_main() {
       callback(callee_ca, f2h);
     } else if (signal == Channel2::Signal::kRwMemory()) {
       rw_memory(callee_ca);
+    } else if (signal == Channel2::Signal::kExec()) {
+      exec_bin(callee_ca);
     }
+      
 
     // int16_t type;
     // h2f.WaitNewSignal(type);

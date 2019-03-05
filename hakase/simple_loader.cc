@@ -10,7 +10,7 @@ Result<bool> SimpleLoader::Deploy() {
       return Result<bool>(true);
     }
 
-    MemoryAccessor::Writer mw(_h2f, 1, kDeployAddressStart + dd->_offset,
+    MemoryAccessor::Writer mw(_h2f, Channel2::Id(1), kDeployAddressStart + dd->_offset,
                               dd->_buf, dd->_size);
     mw.Do().Unwrap();
   }
@@ -33,7 +33,7 @@ std::unique_ptr<SimpleLoader::BinaryFile> SimpleLoader::BinaryFile::Load(
       delete buf;
       break;
     }
-    assert(sz < 2048);
+    assert(sz <= 2048);
     std::pair<size_t, uint8_t *> p = std::make_pair(sz, buf);
     that->_data.push_back(p);
   }

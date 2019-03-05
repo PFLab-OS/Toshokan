@@ -16,7 +16,7 @@ friend_raw_env = friend_env.Clone(LINKFLAGS=friend_env.Dictionary('LINKFLAGS') +
 
 hakase_env.Program(target='../../build/simple_loader.bin', source=["test.cc", "../simple_loader.cc", "simple_loader/hakase.cc"])
 friend_raw_env.Program(target='../../build/raw', source=["simple_loader/raw.cc"])
-#test_targets.append(['simple_loader.bin', 'raw'])
+test_targets.append(['simple_loader.bin', 'raw'])
 
 hakase_env.Program(target='../../build/elf_loader.bin', source=["test.cc", "../elf_loader.cc", "../interrupt.cc", "elf_loader/hakase.cc"])
 friend_elf_env.Program(target='../../build/elf_loader.elf', source=["elf_loader/friend.cc"])
