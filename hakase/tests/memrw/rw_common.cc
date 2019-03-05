@@ -1,11 +1,11 @@
 // read by rw_large.cc & rw_small.cc
 #include <stdlib.h>
 #include <time.h>
-#include "channel.h"
+#include "channel_accessor2.h"
 #include "memrw.h"
 #include "tests/test.h"
 
-int test_main(F2H &f2h, H2F &h2f, I2H &i2h, int argc, const char **argv) {
+int test_main(F2H2 &f2h, H2F2 &h2f, I2H2 &i2h, int argc, const char **argv) {
   static const uint64_t address = 1024 * 1024;
   uint8_t buf[kDataSize];
 
@@ -37,11 +37,11 @@ int test_main(F2H &f2h, H2F &h2f, I2H &i2h, int argc, const char **argv) {
     buf[i] = rand() % 0xFF;
   }
 
-  MemoryAccessor::Writer mw(h2f, 1, address, buf, kDataSize);
+  MemoryAccessor::Writer mw(h2f, Channel2::Id(1), address, buf, kDataSize);
   mw.Do().Unwrap();
 
   uint8_t tmp_buf[kDataSize];
-  MemoryAccessor::Reader mr(h2f, 1, address, tmp_buf, kDataSize);
+  MemoryAccessor::Reader mr(h2f, Channel2::Id(1), address, tmp_buf, kDataSize);
   mr.Do().Unwrap();
 
   if (memcmp(tmp_buf, buf, kDataSize) != 0) {

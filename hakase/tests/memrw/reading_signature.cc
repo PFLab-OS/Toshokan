@@ -1,10 +1,10 @@
 #include <assert.h>
-#include "channel.h"
-#include "common/_memory.h"
+#include "channel_accessor2.h"
+#include "_memory.h"
 #include "memrw.h"
 #include "tests/test.h"
 
-int test_main(F2H &f2h, H2F &h2f, I2H &i2h, int argc, const char **argv) {
+int test_main(F2H2 &f2h, H2F2 &h2f, I2H2 &i2h, int argc, const char **argv) {
   static const uint64_t kAddress = 0;
 
   // signature: jmp TrampolineBinEntry; xchg %ax, &ax (see
@@ -13,7 +13,7 @@ int test_main(F2H &f2h, H2F &h2f, I2H &i2h, int argc, const char **argv) {
       0xeb, static_cast<int>(MemoryMap::kTrampolineBinEntry) - 2, 0x66, 0x90};
 
   uint8_t buf[sizeof(signature) / sizeof(*signature)];
-  MemoryAccessor::Reader mr(h2f, 1, kAddress, buf,
+  MemoryAccessor::Reader mr(h2f, Channel2::Id(1), kAddress, buf,
                             sizeof(signature) / sizeof(*signature));
   mr.Do().Unwrap();
   if (memcmp(buf, signature, sizeof(signature) / sizeof(*signature)) != 0) {

@@ -24,35 +24,34 @@ void exec_bin(H2F &h2f, F2H &f2h) {
   asm volatile("call *%0" ::"r"(address));
 }
 
-void rw_memory(H2F &h2f, F2H &f2h) {
+void rw_memory(CalleeChannelAccessor &callee_ca) {
   static const uint32_t kRead = 0;
   static const uint32_t kWrite = 1;
 
-  uint32_t type = h2f.OldRead<uint32_t>(0);
-  uint64_t address_ = h2f.OldRead<uint64_t>(8);
-  uint64_t size = h2f.OldRead<uint64_t>(16);
+  uint32_t type = callee_ca.Read<uint32_t>(CalleeChannelAccessor::Offset<uint32_t>(0));
+  uint64_t address_ = callee_ca.Read<uint64_t>(CalleeChannelAccessor::Offset<uint64_t>(8));
+  uint64_t size = callee_ca.Read<uint64_t>(CalleeChannelAccessor::Offset<uint64_t>(16));
 
   if (address_ + 2048 / sizeof(uint64_t) >= 1024 * 1024 * 1024 /* 1GB */) {
     // avoid accessing to page unmapped region
-    h2f.Return(-1);
+    callee_ca.Return(-1);
     return;
   }
 
   uint8_t *address = reinterpret_cast<uint8_t *>(address_);
   if (type == kRead) {
     for (int i = 0; i < size; i++) {
-      h2f.Write(i + 2040, address[i]);
+      callee_ca.Write<uint8_t>(CalleeChannelAccessor::Offset<uint8_t>(i + 1024), address[i]);
     }
   } else if (type == kWrite) {
     for (int i = 0; i < size; i++) {
-      address[i] = h2f.Read(i + 2040);
+      address[i] = callee_ca.Read<uint8_t>(CalleeChannelAccessor::Offset<uint8_t>(i + 1024));
     }
   } else {
-    h2f.Return(-1);
+    callee_ca.Return(-1);
     return;
   }
-
-  h2f.Return(0);
+  callee_ca.Return(0);
 }
 
 extern "C" void trampoline_main() {
@@ -82,6 +81,8 @@ extern "C" void trampoline_main() {
     Channel2::Signal signal = callee_ca.GetSignal();
     if (signal == Channel2::Signal::kCallback()) {
       callback(callee_ca, f2h);
+    } else if (signal == Channel2::Signal::kRwMemory()) {
+      rw_memory(callee_ca);
     }
 
     // int16_t type;
