@@ -36,6 +36,8 @@ def docker_format_cmd(arg, workdir=curdir):
     return docker_cmd('livadk/clang-format:9f1d281b0a30b98fbb106840d9504e2307d3ad8f', arg, workdir)
 
 def build_wrapper():
+  if not os.path.exists('bin'):
+    os.mkdir('bin')
   with open("bin/g++", mode='w') as f:
     f.write('\n'.join(['#!/bin/sh',
                        'args="$@"'] +
