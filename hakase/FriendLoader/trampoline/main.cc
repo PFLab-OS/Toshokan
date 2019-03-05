@@ -10,12 +10,6 @@ void callback(CalleeChannelAccessor &callee_ca, F2H2 &f2h) {
   caller_ca.Call();
 }
 
-// print request test
-void print(H2F &h2f, F2H &f2h) {
-  h2f.Return(0);
-  f2h.WriteString(0, "abc\n");
-}
-
 // execute binary
 void exec_bin(CalleeChannelAccessor &callee_ca) {
   uint64_t address =
@@ -92,24 +86,5 @@ extern "C" void trampoline_main() {
     } else if (signal == Channel2::Signal::kExec()) {
       exec_bin(callee_ca);
     }
-
-    // int16_t type;
-    // h2f.WaitNewSignal(type);
-    // switch (type) {
-    //   case 0:
-    //     panic();
-    //   case 1:
-    //     callback(h2f, f2h);
-    //     break;
-    //   case 2:
-    //     print(h2f, f2h);
-    //     break;
-    //   case 3:
-    //     exec_bin(h2f, f2h);
-    //     break;
-    //   case 4:
-    //     rw_memory(h2f, f2h);
-    //     break;
-    // }
   }
 }
