@@ -48,22 +48,12 @@ class Channel2 {
     bool operator==(const Signal &obj) { return obj._val == _val; }
     bool operator!=(const Signal &obj) { return obj._val != _val; }
     int32_t GetVal() { return _val; }
-    
-    static constexpr Signal kNull() {
-      return Signal(0);
-    }
-    static constexpr Signal kCallback() {
-      return Signal(1);
-    }
-    static constexpr Signal kPrint() {
-      return Signal(2);
-    }
-    static constexpr Signal kExec() {
-      return Signal(3);
-    }
-    static constexpr Signal kRwMemory() {
-      return Signal(4);
-    }
+
+    static constexpr Signal kNull() { return Signal(0); }
+    static constexpr Signal kCallback() { return Signal(1); }
+    static constexpr Signal kPrint() { return Signal(2); }
+    static constexpr Signal kExec() { return Signal(3); }
+    static constexpr Signal kRwMemory() { return Signal(4); }
 
    private:
     int32_t _val;

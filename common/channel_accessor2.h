@@ -52,7 +52,7 @@ class CallerChannelAccessor {
   }
   int32_t Call() {
     while (_ch.Reserve().IsError()) {
-      asm volatile("pause":::"memory");
+      asm volatile("pause" ::: "memory");
     }
     for (int i = 0; i < Channel2::kDataSize; i++) {
       _ch.Write(i, _buffer[i]);
@@ -63,14 +63,14 @@ class CallerChannelAccessor {
       auto r = _ch.CheckIfReturned();
       if (r.IsError()) {
 #ifdef __CPPUTEST__
-	// for debugging
+        // for debugging
         Do();
 #endif /* __CPPUTEST__ */
       } else {
         rval = r.Unwrap();
         break;
       }
-      asm volatile("pause":::"memory");
+      asm volatile("pause" ::: "memory");
     }
     _signal_sended = true;
     for (int i = 0; i < Channel2::kDataSize; i++) {
@@ -98,7 +98,7 @@ class CalleeChannelAccessor {
   void ReceiveSignal() {
     assert(!_accessible);
     while (!_ch.IsSignalArrived()) {
-      asm volatile("pause":::"memory");
+      asm volatile("pause" ::: "memory");
     }
     _accessible = true;
   }

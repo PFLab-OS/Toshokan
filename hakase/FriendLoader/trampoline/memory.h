@@ -19,6 +19,8 @@
 static_assert(static_cast<uint64_t>(MemoryMap::kPml4t) == PML4T, "");
 static_assert(static_cast<uint64_t>(MemoryMap::kPdpt) == PDPT, "");
 static_assert(static_cast<uint64_t>(MemoryMap::kPd) == PD, "");
-static_assert(static_cast<uint64_t>(MemoryMap::kTemporaryStack) + 0x1000 == TMP_STACK, "");
+static_assert(static_cast<uint64_t>(MemoryMap::kTemporaryStack) + 0x1000 ==
+                  TMP_STACK,
+              "");
 
 #endif /* ASM_FILE */
