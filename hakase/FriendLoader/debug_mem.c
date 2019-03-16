@@ -92,12 +92,19 @@ static loff_t memory_llseek(struct file *file, loff_t offset, int origin) {
 }
 
 static ssize_t zero_clear_read(struct file *file, char __user *buf, size_t len, loff_t *ppos) {
+  char buf_tmp[256];
+  size_t rval_str_len;
   if(*ppos != 0) {
     return 0;
   }
-  snprintf(buf, len, "%u", zero_clear_status);
-  *ppos = strlen(buf);
-  return strlen(buf); 
+  snprintf(buf_tmp, 256, "%u", zero_clear_status);
+  rval_str_len = strlen(buf_tmp);
+  if (rval_str_len > len) {
+    return 0;
+  }
+  copy_to_user(buf, buf_tmp, rval_str_len);
+  *ppos = rval_str_len;
+  return rval_str_len; 
 }
 
 static ssize_t zero_clear_write(struct file *file, const char __user *buf, size_t len, loff_t *ppos) {
