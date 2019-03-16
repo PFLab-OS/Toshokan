@@ -91,9 +91,9 @@ AlwaysBuild(env.Alias('format', [],
 qemu_dir = '/home/hakase/'
 
 def ssh_cmd(arg):
-    return docker_cmd('--network toshokan_net livadk/toshokan_ssh:' + container_tag, 'ssh toshokan_qemu cd {0} \&\& {1}'.format(qemu_dir, arg))
+    return docker_cmd('--network toshokan_net livadk/toshokan_ssh:' + container_tag, 'wait-for toshokan_qemu:2222 -- ssh toshokan_qemu cd {0} \&\& {1}'.format(qemu_dir, arg))
 def transfer_cmd():
-    return docker_cmd('--network toshokan_net livadk/toshokan_ssh:' + container_tag, 'rsync build/* toshokan_qemu:.')
+    return docker_cmd('--network toshokan_net livadk/toshokan_ssh:' + container_tag, 'wait-for toshokan_qemu:2222 -- rsync build/* toshokan_qemu:.')
 
 hakase_test_bin = ['hakase/tests/callback/callback.bin', 'hakase/tests/print/print.bin', 'hakase/tests/memrw/reading_signature.bin', 'hakase/tests/memrw/rw_small.bin', 'hakase/tests/memrw/rw_large.bin', 'hakase/tests/simple_loader/simple_loader.bin', 'hakase/tests/simple_loader/raw', 'hakase/tests/elf_loader/elf_loader.bin', 'hakase/tests/elf_loader/elf_loader.elf', 'hakase/tests/interrupt/interrupt.bin', 'hakase/tests/interrupt/interrupt.elf']
 

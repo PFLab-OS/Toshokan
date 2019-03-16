@@ -76,6 +76,7 @@ build/
 .sconsign.dblite
 hakase/tests/simple_loader/raw
 common/tests/cpputest
+hakase/FriendLoader/friend_loader.ko
 
 # Kernel Module Compile Results
 *.mod*
