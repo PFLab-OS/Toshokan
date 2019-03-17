@@ -116,7 +116,7 @@ AlwaysBuild(env.Alias('common_test', ['common/tests/cpputest'], docker_build_cmd
 
 # test pattern
 test = AlwaysBuild(env.Alias('test', ['common_test', 'build/friend_loader.ko', 'build/run.sh', 'build/test_hakase.sh', 'build/test_library.sh'] + expand_hakase_test_targets_to_depends(), [
-    'docker rm -f toshokan_qemu 2>&1 || :',
+    'docker rm -f toshokan_qemu > /dev/null 2>&1 || :',
     'docker network rm toshokan_net || :',
     'docker network create --driver bridge toshokan_net',
     'docker run -d --name toshokan_qemu --network toshokan_net -P livadk/toshokan_qemu:{0}'.format(container_tag)] +
@@ -127,8 +127,8 @@ test = AlwaysBuild(env.Alias('test', ['common_test', 'build/friend_loader.ko', '
 Default(test)
 
 # build docker container
-test = AlwaysBuild(env.Alias('build', ['build/friend_loader.ko', 'build/run.sh', 'build/test_hakase.sh', 'build/test_library.sh'], [
-    'docker rm -f toshokan_qemu 2>&1 || :',
+env.Alias('build', ['build/friend_loader.ko', 'build/run.sh', 'build/test_hakase.sh', 'build/test_library.sh'], [
+    'docker rm -f toshokan_qemu > /dev/null 2>&1 || :',
     'docker run -d --name toshokan_qemu --network toshokan_net -P livadk/toshokan_qemu:{0} sh -c "qemu-img create -f qcow2 /backing2.qcow2 5G && qemu-system-x86_64 -cpu Haswell -d cpu_reset -no-reboot -smp 5 -m 4G -D /tmp/qemu.log -hda /backing2.qcow2 -kernel /vmlinuz-4.13.0-45-generic -initrd /rootfs -append \'root=/dev/ram rdinit=/sbin/init memmap=0x70000\$4K memmap=0x40000000\$0x40000000 console=ttyS0,115200\' -net nic -net user,hostfwd=tcp::2222-:22 -serial telnet::4444,server,nowait -monitor telnet::4445,server,nowait -nographic"'.format(container_tag),
     'sh -c "while ! docker run -t --rm --network toshokan_net livadk/toshokan_ssh:' + container_tag + ' ssh toshokan_qemu exit 0 > /dev/null 2>&1 ; do sleep 1; done"'] +
     transfer_cmd() +
@@ -138,15 +138,16 @@ test = AlwaysBuild(env.Alias('build', ['build/friend_loader.ko', 'build/run.sh',
     'docker exec -t toshokan_qemu ls /',
     'docker exec -t toshokan_qemu sh -c "echo \'quit\' | nc toshokan_qemu 4445"',
     'docker commit -c "CMD qemu-system-x86_64 -cpu Haswell -s -d cpu_reset -no-reboot -smp 5 -m 4G -D /qemu.log -loadvm snapshot1 -hda /backing2.qcow2 -net nic -net user,hostfwd=tcp::2222-:22 -serial telnet::4444,server,nowait -monitor telnet::4445,server,nowait -nographic" toshokan_qemu hogehoge',
-    'docker rm -f toshokan_qemu']))
+    'docker rm -f toshokan_qemu'])
 
-test = AlwaysBuild(env.Alias('buildtest', [], [
-    'docker rm -f toshokan_qemu 2>&1 || :',
+env.Alias('buildtest', ['build', 'common_test'] + expand_hakase_test_targets_to_depends(), [
+    'docker rm -f toshokan_qemu > /dev/null 2>&1 || :',
     'docker network rm toshokan_net || :',
     'docker network create --driver bridge toshokan_net',
     'docker run -d --name toshokan_qemu --network toshokan_net -P hogehoge'] +
-    ssh_cmd('./test_hakase.sh ./simple_loader.bin ./raw') +
-    ['docker rm -f toshokan_qemu']))
+    transfer_cmd() +
+    reduce(lambda list, ele: list + ssh_cmd('./test_hakase.sh ' + ele), expand_hakase_test_targets_to_lists('./'), []) +
+    ['docker rm -f toshokan_qemu'])
 
 AlwaysBuild(env.Alias('doc', '', 'find . \( -name \*.cc -or -name \*.c -or -name \*.h -or -name \*.S \) | xargs cat | awk \'/DOC START/,/DOC END/\' | grep -v "DOC START" | grep -v "DOC END" | grep -E --color=always "$|#.*$"'))
 
