@@ -12,7 +12,7 @@
 #include "cpu_hotplug.h"
 #include "deploy.h"
 #include "trampoline_loader.h"
-#include "common/_memory.h"
+#include "_memory.h"
 
 static struct trampoline_region tregion;
 static int *unpluged_cpu_list = NULL;

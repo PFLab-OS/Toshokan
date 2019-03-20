@@ -7,7 +7,7 @@
 #include "call_interface.h"
 #include "cpu_hotplug.h"
 #include "debug_mem.h"
-#include "common/_memory.h"
+#include "_memory.h"
 
 MODULE_DESCRIPTION("Friend Loader");
 MODULE_LICENSE("GPL v2");

@@ -1,4 +1,4 @@
-#include "../channel_accessor2.h"
+#include "channel_accessor2.h"
 #include <functional>
 #include "CppUTest/TestHarness.h"
 #include "CppUTestExt/MockSupport.h"

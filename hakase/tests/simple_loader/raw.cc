@@ -1,6 +1,6 @@
 #include <stdint.h>
+#include "_memory.h"
 #include "channel_accessor2.h"
-#include "common/_memory.h"
 
 int main() __attribute__((section(".text.boot")));
 

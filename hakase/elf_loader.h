@@ -1,8 +1,8 @@
 #include <memory>
 #include <vector>
 #include "channel.h"
-#include "common/result.h"
 #include "elfhead.h"
+#include "result.h"
 
 // ELF Format requirements
 // * Deployment to 0x0-0x100000(1MB) is prohibited.

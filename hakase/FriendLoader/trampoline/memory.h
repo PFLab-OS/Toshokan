@@ -10,7 +10,7 @@
 #define PD 0x3000
 #define TMP_STACK 0x9000
 
-#include "common/_memory.h"
+#include "_memory.h"
 
 #ifndef ASM_FILE
 

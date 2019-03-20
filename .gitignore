@@ -77,6 +77,7 @@ build/
 hakase/tests/simple_loader/raw
 common/tests/cpputest
 hakase/FriendLoader/friend_loader.ko
+.toshokan_build
 
 # Kernel Module Compile Results
 *.mod*

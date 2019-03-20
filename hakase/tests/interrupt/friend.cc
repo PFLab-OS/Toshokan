@@ -1,6 +1,6 @@
 #include <stdint.h>
+#include "_memory.h"
 #include "channel.h"
-#include "common/_memory.h"
 #include "int.h"
 
 Idt idt;

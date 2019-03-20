@@ -1,4 +1,4 @@
-#include "../align.h"
+#include "align.h"
 #include "CppUTest/TestHarness.h"
 
 TEST_GROUP(Align){TEST_SETUP(){}

@@ -1,3 +1,4 @@
+#!python
 EnsureSConsVersion(3, 0, 0)
 EnsurePythonVersion(2, 5)
 Decider('MD5-timestamp')
@@ -42,8 +43,23 @@ os.environ["PATH"] += os.pathsep + curdir
 env = DefaultEnvironment().Clone(ENV=os.environ,
                                AS='bin/g++',
                                CC='bin/g++',
-                               CXX='bin/g++',
-			       tools=[build_wrapper])
+                               CXX='bin/g++')
+
+def container_emitter(target, source, env):
+  env.Depends(target, '#bin/g++')
+  env.Depends(target, '#.toshokan_build')
+  return (target, source)
+
+from SCons.Tool import createObjBuilders
+static_obj, shared_obj = createObjBuilders(env)
+static_obj.add_emitter('.cc', container_emitter)
+static_obj.add_emitter('.c', container_emitter)
+static_obj.add_emitter('.S', container_emitter)
+static_obj.add_emitter('.o', container_emitter)
+
+Command('bin/g++',[],['rm -f bin/g++'] +
+  list(map(lambda str: 'echo "{0}" >> bin/g++'.format(str) , ['#!/bin/sh', 'args="\\$$@"'] + docker_build_cmd('g++ \\$$args'))) +
+  [Chmod("$TARGET", '775')])
 
 hakase_flag = '-g -O0 -MMD -MP -Wall --std=c++14 -static -D __HAKASE__'
 friend_flag = '-O0 -Wall --std=c++14 -nostdinc -nostdlib -D__FRIEND__'
@@ -55,9 +71,9 @@ cpputest_flag = '--std=c++14 --coverage -D__CPPUTEST__ -pthread'
 def extract_include_path(list):
     return map(lambda str: str.format(curdir), list)
 
-hakase_include_path = extract_include_path(['{0}/hakase', '{0}/common', '{0}'])
-friend_include_path = extract_include_path(['{0}/friend', '{0}/common', '{0}'])
-cpputest_include_path = extract_include_path(['{0}/common/tests/mock', '{0}/hakase', '{0}/common', '{0}'])
+hakase_include_path = extract_include_path(['{0}/hakase', '{0}/include', '{0}'])
+friend_include_path = extract_include_path(['{0}/friend', '{0}/include', '{0}'])
+cpputest_include_path = extract_include_path(['{0}/common/tests/mock', '{0}/hakase', '{0}/include', '{0}'])
 
 hakase_env = env.Clone(ASFLAGS=hakase_flag, CXXFLAGS=hakase_flag, LINKFLAGS=hakase_flag, CPPPATH=hakase_include_path)
 friend_env = env.Clone(ASFLAGS=friend_flag, CXXFLAGS=friend_flag, LINKFLAGS=friend_flag, CPPPATH=friend_include_path)
@@ -139,6 +155,16 @@ env.Alias('build', ['build/friend_loader.ko', 'build/run.sh', 'build/test_hakase
     'docker exec -t toshokan_qemu sh -c "echo \'quit\' | nc toshokan_qemu 4445"',
     'docker commit -c "CMD qemu-system-x86_64 -cpu Haswell -s -d cpu_reset -no-reboot -smp 5 -m 4G -D /qemu.log -loadvm snapshot1 -hda /backing2.qcow2 -net nic -net user,hostfwd=tcp::2222-:22 -serial telnet::4444,server,nowait -monitor telnet::4445,server,nowait -nographic" toshokan_qemu hogehoge',
     'docker rm -f toshokan_qemu'])
+
+Command('.toshokan_build', [Glob('include/*.h')], [
+    'docker rm -f toshokan_build > /dev/null 2>&1 || :',
+    'docker run -d -it --name toshokan_build livadk/toshokan_build:{0} sh'.format(container_tag),
+    'docker exec toshokan_build mkdir -p /usr/local/include/toshokan',
+    'docker cp include toshokan_build:/usr/local/include/toshokan',
+    'docker stop toshokan_build',
+    'docker commit -c "CMD sh" toshokan_build hogebuild',
+    'docker rm -f toshokan_build',
+    'docker images --digests -q --no-trunc hogebuild > .toshokan_build'])
 
 env.Alias('buildtest', ['build', 'common_test'] + expand_hakase_test_targets_to_depends(), [
     'docker rm -f toshokan_qemu > /dev/null 2>&1 || :',

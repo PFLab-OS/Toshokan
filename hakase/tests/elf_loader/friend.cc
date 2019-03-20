@@ -1,5 +1,5 @@
 #include <stdint.h>
-#include "common/_memory.h"
+#include "_memory.h"
 
 int buf1[10];                                    // for .bss
 int buf2[10] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};  // for .data

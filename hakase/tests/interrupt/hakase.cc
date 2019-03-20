@@ -1,4 +1,4 @@
-#include "common/_memory.h"
+#include "_memory.h"
 #include "elf_loader.h"
 #include "interrupt.h"
 #include "tests/test.h"

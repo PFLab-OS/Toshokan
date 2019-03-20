@@ -1,6 +1,6 @@
 #include "elf_loader.h"
 #include <stdio.h>
-#include "common/channel_accessor.h"
+#include "channel_accessor.h"
 #include "memrw.h"
 
 std::unique_ptr<ElfLoader::ElfFile> ElfLoader::ElfFile::Load(

@@ -1,6 +1,6 @@
 #include "trampoline_loader.h"
 #include "deploy.h"
-#include "common/_memory.h"
+#include "_memory.h"
 #include "cpu_hotplug.h"
 #include <asm/realmode.h>
 #include <linux/slab.h>

@@ -1,7 +1,7 @@
 #pragma once
 #include <assert.h>
 #include <stdint.h>
-#include "common/_memory.h"
+#include "_memory.h"
 #include "panic.h"
 
 #define PAGE_SIZE 4096

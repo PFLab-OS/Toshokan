@@ -2,7 +2,7 @@
 #include <linux/kernel.h>
 
 #include "deploy.h"
-#include "common/_memory.h"
+#include "_memory.h"
 
 int deploy(const char *data, size_t size, loff_t offset) {
   void __iomem *io_addr;
