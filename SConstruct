@@ -52,8 +52,8 @@ trampoline_flag = '-Os --std=c++14 -nostdinc -nostdlib -ffreestanding -fno-built
 trampoline_ld_flag = '-Os -nostdlib -T {0}/boot_trampoline.ld'.format(curdir)
 cpputest_flag = '--std=c++14 --coverage -D__CPPUTEST__ -pthread'
 
-def extract_include_path(list):
-    return map(lambda str: str.format(curdir), list)
+def extract_include_path(list_):
+    return list(map(lambda str: str.format(curdir), list_))
 
 hakase_include_path = extract_include_path(['{0}/hakase', '{0}/common', '{0}'])
 friend_include_path = extract_include_path(['{0}/friend', '{0}/common', '{0}'])
@@ -100,7 +100,7 @@ hakase_test_bin = ['hakase/tests/callback/callback.bin', 'hakase/tests/print/pri
 
 def expand_hakase_test_targets_to_depends():
     add_path_func = lambda ele: './build/' + ele
-    return reduce(lambda list, ele: list + map(add_path_func, ele), hakase_test_targets, [])
+    return reduce(lambda list_, ele: list_ + list(map(add_path_func, ele)), hakase_test_targets, [])
 
 def expand_hakase_test_targets_to_lists(prefix):
     add_path_func = lambda str, ele: str + ' ' + prefix + ele
