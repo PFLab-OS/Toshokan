@@ -1,6 +1,12 @@
 version: 2
+workflows:
+  version: 2
+  build_and_test:
+    jobs:
+      - build_python2
+      - build_python3
 jobs:
-  build:
+  build_python2:
     docker:
       - image: docker:18.03.0-ce-git
     steps:
@@ -16,3 +22,23 @@ jobs:
       - run:
           command: |
             scons CI=1 test
+  build_python3:
+    docker:
+      - image: docker:18.03.0-ce-git
+    steps:
+      - checkout
+      - setup_remote_docker
+      - run:
+          command: |
+            apk --update add python3 python3-dev make bash
+            if [[ ! -e /usr/bin/python ]]; then ln -sf /usr/bin/python3 /usr/bin/python; fi
+            if [ ! -e /usr/bin/pip ]; then ln -s pip3 /usr/bin/pip ; fi
+            pip install scons
+      - run:
+          command: |
+            scons CI=1 format
+      - run:
+          command: |
+            scons CI=1 test
+
+#TODO: should be refactored using YAML anchor & alias
