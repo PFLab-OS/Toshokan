@@ -80,7 +80,8 @@ AlwaysBuild(env.Command('hakase/FriendLoader/friend_loader.ko', [Glob('hakase/Fr
 # local circleci
 AlwaysBuild(env.Alias('circleci', [], 
     ['circleci config validate',
-    'circleci build']))
+    'circleci build --job build_python2',
+    'circleci build --job build_python3']))
 
 # format
 AlwaysBuild(env.Alias('format', [], 
