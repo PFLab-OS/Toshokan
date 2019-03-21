@@ -157,7 +157,7 @@ env.Alias('build', ['build/friend_loader.ko', 'build/run.sh', 'build/test_hakase
     'docker commit -c "CMD qemu-system-x86_64 -cpu Haswell -s -d cpu_reset -no-reboot -smp 5 -m 4G -D /qemu.log -loadvm snapshot1 -hda /backing2.qcow2 -net nic -net user,hostfwd=tcp::2222-:22 -serial telnet::4444,server,nowait -monitor telnet::4445,server,nowait -nographic" toshokan_qemu hogehoge',
     'docker rm -f toshokan_qemu'])
 
-Command('.toshokan_build', [Glob('include/*.h')], [
+env.Command('.toshokan_build', [Glob('include/*.h')], [
     'docker rm -f toshokan_build > /dev/null 2>&1 || :',
     'docker run -d -it --name toshokan_build livadk/toshokan_build:{0} sh'.format(container_tag),
     'docker exec toshokan_build mkdir -p /usr/local/include/toshokan',
