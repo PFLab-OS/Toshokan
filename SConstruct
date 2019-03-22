@@ -25,36 +25,39 @@ def docker_format_cmd(arg, workdir=curdir):
 
 docker_tmp_dir = Command('docker/build', [], Mkdir("$TARGET"))
 
-container_list = []
-
 def build_container(env, name, base, source):
   script = name + '.sh'
-  container = env.Command('docker_image/' + name + '.tar', [docker_tmp_dir, 'docker/' + script] + source, [
+  return env.Command('.docker_toshokan_' + name, [docker_tmp_dir, 'docker/' + script] + source, [
     'docker rm -f $CONTAINER_NAME > /dev/null 2>&1 || :',
     Chmod('docker/' + script, '755'),
     'docker run --name=$CONTAINER_NAME -v {0}/docker:/mnt -w / {1} mnt/{2}'.format(curdir, base, script),
     'docker commit -c "CMD sh" $CONTAINER_NAME $IMG_NAME',
     'docker rm -f $CONTAINER_NAME',
-    'docker save $IMG_NAME > $TARGET'
+    'docker images --digests -q --no-trunc $IMG_NAME > $TARGET'
   ], CONTAINER_NAME='toshokan_containerbuild_' + name, IMG_NAME='livadk/toshokan_' + name)
-  container_list.append(container)
-  return container
 env.AddMethod(build_container, "BuildContainer")
+
+huge_container_list = []
+def build_container_with_image(env, name, base, source):
+  container = env.Command('docker_images/' + name + '.tar', env.BuildContainer(name, base, source), 'docker save -o $TARGET {0}'.format('livadk/toshokan_' + name))
+  huge_container_list.append(container)
+  return container
+env.AddMethod(build_container_with_image, "BuildContainerWithImage")
 
 build_intermediate_container = env.BuildContainer('build_intermediate', 'alpine:3.8', [])
 
 #TODO: add libraries
 #TODO: add include copy
 build_container = env.BuildContainer('build', 'livadk/toshokan_build_intermediate', [build_intermediate_container, Glob('include/*.h')])
-qemu_kernel_container = env.BuildContainer('qemu_kernel', 'ubuntu:16.04', [])
+qemu_kernel_container = env.BuildContainerWithImage('qemu_kernel', 'ubuntu:16.04', [])
 gdb_container = env.BuildContainer('gdb', 'alpine:3.8', [])
 ssh_container = env.BuildContainer('ssh', 'alpine:3.8', ['docker/config', 'docker/id_rsa', 'docker/wait-for'])
 qemu_kernel_image_container = env.BuildContainer('qemu_kernel_image', 'livadk/toshokan_qemu_kernel', [qemu_kernel_container])
 rootfs_container = env.BuildContainer('rootfs', 'alpine:3.8', [qemu_kernel_image_container])
 build_qemu_bin_container = env.BuildContainer('build_qemu_bin', 'ubuntu:16.04', [])
-qemu_intermediate_container = env.BuildContainer('qemu_intermediate', 'alpine:3.8', [build_qemu_bin_container, qemu_kernel_image_container, rootfs_container])
+qemu_intermediate_container = env.BuildContainerWithImage('qemu_intermediate', 'alpine:3.8', [build_qemu_bin_container, qemu_kernel_image_container, rootfs_container])
 
-AlwaysBuild(env.Alias('build_docker_images', container_list, ''))
+AlwaysBuild(env.Alias('build_huge_docker_images', huge_container_list))
 
 def create_wrapper(target, source, env):
   if type(target) == list:

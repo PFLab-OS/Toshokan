@@ -24,7 +24,7 @@ jobs:
           command: if test -d docker_image; then cd docker_image; for f in `find . -name '*.tar'`; do docker load -i $f; done; fi
       - run:
           command: |
-            scons build_docker_images -j3
+            scons build_huge_docker_images -j3
       - save_cache:
           key: cache-{{ .Branch }}-python2
           paths:
@@ -51,7 +51,7 @@ jobs:
           command: if test -d docker_image; then cd docker_image; for f in `find . -name '*.tar'`; do docker load -i $f; done; fi
       - run:
           command: |
-            scons build_docker_images -j3
+            scons build_huge_docker_images -j3
       - save_cache:
           key: cache-{{ .Branch }}-python3
           paths:
