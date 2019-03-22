@@ -29,16 +29,6 @@ def docker_module_build_cmd(arg, workdir=curdir):
 def docker_format_cmd(arg, workdir=curdir):
     return docker_cmd('-v /etc/group:/etc/group:ro -v /etc/passwd:/etc/passwd:ro -u `id -u $USER`:`id -g $USER` livadk/clang-format:9f1d281b0a30b98fbb106840d9504e2307d3ad8f', arg, workdir)
 
-# build bin/g++
-def build_wrapper(env):
-  if not os.path.exists('bin'):
-    os.mkdir('bin')
-  with open("bin/g++", mode='w') as f:
-    f.write('\n'.join(['#!/bin/sh',
-                       'args="$@"'] +
-                       docker_build_cmd('g++ $args')))
-  os.chmod('bin/g++', os.stat('bin/g++').st_mode | stat.S_IEXEC)
-
 os.environ["PATH"] += os.pathsep + curdir
 env = DefaultEnvironment().Clone(ENV=os.environ,
                                AS='bin/g++',
@@ -57,9 +47,9 @@ static_obj.add_emitter('.c', container_emitter)
 static_obj.add_emitter('.S', container_emitter)
 static_obj.add_emitter('.o', container_emitter)
 
-Command('bin/g++',[],['rm -f bin/g++'] +
-  list(map(lambda str: 'echo "{0}" >> bin/g++'.format(str) , ['#!/bin/sh', 'args="\\$$@"'] + docker_build_cmd('g++ \\$$args'))) +
-  [Chmod("$TARGET", '775')])
+Command('bin/g++',[],
+        list(map(lambda str: 'echo "{0}" >> bin/g++'.format(str) , ['#!/bin/sh', 'args="\\$$@"'] + docker_build_cmd('g++ \\$$args'))) +
+        [Chmod("$TARGET", '775')])
 
 hakase_flag = '-g -O0 -MMD -MP -Wall --std=c++14 -static -D __HAKASE__'
 friend_flag = '-O0 -Wall --std=c++14 -nostdinc -nostdlib -D__FRIEND__'
