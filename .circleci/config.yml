@@ -10,18 +10,18 @@ jobs:
     machine: true
     steps:
       - checkout
-      - restore_cache:
-          keys:
-            - cache-{{ .Branch }}-python2
-      - run:
-          command: if test -d docker_image; then cd docker_image; for f in `find . -name '*.tar'`; do docker load -i $f; done; fi
       - run:
           command: |
             sudo apt install -y python python-pip make bash
             pip install scons
       - run:
           command: |
-            scons format
+            scons CI=1 format
+      - restore_cache:
+          keys:
+            - cache-{{ .Branch }}-python2
+      - run:
+          command: if test -d docker_image; then cd docker_image; for f in `find . -name '*.tar'`; do docker load -i $f; done; fi
       - run:
           command: |
             scons build_docker_images -j3
@@ -37,18 +37,18 @@ jobs:
     machine: true
     steps:
       - checkout
-      - restore_cache:
-          keys:
-            - cache-{{ .Branch }}-python3
-      - run:
-          command: if test -d docker_image; then cd docker_image; for f in `find . -name '*.tar'`; do docker load -i $f; done; fi
       - run:
           command: |
             sudo apt install -y python3 python3-pip make bash
             pip install scons
       - run:
           command: |
-            scons format
+            scons CI=1 format
+      - restore_cache:
+          keys:
+            - cache-{{ .Branch }}-python3
+      - run:
+          command: if test -d docker_image; then cd docker_image; for f in `find . -name '*.tar'`; do docker load -i $f; done; fi
       - run:
           command: |
             scons build_docker_images -j3

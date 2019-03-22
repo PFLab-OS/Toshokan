@@ -19,17 +19,9 @@ env = DefaultEnvironment().Clone(ENV=os.environ,
                                CXX='bin/g++')
 
 def docker_cmd(container, arg, workdir=curdir):
-  if ci:
-    return ['docker rm -f toshokan_scons_container > /dev/null 2>&1 || :',
-            'docker run -d -it -w {0} --name toshokan_scons_container {1} sh'.format(workdir, container),
-	    'docker cp {0}/. toshokan_scons_container:{0}'.format(curdir),
-	    'docker exec -i toshokan_scons_container {0}'.format(arg),
-	    'docker cp toshokan_scons_container:{0}/. {0}'.format(curdir),
-	    'docker rm -f toshokan_scons_container']
-  else:
-    return ['docker run -i --rm -v {0}:{0} -w {1} {2} {3}'.format(curdir, workdir, container, arg)]
+  return ['docker run -i --rm -v {0}:{0} -w {1} {2} {3}'.format(curdir, workdir, container, arg)]
 def docker_format_cmd(arg, workdir=curdir):
-    return docker_cmd('-v /etc/group:/etc/group:ro -v /etc/passwd:/etc/passwd:ro -u `id -u $USER`:`id -g $USER` livadk/clang-format:9f1d281b0a30b98fbb106840d9504e2307d3ad8f', arg, workdir)
+  return docker_cmd('-v /etc/group:/etc/group:ro -v /etc/passwd:/etc/passwd:ro -u `id -u $USER`:`id -g $USER` livadk/clang-format:9f1d281b0a30b98fbb106840d9504e2307d3ad8f', arg, workdir)
 
 docker_tmp_dir = Command('docker/build', [], Mkdir("$TARGET"))
 
