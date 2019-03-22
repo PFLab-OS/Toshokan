@@ -22,8 +22,6 @@ def docker_cmd(container, arg, workdir=curdir):
 	    'docker rm -f toshokan_scons_container']
   else:
     return ['docker run -i --rm -v {0}:{0} -w {1} {2} {3}'.format(curdir, workdir, container, arg)]
-def docker_module_build_cmd(arg, workdir=curdir):
-    return docker_cmd('livadk/toshokan_qemu_kernel:' + container_tag, arg, workdir)
 def docker_format_cmd(arg, workdir=curdir):
     return docker_cmd('-v /etc/group:/etc/group:ro -v /etc/passwd:/etc/passwd:ro -u `id -u $USER`:`id -g $USER` livadk/clang-format:9f1d281b0a30b98fbb106840d9504e2307d3ad8f', arg, workdir)
 
@@ -72,10 +70,12 @@ SConscript(dirs=['common/tests'])
 # FriendLoader & trampoline
 trampoline_env = env.Clone(ASFLAGS=trampoline_flag, LINKFLAGS=trampoline_flag, CFLAGS=trampoline_flag, CXXFLAGS=trampoline_flag, CPPPATH=friend_include_path)
 trampoline_env.Program(target='hakase/FriendLoader/trampoline/boot_trampoline.bin', source=['hakase/FriendLoader/trampoline/bootentry.S', 'hakase/FriendLoader/trampoline/main.cc'])
-env.Command('hakase/FriendLoader/trampoline/bin.o', 'hakase/FriendLoader/trampoline/boot_trampoline.bin',
-    docker_module_build_cmd('objcopy -I binary -O elf64-x86-64 -B i386:x86-64 boot_trampoline.bin bin.o', curdir + '/hakase/FriendLoader/trampoline') +
-    docker_module_build_cmd('script/check_trampoline_bin_size.sh $TARGET'))
-AlwaysBuild(env.Command('hakase/FriendLoader/friend_loader.ko', [Glob('hakase/FriendLoader/*.h'), Glob('hakase/FriendLoader/*.c'), 'hakase/FriendLoader/trampoline/bin.o'], docker_module_build_cmd('sh -c "KERN_VER=4.13.0-45-generic make all"', curdir + '/hakase/FriendLoader')))
+
+env.Command('hakase/FriendLoader/trampoline/bin.o', ['.dummyfile_toshokan_qemu_kernel', 'hakase/FriendLoader/trampoline/boot_trampoline.bin'],
+    docker_cmd('livadk/toshokan_qemu_kernel', 'objcopy -I binary -O elf64-x86-64 -B i386:x86-64 boot_trampoline.bin bin.o', curdir + '/hakase/FriendLoader/trampoline') +
+    docker_cmd('livadk/toshokan_qemu_kernel', 'script/check_trampoline_bin_size.sh $TARGET'))
+
+AlwaysBuild(env.Command('hakase/FriendLoader/friend_loader.ko', ['.dummyfile_toshokan_qemu_kernel', Glob('hakase/FriendLoader/*.h'), Glob('hakase/FriendLoader/*.c'), 'hakase/FriendLoader/trampoline/bin.o'], docker_cmd('livadk/toshokan_qemu_kernel', 'sh -c "KERN_VER=4.13.0-45-generic make all"', curdir + '/hakase/FriendLoader')))
 
 # local circleci
 AlwaysBuild(env.Alias('circleci', [], 
@@ -162,6 +162,13 @@ build_intermediate_container = env.BuildContainer('build_intermediate', 'alpine:
 env.BuildContainer('build', 'livadk/toshokan_build_intermediate', [build_intermediate_container, Glob('include/*.h')], [
     'docker exec $NAME mkdir -p /usr/local/include/toshokan',
     'docker cp include $NAME:/usr/local/include/toshokan'
+])
+
+env.BuildContainer('qemu_kernel', 'ubuntu:16.04', [], [
+  'docker exec $NAME sed -i.bak  -s "s%http://archive.ubuntu.com/ubuntu/%http://ftp.jaist.ac.jp/pub/Linux/ubuntu/%g"  /etc/apt/sources.list',
+  'docker exec $NAME sed -i.bak  -s "s%http://security.ubuntu.com/ubuntu/%http://ftp.jaist.ac.jp/pub/Linux/ubuntu/%g"  /etc/apt/sources.list',
+  'docker exec $NAME apt update',
+  'docker exec $NAME apt install -y initramfs-tools linux-image-4.13.0-45-generic linux-headers-4.13.0-45-generic build-essential kernel-package'
 ])
 
 env.BuildContainer('gdb', 'alpine:3.8', [], [
