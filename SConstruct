@@ -47,7 +47,7 @@ env = DefaultEnvironment().Clone(ENV=os.environ,
 
 def container_emitter(target, source, env):
   env.Depends(target, '#bin/g++')
-  env.Depends(target, '#.toshokan_build')
+  env.Depends(target, '#.dummyfile_toshokan_build')
   return (target, source)
 
 from SCons.Tool import createObjBuilders
@@ -157,15 +157,16 @@ env.Alias('build', ['build/friend_loader.ko', 'build/run.sh', 'build/test_hakase
     'docker commit -c "CMD qemu-system-x86_64 -cpu Haswell -s -d cpu_reset -no-reboot -smp 5 -m 4G -D /qemu.log -loadvm snapshot1 -hda /backing2.qcow2 -net nic -net user,hostfwd=tcp::2222-:22 -serial telnet::4444,server,nowait -monitor telnet::4445,server,nowait -nographic" toshokan_qemu hogehoge',
     'docker rm -f toshokan_qemu'])
 
-env.Command('.toshokan_build', [Glob('include/*.h')], [
+env.Command('.dummyfile_toshokan_build', [Glob('include/*.h')], [
     'docker rm -f toshokan_build > /dev/null 2>&1 || :',
-    'docker run -d -it --name toshokan_build livadk/toshokan_build:{0} sh'.format(container_tag),
+    'docker run -d -it --name toshokan_build alpine:3.8 sh'.format(container_tag),
+    'docker exec toshokan_build apk add --no-cache make g++ cpputest',
     'docker exec toshokan_build mkdir -p /usr/local/include/toshokan',
     'docker cp include toshokan_build:/usr/local/include/toshokan',
     'docker stop toshokan_build',
     'docker commit -c "CMD sh" toshokan_build hogebuild',
     'docker rm -f toshokan_build',
-    'docker images --digests -q --no-trunc hogebuild > .toshokan_build'])
+    'docker images --digests -q --no-trunc hogebuild > $TARGET'])
 
 env.Alias('buildtest', ['build', 'common_test'] + expand_hakase_test_targets_to_depends(), [
     'docker rm -f toshokan_qemu > /dev/null 2>&1 || :',
