@@ -177,9 +177,17 @@ env.Alias('buildtest', ['build', 'common_test'] + expand_hakase_test_targets_to_
     reduce(lambda list, ele: list + ssh_cmd('./test_hakase.sh ' + ele), expand_hakase_test_targets_to_lists('./'), []) +
     ['docker rm -f toshokan_qemu'])
 
-Command('bin/g++', build_intermediate_container,
-        list(map(lambda str: 'echo "{0}" >> bin/g++'.format(str) , ['#!/bin/sh', 'args="\\$$@"'] + docker_cmd('livadk/toshokan_build_intermediate', 'g++ \\$$args'))) +
-        [Chmod("$TARGET", '775')])
+def create_wrapper(target, source, env):
+  if type(target) == list:
+    target = target[0]
+  with open(str(target), mode='w') as f:
+    f.write('#!/bin/sh\n'\
+            'args="$@"\n' + 
+            '\n'.join(docker_cmd('livadk/toshokan_build_intermediate', 'g++ $args')))
+
+Command('bin/g++', build_intermediate_container,[
+        create_wrapper,
+        Chmod("$TARGET", '775')])
 
 AlwaysBuild(env.Alias('doc', '', 'find . \( -name \*.cc -or -name \*.c -or -name \*.h -or -name \*.S \) | xargs cat | awk \'/DOC START/,/DOC END/\' | grep -v "DOC START" | grep -v "DOC END" | grep -E --color=always "$|#.*$"'))
 
