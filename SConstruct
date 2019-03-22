@@ -142,54 +142,27 @@ env.Alias('build', ['build/friend_loader.ko', 'build/run.sh', 'build/test_hakase
     'docker rm -f toshokan_qemu'])
 
 
-def build_container(env, name, base, source, command):
-  return env.Command('.dummyfile_toshokan_' + name, source, [
+def build_container(env, name, base, source):
+  script = name + '.sh'
+  return env.Command('.dummyfile_toshokan_' + name, ['docker/' + script] + source, [
     'docker rm -f $NAME > /dev/null 2>&1 || :',
-    'docker run -d -it --name $NAME {0} sh'.format(base)
-  ] + command + [
-    'docker kill $NAME',
+    Chmod('docker/' + script, '755'),
+    'docker run --name=$NAME -v {0}/docker:/mnt -w / {1} mnt/{2}'.format(curdir, base, script),
     'docker commit -c "CMD sh" $NAME livadk/$NAME',
     'docker rm -f $NAME',
     'docker images --digests -q --no-trunc livadk/$NAME > $TARGET'
   ], NAME='toshokan_' + name)
 env.AddMethod(build_container, "BuildContainer")
 
-build_intermediate_container = env.BuildContainer('build_intermediate', 'alpine:3.8', [], [
-  'docker exec $NAME apk add --no-cache make g++ cpputest',
-])
+build_intermediate_container = env.BuildContainer('build_intermediate', 'alpine:3.8', [])
 
 #TODO: add libraries
-env.BuildContainer('build', 'livadk/toshokan_build_intermediate', [build_intermediate_container, Glob('include/*.h')], [
-    'docker exec $NAME mkdir -p /usr/local/include/toshokan',
-    'docker cp include $NAME:/usr/local/include/toshokan',
-    'docker exec $NAME chown -R root:root /usr/local/include/toshokan'
-])
+#TODO: add include copy
+env.BuildContainer('build', 'livadk/toshokan_build_intermediate', [build_intermediate_container, Glob('include/*.h')])
+env.BuildContainer('qemu_kernel', 'ubuntu:16.04', [])
+env.BuildContainer('gdb', 'alpine:3.8', [])
+env.BuildContainer('ssh', 'alpine:3.8', ['docker/config', 'docker/id_rsa', 'docker/wait-for'])
 
-env.BuildContainer('qemu_kernel', 'ubuntu:16.04', [], [
-  'docker exec $NAME sed -i.bak  -s "s%http://archive.ubuntu.com/ubuntu/%http://ftp.jaist.ac.jp/pub/Linux/ubuntu/%g"  /etc/apt/sources.list',
-  'docker exec $NAME sed -i.bak  -s "s%http://security.ubuntu.com/ubuntu/%http://ftp.jaist.ac.jp/pub/Linux/ubuntu/%g"  /etc/apt/sources.list',
-  'docker exec $NAME apt update',
-  'docker exec $NAME apt install -y initramfs-tools linux-image-4.13.0-45-generic linux-headers-4.13.0-45-generic build-essential kernel-package'
-])
-
-env.BuildContainer('gdb', 'alpine:3.8', [], [
-    'docker exec $NAME apk add --no-cache gdb',
-])
-
-env.BuildContainer('ssh', 'alpine:3.8', ['docker/config', 'docker/id_rsa', 'docker/wait-for'], [
-  'docker exec $NAME apk add --no-cache openssh-client rsync',
-  'docker cp docker/wait-for $NAME:/usr/local/bin/wait-for',
-  'docker exec $NAME chown -R root:root /usr/local/bin/wait-for',
-  'docker exec $NAME chmod +x /usr/local/bin/wait-for',
-  'docker exec $NAME mkdir /root/.ssh',
-  'docker exec $NAME chmod 700 /root/.ssh',
-  'docker cp docker/id_rsa $NAME:/root/.ssh/id_rsa',
-  'docker cp docker/config $NAME:/root/.ssh/config',
-  'docker exec $NAME chown -R root:root /root/.ssh/config',
-  'docker exec $NAME chown -R root:root /root/.ssh/config',
-  'docker exec $NAME chmod 600 /root/.ssh/config',
-  'docker exec $NAME chmod 600 /root/.ssh/id_rsa',
-])
 
 env.Alias('buildtest', ['build', 'common_test', '.dummyfile_toshokan_ssh'] + expand_hakase_test_targets_to_depends(), [
     'docker rm -f toshokan_qemu > /dev/null 2>&1 || :',
