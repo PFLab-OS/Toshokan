@@ -12,6 +12,12 @@ curdir = Dir('.').abspath
 container_tag = "979612c1397cade043aafa2fef4eea2c6613c246"
 ci = True if int(ARGUMENTS.get('CI', 0)) == 1 else False
 
+os.environ["PATH"] += os.pathsep + curdir
+env = DefaultEnvironment().Clone(ENV=os.environ,
+                               AS='bin/g++',
+                               CC='bin/g++',
+                               CXX='bin/g++')
+
 def docker_cmd(container, arg, workdir=curdir):
   if ci:
     return ['docker rm -f toshokan_scons_container > /dev/null 2>&1 || :',
@@ -25,15 +31,47 @@ def docker_cmd(container, arg, workdir=curdir):
 def docker_format_cmd(arg, workdir=curdir):
     return docker_cmd('-v /etc/group:/etc/group:ro -v /etc/passwd:/etc/passwd:ro -u `id -u $USER`:`id -g $USER` livadk/clang-format:9f1d281b0a30b98fbb106840d9504e2307d3ad8f', arg, workdir)
 
-os.environ["PATH"] += os.pathsep + curdir
-env = DefaultEnvironment().Clone(ENV=os.environ,
-                               AS='bin/g++',
-                               CC='bin/g++',
-                               CXX='bin/g++')
+docker_tmp_dir = Command('docker/build', [], Mkdir("$TARGET"))
+
+def build_container(env, name, base, source):
+  script = name + '.sh'
+  return env.Command('.dummyfile_toshokan_' + name, [docker_tmp_dir, 'docker/' + script] + source, [
+    'docker rm -f $CONTAINER_NAME > /dev/null 2>&1 || :',
+    Chmod('docker/' + script, '755'),
+    'docker run --name=$CONTAINER_NAME -v {0}/docker:/mnt -w / {1} mnt/{2}'.format(curdir, base, script),
+    'docker commit -c "CMD sh" $CONTAINER_NAME $IMG_NAME',
+    'docker rm -f $CONTAINER_NAME',
+    'docker images --digests -q --no-trunc $IMG_NAME > $TARGET'
+  ], CONTAINER_NAME='toshokan_containerbuild_' + name, IMG_NAME='livadk/toshokan_' + name)
+env.AddMethod(build_container, "BuildContainer")
+
+build_intermediate_container = env.BuildContainer('build_intermediate', 'alpine:3.8', [])
+
+#TODO: add libraries
+#TODO: add include copy
+build_container = env.BuildContainer('build', 'livadk/toshokan_build_intermediate', [build_intermediate_container, Glob('include/*.h')])
+qemu_kernel_container = env.BuildContainer('qemu_kernel', 'ubuntu:16.04', [])
+gdb_container = env.BuildContainer('gdb', 'alpine:3.8', [])
+ssh_container = env.BuildContainer('ssh', 'alpine:3.8', ['docker/config', 'docker/id_rsa', 'docker/wait-for'])
+qemu_kernel_image_container = env.BuildContainer('qemu_kernel_image', 'livadk/toshokan_qemu_kernel', [])
+rootfs_container = env.BuildContainer('rootfs', 'alpine:3.8', [qemu_kernel_image_container])
+build_qemu_bin_container = env.BuildContainer('build_qemu_bin', 'ubuntu:16.04', [])
+qemu_intermediate_container = env.BuildContainer('qemu_intermediate', 'alpine:3.8', [build_qemu_bin_container, qemu_kernel_image_container, rootfs_container])
+
+def create_wrapper(target, source, env):
+  if type(target) == list:
+    target = target[0]
+  with open(str(target), mode='w') as f:
+    f.write('#!/bin/sh\n'\
+            'args="$@"\n' + 
+            '\n'.join(docker_cmd('livadk/toshokan_build_intermediate', 'g++ $args')))
+
+gcc_wrapper = Command('bin/g++', build_intermediate_container,[
+        create_wrapper,
+        Chmod("$TARGET", '775')])
 
 def container_emitter(target, source, env):
-  env.Depends(target, '#bin/g++')
-  env.Depends(target, '#.dummyfile_toshokan_build')
+  env.Depends(target, gcc_wrapper)
   return (target, source)
 
 from SCons.Tool import createObjBuilders
@@ -71,11 +109,11 @@ SConscript(dirs=['common/tests'])
 trampoline_env = env.Clone(ASFLAGS=trampoline_flag, LINKFLAGS=trampoline_flag, CFLAGS=trampoline_flag, CXXFLAGS=trampoline_flag, CPPPATH=friend_include_path)
 trampoline_env.Program(target='hakase/FriendLoader/trampoline/boot_trampoline.bin', source=['hakase/FriendLoader/trampoline/bootentry.S', 'hakase/FriendLoader/trampoline/main.cc'])
 
-env.Command('hakase/FriendLoader/trampoline/bin.o', ['.dummyfile_toshokan_qemu_kernel', 'hakase/FriendLoader/trampoline/boot_trampoline.bin'],
+env.Command('hakase/FriendLoader/trampoline/bin.o', [qemu_kernel_container, 'hakase/FriendLoader/trampoline/boot_trampoline.bin'],
     docker_cmd('livadk/toshokan_qemu_kernel', 'objcopy -I binary -O elf64-x86-64 -B i386:x86-64 boot_trampoline.bin bin.o', curdir + '/hakase/FriendLoader/trampoline') +
     docker_cmd('livadk/toshokan_qemu_kernel', 'script/check_trampoline_bin_size.sh $TARGET'))
 
-AlwaysBuild(env.Command('hakase/FriendLoader/friend_loader.ko', ['.dummyfile_toshokan_qemu_kernel', Glob('hakase/FriendLoader/*.h'), Glob('hakase/FriendLoader/*.c'), 'hakase/FriendLoader/trampoline/bin.o'], docker_cmd('livadk/toshokan_qemu_kernel', 'sh -c "KERN_VER=4.13.0-45-generic make all"', curdir + '/hakase/FriendLoader')))
+AlwaysBuild(env.Command('hakase/FriendLoader/friend_loader.ko', [qemu_kernel_container, Glob('hakase/FriendLoader/*.h'), Glob('hakase/FriendLoader/*.c'), 'hakase/FriendLoader/trampoline/bin.o'], docker_cmd('livadk/toshokan_qemu_kernel', 'sh -c "KERN_VER=4.13.0-45-generic make all"', curdir + '/hakase/FriendLoader')))
 
 # local circleci
 AlwaysBuild(env.Alias('circleci', [], 
@@ -113,19 +151,28 @@ env.Command("build/test_library.sh", "hakase/tests/test_library.sh", Copy("$TARG
 
 
 
-AlwaysBuild(env.Alias('common_test', ['common/tests/cpputest'], docker_cmd('livadk/toshokan_build_intermediate', './common/tests/cpputest -c -v')))
+AlwaysBuild(env.Alias('common_test', [build_intermediate_container, 'common/tests/cpputest'], docker_cmd('livadk/toshokan_build_intermediate', './common/tests/cpputest -c -v')))
 
 # test pattern
-test = AlwaysBuild(env.Alias('test', ['common_test', 'build/friend_loader.ko', 'build/run.sh', 'build/test_hakase.sh', 'build/test_library.sh', '.dummyfile_toshokan_ssh'] + expand_hakase_test_targets_to_depends(), [
+test = AlwaysBuild(env.Alias('test', ['common_test', qemu_intermediate_container, 'build/friend_loader.ko', 'build/run.sh', 'build/test_hakase.sh', 'build/test_library.sh', ssh_container] + expand_hakase_test_targets_to_depends(), [
     'docker rm -f toshokan_qemu > /dev/null 2>&1 || :',
     'docker network rm toshokan_net || :',
     'docker network create --driver bridge toshokan_net',
-    'docker run -d --name toshokan_qemu --network toshokan_net -P livadk/toshokan_qemu:{0}'.format(container_tag)] +
+    'docker run -d --name toshokan_qemu --network toshokan_net livadk/toshokan_qemu_intermediate qemu-system-x86_64 -cpu Haswell -s -d cpu_reset -no-reboot -smp 5 -m 4G -D /qemu.log -loadvm snapshot1 -hda /backing.qcow2 -net nic -net user,hostfwd=tcp::2222-:22 -serial telnet::4444,server,nowait -monitor telnet::4445,server,nowait -nographic'] +
     transfer_cmd() +
     reduce(lambda list, ele: list + ssh_cmd('./test_hakase.sh ' + ele), expand_hakase_test_targets_to_lists('./'), []) +
     ['docker rm -f toshokan_qemu']))
 
 Default(test)
+
+env.Alias('buildtest', ['build', 'common_test', ssh_container] + expand_hakase_test_targets_to_depends(), [
+    'docker rm -f toshokan_qemu > /dev/null 2>&1 || :',
+    'docker network rm toshokan_net || :',
+    'docker network create --driver bridge toshokan_net',
+    'docker run -d --name toshokan_qemu --network toshokan_net -P hogehoge'] +
+    transfer_cmd() +
+    reduce(lambda list, ele: list + ssh_cmd('./test_hakase.sh ' + ele), expand_hakase_test_targets_to_lists('./'), []) +
+    ['docker rm -f toshokan_qemu'])
 
 # build docker container
 env.Alias('build', ['build/friend_loader.ko', 'build/run.sh', 'build/test_hakase.sh', 'build/test_library.sh'], [
@@ -141,56 +188,8 @@ env.Alias('build', ['build/friend_loader.ko', 'build/run.sh', 'build/test_hakase
     'docker commit -c "CMD qemu-system-x86_64 -cpu Haswell -s -d cpu_reset -no-reboot -smp 5 -m 4G -D /qemu.log -loadvm snapshot1 -hda /backing2.qcow2 -net nic -net user,hostfwd=tcp::2222-:22 -serial telnet::4444,server,nowait -monitor telnet::4445,server,nowait -nographic" toshokan_qemu hogehoge',
     'docker rm -f toshokan_qemu'])
 
-docker_tmp_dir = Command('docker/build', [], Mkdir("$TARGET"))
-
-def build_container(env, name, base, source):
-  script = name + '.sh'
-  return env.Command('.dummyfile_toshokan_' + name, [docker_tmp_dir, 'docker/' + script] + source, [
-    'docker rm -f $CONTAINER_NAME > /dev/null 2>&1 || :',
-    Chmod('docker/' + script, '755'),
-    'docker run --name=$CONTAINER_NAME -v {0}/docker:/mnt -w / {1} mnt/{2}'.format(curdir, base, script),
-    'docker commit -c "CMD sh" $CONTAINER_NAME $IMG_NAME',
-    'docker rm -f $CONTAINER_NAME',
-    'docker images --digests -q --no-trunc $IMG_NAME > $TARGET'
-  ], CONTAINER_NAME='toshokan_containerbuild_' + name, IMG_NAME='livadk/toshokan_' + name)
-env.AddMethod(build_container, "BuildContainer")
-
-build_intermediate_container = env.BuildContainer('build_intermediate', 'alpine:3.8', [])
-
-#TODO: add libraries
-#TODO: add include copy
-env.BuildContainer('build', 'livadk/toshokan_build_intermediate', [build_intermediate_container, Glob('include/*.h')])
-env.BuildContainer('qemu_kernel', 'ubuntu:16.04', [])
-env.BuildContainer('gdb', 'alpine:3.8', [])
-env.BuildContainer('ssh', 'alpine:3.8', ['docker/config', 'docker/id_rsa', 'docker/wait-for'])
-qemu_kernel_image_container = env.BuildContainer('qemu_kernel_image', 'livadk/toshokan_qemu_kernel', [])
-rootfs_container = env.BuildContainer('rootfs', 'alpine:3.8', [qemu_kernel_image_container])
-build_qemu_bin_container = env.BuildContainer('build_qemu_bin', 'ubuntu:16.04', [])
-env.BuildContainer('qemu_intermediate', 'alpine:3.8', [build_qemu_bin_container, qemu_kernel_image_container, rootfs_container])
-
-env.Alias('buildtest', ['build', 'common_test', '.dummyfile_toshokan_ssh'] + expand_hakase_test_targets_to_depends(), [
-    'docker rm -f toshokan_qemu > /dev/null 2>&1 || :',
-    'docker network rm toshokan_net || :',
-    'docker network create --driver bridge toshokan_net',
-    'docker run -d --name toshokan_qemu --network toshokan_net -P hogehoge'] +
-    transfer_cmd() +
-    reduce(lambda list, ele: list + ssh_cmd('./test_hakase.sh ' + ele), expand_hakase_test_targets_to_lists('./'), []) +
-    ['docker rm -f toshokan_qemu'])
-
-def create_wrapper(target, source, env):
-  if type(target) == list:
-    target = target[0]
-  with open(str(target), mode='w') as f:
-    f.write('#!/bin/sh\n'\
-            'args="$@"\n' + 
-            '\n'.join(docker_cmd('livadk/toshokan_build_intermediate', 'g++ $args')))
-
-Command('bin/g++', build_intermediate_container,[
-        create_wrapper,
-        Chmod("$TARGET", '775')])
-
 AlwaysBuild(env.Alias('doc', '', 'find . \( -name \*.cc -or -name \*.c -or -name \*.h -or -name \*.S \) | xargs cat | awk \'/DOC START/,/DOC END/\' | grep -v "DOC START" | grep -v "DOC END" | grep -E --color=always "$|#.*$"'))
 
 # support functions
 AlwaysBuild(env.Alias('monitor', '', 'docker exec -it toshokan_qemu nc toshokan_qemu 4445'))
-AlwaysBuild(env.Alias('ssh', '', docker_cmd('-t --network toshokan_net livadk/toshokan_ssh:' + container_tag, 'ssh toshokan_qemu')))
+AlwaysBuild(env.Alias('ssh', ssh_container, docker_cmd('-t --network toshokan_net livadk/toshokan_ssh', 'ssh toshokan_qemu')))
