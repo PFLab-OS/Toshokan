@@ -92,9 +92,9 @@ AlwaysBuild(env.Alias('format', [],
 qemu_dir = '/home/hakase/'
 
 def ssh_cmd(arg):
-    return docker_cmd('--network toshokan_net livadk/toshokan_ssh:' + container_tag, 'wait-for toshokan_qemu:2222 -- ssh toshokan_qemu cd {0} \&\& {1}'.format(qemu_dir, arg))
+    return docker_cmd('--network toshokan_net livadk/toshokan_ssh', 'wait-for toshokan_qemu:2222 -- ssh toshokan_qemu cd {0} \&\& {1}'.format(qemu_dir, arg))
 def transfer_cmd():
-    return docker_cmd('--network toshokan_net livadk/toshokan_ssh:' + container_tag, 'wait-for toshokan_qemu:2222 -- rsync build/* toshokan_qemu:.')
+    return docker_cmd('--network toshokan_net livadk/toshokan_ssh', 'wait-for toshokan_qemu:2222 -- rsync build/* toshokan_qemu:.')
 
 hakase_test_bin = ['hakase/tests/callback/callback.bin', 'hakase/tests/print/print.bin', 'hakase/tests/memrw/reading_signature.bin', 'hakase/tests/memrw/rw_small.bin', 'hakase/tests/memrw/rw_large.bin', 'hakase/tests/simple_loader/simple_loader.bin', 'hakase/tests/simple_loader/raw', 'hakase/tests/elf_loader/elf_loader.bin', 'hakase/tests/elf_loader/elf_loader.elf', 'hakase/tests/interrupt/interrupt.bin', 'hakase/tests/interrupt/interrupt.elf']
 
@@ -116,7 +116,7 @@ env.Command("build/test_library.sh", "hakase/tests/test_library.sh", Copy("$TARG
 AlwaysBuild(env.Alias('common_test', ['common/tests/cpputest'], docker_cmd('livadk/toshokan_build_intermediate', './common/tests/cpputest -c -v')))
 
 # test pattern
-test = AlwaysBuild(env.Alias('test', ['common_test', 'build/friend_loader.ko', 'build/run.sh', 'build/test_hakase.sh', 'build/test_library.sh'] + expand_hakase_test_targets_to_depends(), [
+test = AlwaysBuild(env.Alias('test', ['common_test', 'build/friend_loader.ko', 'build/run.sh', 'build/test_hakase.sh', 'build/test_library.sh', '.dummyfile_toshokan_ssh'] + expand_hakase_test_targets_to_depends(), [
     'docker rm -f toshokan_qemu > /dev/null 2>&1 || :',
     'docker network rm toshokan_net || :',
     'docker network create --driver bridge toshokan_net',
@@ -161,7 +161,8 @@ build_intermediate_container = env.BuildContainer('build_intermediate', 'alpine:
 #TODO: add libraries
 env.BuildContainer('build', 'livadk/toshokan_build_intermediate', [build_intermediate_container, Glob('include/*.h')], [
     'docker exec $NAME mkdir -p /usr/local/include/toshokan',
-    'docker cp include $NAME:/usr/local/include/toshokan'
+    'docker cp include $NAME:/usr/local/include/toshokan',
+    'docker exec $NAME chown -R root:root /usr/local/include/toshokan'
 ])
 
 env.BuildContainer('qemu_kernel', 'ubuntu:16.04', [], [
@@ -175,7 +176,22 @@ env.BuildContainer('gdb', 'alpine:3.8', [], [
     'docker exec $NAME apk add --no-cache gdb',
 ])
 
-env.Alias('buildtest', ['build', 'common_test'] + expand_hakase_test_targets_to_depends(), [
+env.BuildContainer('ssh', 'alpine:3.8', ['docker/config', 'docker/id_rsa', 'docker/wait-for'], [
+  'docker exec $NAME apk add --no-cache openssh-client rsync',
+  'docker cp docker/wait-for $NAME:/usr/local/bin/wait-for',
+  'docker exec $NAME chown -R root:root /usr/local/bin/wait-for',
+  'docker exec $NAME chmod +x /usr/local/bin/wait-for',
+  'docker exec $NAME mkdir /root/.ssh',
+  'docker exec $NAME chmod 700 /root/.ssh',
+  'docker cp docker/id_rsa $NAME:/root/.ssh/id_rsa',
+  'docker cp docker/config $NAME:/root/.ssh/config',
+  'docker exec $NAME chown -R root:root /root/.ssh/config',
+  'docker exec $NAME chown -R root:root /root/.ssh/config',
+  'docker exec $NAME chmod 600 /root/.ssh/config',
+  'docker exec $NAME chmod 600 /root/.ssh/id_rsa',
+])
+
+env.Alias('buildtest', ['build', 'common_test', '.dummyfile_toshokan_ssh'] + expand_hakase_test_targets_to_depends(), [
     'docker rm -f toshokan_qemu > /dev/null 2>&1 || :',
     'docker network rm toshokan_net || :',
     'docker network create --driver bridge toshokan_net',
