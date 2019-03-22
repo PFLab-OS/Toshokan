@@ -162,8 +162,8 @@ env.BuildContainer('build', 'livadk/toshokan_build_intermediate', [build_interme
 env.BuildContainer('qemu_kernel', 'ubuntu:16.04', [])
 env.BuildContainer('gdb', 'alpine:3.8', [])
 env.BuildContainer('ssh', 'alpine:3.8', ['docker/config', 'docker/id_rsa', 'docker/wait-for'])
-env.BuildContainer('qemu_kernel_image', 'livadk/toshokan_qemu_kernel', [])
-
+qemu_kernel_image_container = env.BuildContainer('qemu_kernel_image', 'livadk/toshokan_qemu_kernel', [])
+env.BuildContainer('rootfs', 'alpine:3.8', [qemu_kernel_image_container])
 
 env.Alias('buildtest', ['build', 'common_test', '.dummyfile_toshokan_ssh'] + expand_hakase_test_targets_to_depends(), [
     'docker rm -f toshokan_qemu > /dev/null 2>&1 || :',
