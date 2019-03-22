@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/sh -ex
 apk add wget fakeroot
 wget --no-check-certificate https://nl.alpinelinux.org/alpine/v3.8/releases/x86_64/alpine-minirootfs-3.8.0-x86_64.tar.gz
 mkdir work
@@ -42,5 +42,6 @@ chroot . chown hakase:hakase /home/hakase/.ssh
 chroot . chown hakase:hakase /home/hakase/.ssh/authorized_keys
 chroot . chmod 700 /home/hakase/.ssh
 chroot . chmod 600 /home/hakase/.ssh/authorized_keys
-cp /mnt/build/modules lib/modules
+cp -r /mnt/build/modules lib/modules
 fakeroot && find | cpio --quiet -o -H newc | gzip -9 > ../rootfs
+cp /rootfs /mnt/build/

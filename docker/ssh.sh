@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/sh -ex
 apk add --no-cache openssh-client rsync
 cp /mnt/wait-for /usr/local/bin/wait-for
 chmod +x /usr/local/bin/wait-for

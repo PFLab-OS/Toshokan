@@ -141,17 +141,18 @@ env.Alias('build', ['build/friend_loader.ko', 'build/run.sh', 'build/test_hakase
     'docker commit -c "CMD qemu-system-x86_64 -cpu Haswell -s -d cpu_reset -no-reboot -smp 5 -m 4G -D /qemu.log -loadvm snapshot1 -hda /backing2.qcow2 -net nic -net user,hostfwd=tcp::2222-:22 -serial telnet::4444,server,nowait -monitor telnet::4445,server,nowait -nographic" toshokan_qemu hogehoge',
     'docker rm -f toshokan_qemu'])
 
+docker_tmp_dir = Command('docker/build', [], Mkdir("$TARGET"))
 
 def build_container(env, name, base, source):
   script = name + '.sh'
-  return env.Command('.dummyfile_toshokan_' + name, ['docker/' + script] + source, [
-    'docker rm -f $NAME > /dev/null 2>&1 || :',
+  return env.Command('.dummyfile_toshokan_' + name, [docker_tmp_dir, 'docker/' + script] + source, [
+    'docker rm -f $CONTAINER_NAME > /dev/null 2>&1 || :',
     Chmod('docker/' + script, '755'),
-    'docker run --name=$NAME -v {0}/docker:/mnt -w / {1} mnt/{2}'.format(curdir, base, script),
-    'docker commit -c "CMD sh" $NAME livadk/$NAME',
-    'docker rm -f $NAME',
-    'docker images --digests -q --no-trunc livadk/$NAME > $TARGET'
-  ], NAME='toshokan_' + name)
+    'docker run --name=$CONTAINER_NAME -v {0}/docker:/mnt -w / {1} mnt/{2}'.format(curdir, base, script),
+    'docker commit -c "CMD sh" $CONTAINER_NAME $IMG_NAME',
+    'docker rm -f $CONTAINER_NAME',
+    'docker images --digests -q --no-trunc $IMG_NAME > $TARGET'
+  ], CONTAINER_NAME='toshokan_containerbuild_' + name, IMG_NAME='livadk/toshokan_' + name)
 env.AddMethod(build_container, "BuildContainer")
 
 build_intermediate_container = env.BuildContainer('build_intermediate', 'alpine:3.8', [])
@@ -163,8 +164,9 @@ env.BuildContainer('qemu_kernel', 'ubuntu:16.04', [])
 env.BuildContainer('gdb', 'alpine:3.8', [])
 env.BuildContainer('ssh', 'alpine:3.8', ['docker/config', 'docker/id_rsa', 'docker/wait-for'])
 qemu_kernel_image_container = env.BuildContainer('qemu_kernel_image', 'livadk/toshokan_qemu_kernel', [])
-env.BuildContainer('rootfs', 'alpine:3.8', [qemu_kernel_image_container])
-env.BuildContainer('build_qemu_bin', 'ubuntu:16.04', [])
+rootfs_container = env.BuildContainer('rootfs', 'alpine:3.8', [qemu_kernel_image_container])
+build_qemu_bin_container = env.BuildContainer('build_qemu_bin', 'ubuntu:16.04', [])
+env.BuildContainer('qemu_intermediate', 'alpine:3.8', [build_qemu_bin_container, qemu_kernel_image_container, rootfs_container])
 
 env.Alias('buildtest', ['build', 'common_test', '.dummyfile_toshokan_ssh'] + expand_hakase_test_targets_to_depends(), [
     'docker rm -f toshokan_qemu > /dev/null 2>&1 || :',

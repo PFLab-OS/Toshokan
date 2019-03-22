@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/sh -ex
 sed -i.bak  -s 's%http://archive.ubuntu.com/ubuntu/%http://ftp.jaist.ac.jp/pub/Linux/ubuntu/%g'  /etc/apt/sources.list
 sed -i.bak  -s 's%http://security.ubuntu.com/ubuntu/%http://ftp.jaist.ac.jp/pub/Linux/ubuntu/%g'  /etc/apt/sources.list
 
@@ -21,5 +21,4 @@ cd build-qemu
 make -j`nproc`
 make install
 rm -r /qemu_install/var/run
-mkdir -p /mnt/build/
 cp -r /qemu_install /mnt/build/
