@@ -33,16 +33,20 @@ def docker_format_cmd(arg, workdir=curdir):
 
 docker_tmp_dir = Command('docker/build', [], Mkdir("$TARGET"))
 
+container_list = []
+
 def build_container(env, name, base, source):
   script = name + '.sh'
-  return env.Command('.dummyfile_toshokan_' + name, [docker_tmp_dir, 'docker/' + script] + source, [
+  container = env.Command('docker_image/' + name + '.tar', [docker_tmp_dir, 'docker/' + script] + source, [
     'docker rm -f $CONTAINER_NAME > /dev/null 2>&1 || :',
     Chmod('docker/' + script, '755'),
     'docker run --name=$CONTAINER_NAME -v {0}/docker:/mnt -w / {1} mnt/{2}'.format(curdir, base, script),
     'docker commit -c "CMD sh" $CONTAINER_NAME $IMG_NAME',
     'docker rm -f $CONTAINER_NAME',
-    'docker images --digests -q --no-trunc $IMG_NAME > $TARGET'
+    'docker save $IMG_NAME > $TARGET'
   ], CONTAINER_NAME='toshokan_containerbuild_' + name, IMG_NAME='livadk/toshokan_' + name)
+  container_list.append(container)
+  return container
 env.AddMethod(build_container, "BuildContainer")
 
 build_intermediate_container = env.BuildContainer('build_intermediate', 'alpine:3.8', [])
@@ -57,6 +61,8 @@ qemu_kernel_image_container = env.BuildContainer('qemu_kernel_image', 'livadk/to
 rootfs_container = env.BuildContainer('rootfs', 'alpine:3.8', [qemu_kernel_image_container])
 build_qemu_bin_container = env.BuildContainer('build_qemu_bin', 'ubuntu:16.04', [])
 qemu_intermediate_container = env.BuildContainer('qemu_intermediate', 'alpine:3.8', [build_qemu_bin_container, qemu_kernel_image_container, rootfs_container])
+
+AlwaysBuild(env.Alias('build_docker_images', container_list, ''))
 
 def create_wrapper(target, source, env):
   if type(target) == list:
