@@ -22,8 +22,6 @@ def docker_cmd(container, arg, workdir=curdir):
 	    'docker rm -f toshokan_scons_container']
   else:
     return ['docker run -i --rm -v {0}:{0} -w {1} {2} {3}'.format(curdir, workdir, container, arg)]
-def docker_build_cmd(arg, workdir=curdir):
-    return docker_cmd('livadk/toshokan_build:' + container_tag, arg, workdir)
 def docker_module_build_cmd(arg, workdir=curdir):
     return docker_cmd('livadk/toshokan_qemu_kernel:' + container_tag, arg, workdir)
 def docker_format_cmd(arg, workdir=curdir):
@@ -47,8 +45,8 @@ static_obj.add_emitter('.c', container_emitter)
 static_obj.add_emitter('.S', container_emitter)
 static_obj.add_emitter('.o', container_emitter)
 
-Command('bin/g++',[],
-        list(map(lambda str: 'echo "{0}" >> bin/g++'.format(str) , ['#!/bin/sh', 'args="\\$$@"'] + docker_build_cmd('g++ \\$$args'))) +
+Command('bin/g++', '.dummyfile_toshokan_build_intermediate',
+        list(map(lambda str: 'echo "{0}" >> bin/g++'.format(str) , ['#!/bin/sh', 'args="\\$$@"'] + docker_cmd('livadk/toshokan_build_intermediate', 'g++ \\$$args'))) +
         [Chmod("$TARGET", '775')])
 
 hakase_flag = '-g -O0 -MMD -MP -Wall --std=c++14 -static -D __HAKASE__'
@@ -119,7 +117,7 @@ env.Command("build/test_library.sh", "hakase/tests/test_library.sh", Copy("$TARG
 
 
 
-AlwaysBuild(env.Alias('common_test', ['common/tests/cpputest'], docker_build_cmd('./common/tests/cpputest -c -v')))
+AlwaysBuild(env.Alias('common_test', ['common/tests/cpputest'], docker_cmd('livadk/toshokan_build_intermediate', './common/tests/cpputest -c -v')))
 
 # test pattern
 test = AlwaysBuild(env.Alias('test', ['common_test', 'build/friend_loader.ko', 'build/run.sh', 'build/test_hakase.sh', 'build/test_library.sh'] + expand_hakase_test_targets_to_depends(), [
@@ -147,16 +145,25 @@ env.Alias('build', ['build/friend_loader.ko', 'build/run.sh', 'build/test_hakase
     'docker commit -c "CMD qemu-system-x86_64 -cpu Haswell -s -d cpu_reset -no-reboot -smp 5 -m 4G -D /qemu.log -loadvm snapshot1 -hda /backing2.qcow2 -net nic -net user,hostfwd=tcp::2222-:22 -serial telnet::4444,server,nowait -monitor telnet::4445,server,nowait -nographic" toshokan_qemu hogehoge',
     'docker rm -f toshokan_qemu'])
 
-env.Command('.dummyfile_toshokan_build', [Glob('include/*.h')], [
+env.Command('.dummyfile_toshokan_build_intermediate', [], [
+    'docker rm -f toshokan_build_intermediate > /dev/null 2>&1 || :',
+    'docker run -d -it --name toshokan_build_intermediate alpine:3.8 sh'.format(container_tag),
+    'docker exec toshokan_build_intermediate apk add --no-cache make g++ cpputest',
+    'docker kill toshokan_build_intermediate',
+    'docker commit -c "CMD sh" toshokan_build_intermediate livadk/toshokan_build_intermediate',
+    'docker rm -f toshokan_build_intermediate',
+    'docker images --digests -q --no-trunc livadk/toshokan_build_intermediate > $TARGET'])
+
+#TODO: add libraries
+env.Command('.dummyfile_toshokan_build', ['.dummyfile_toshokan_build_intermediate', Glob('include/*.h')], [
     'docker rm -f toshokan_build > /dev/null 2>&1 || :',
     'docker run -d -it --name toshokan_build alpine:3.8 sh'.format(container_tag),
-    'docker exec toshokan_build apk add --no-cache make g++ cpputest',
     'docker exec toshokan_build mkdir -p /usr/local/include/toshokan',
     'docker cp include toshokan_build:/usr/local/include/toshokan',
-    'docker stop toshokan_build',
-    'docker commit -c "CMD sh" toshokan_build hogebuild',
+    'docker kill toshokan_build',
+    'docker commit -c "CMD sh" toshokan_build livadk/toshokan_build',
     'docker rm -f toshokan_build',
-    'docker images --digests -q --no-trunc hogebuild > $TARGET'])
+    'docker images --digests -q --no-trunc livadk/toshokan_build > $TARGET'])
 
 env.Alias('buildtest', ['build', 'common_test'] + expand_hakase_test_targets_to_depends(), [
     'docker rm -f toshokan_qemu > /dev/null 2>&1 || :',
