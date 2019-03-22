@@ -45,10 +45,6 @@ static_obj.add_emitter('.c', container_emitter)
 static_obj.add_emitter('.S', container_emitter)
 static_obj.add_emitter('.o', container_emitter)
 
-Command('bin/g++', '.dummyfile_toshokan_build_intermediate',
-        list(map(lambda str: 'echo "{0}" >> bin/g++'.format(str) , ['#!/bin/sh', 'args="\\$$@"'] + docker_cmd('livadk/toshokan_build_intermediate', 'g++ \\$$args'))) +
-        [Chmod("$TARGET", '775')])
-
 hakase_flag = '-g -O0 -MMD -MP -Wall --std=c++14 -static -D __HAKASE__'
 friend_flag = '-O0 -Wall --std=c++14 -nostdinc -nostdlib -D__FRIEND__'
 friend_elf_flag = friend_flag + ' -T {0}/friend/friend.ld'.format(curdir)
@@ -145,25 +141,32 @@ env.Alias('build', ['build/friend_loader.ko', 'build/run.sh', 'build/test_hakase
     'docker commit -c "CMD qemu-system-x86_64 -cpu Haswell -s -d cpu_reset -no-reboot -smp 5 -m 4G -D /qemu.log -loadvm snapshot1 -hda /backing2.qcow2 -net nic -net user,hostfwd=tcp::2222-:22 -serial telnet::4444,server,nowait -monitor telnet::4445,server,nowait -nographic" toshokan_qemu hogehoge',
     'docker rm -f toshokan_qemu'])
 
-env.Command('.dummyfile_toshokan_build_intermediate', [], [
-    'docker rm -f toshokan_build_intermediate > /dev/null 2>&1 || :',
-    'docker run -d -it --name toshokan_build_intermediate alpine:3.8 sh'.format(container_tag),
-    'docker exec toshokan_build_intermediate apk add --no-cache make g++ cpputest',
-    'docker kill toshokan_build_intermediate',
-    'docker commit -c "CMD sh" toshokan_build_intermediate livadk/toshokan_build_intermediate',
-    'docker rm -f toshokan_build_intermediate',
-    'docker images --digests -q --no-trunc livadk/toshokan_build_intermediate > $TARGET'])
+
+def build_container(env, name, base, source, command):
+  return env.Command('.dummyfile_toshokan_' + name, source, [
+    'docker rm -f $NAME > /dev/null 2>&1 || :',
+    'docker run -d -it --name $NAME {0} sh'.format(base)
+  ] + command + [
+    'docker kill $NAME',
+    'docker commit -c "CMD sh" $NAME livadk/$NAME',
+    'docker rm -f $NAME',
+    'docker images --digests -q --no-trunc livadk/$NAME > $TARGET'
+  ], NAME='toshokan_' + name)
+env.AddMethod(build_container, "BuildContainer")
+
+build_intermediate_container = env.BuildContainer('build_intermediate', 'alpine:3.8', [], [
+  'docker exec $NAME apk add --no-cache make g++ cpputest',
+])
 
 #TODO: add libraries
-env.Command('.dummyfile_toshokan_build', ['.dummyfile_toshokan_build_intermediate', Glob('include/*.h')], [
-    'docker rm -f toshokan_build > /dev/null 2>&1 || :',
-    'docker run -d -it --name toshokan_build alpine:3.8 sh'.format(container_tag),
-    'docker exec toshokan_build mkdir -p /usr/local/include/toshokan',
-    'docker cp include toshokan_build:/usr/local/include/toshokan',
-    'docker kill toshokan_build',
-    'docker commit -c "CMD sh" toshokan_build livadk/toshokan_build',
-    'docker rm -f toshokan_build',
-    'docker images --digests -q --no-trunc livadk/toshokan_build > $TARGET'])
+env.BuildContainer('build', 'livadk/toshokan_build_intermediate', [build_intermediate_container, Glob('include/*.h')], [
+    'docker exec $NAME mkdir -p /usr/local/include/toshokan',
+    'docker cp include $NAME:/usr/local/include/toshokan'
+])
+
+env.BuildContainer('gdb', 'alpine:3.8', [], [
+    'docker exec $NAME apk add --no-cache gdb',
+])
 
 env.Alias('buildtest', ['build', 'common_test'] + expand_hakase_test_targets_to_depends(), [
     'docker rm -f toshokan_qemu > /dev/null 2>&1 || :',
@@ -173,6 +176,10 @@ env.Alias('buildtest', ['build', 'common_test'] + expand_hakase_test_targets_to_
     transfer_cmd() +
     reduce(lambda list, ele: list + ssh_cmd('./test_hakase.sh ' + ele), expand_hakase_test_targets_to_lists('./'), []) +
     ['docker rm -f toshokan_qemu'])
+
+Command('bin/g++', build_intermediate_container,
+        list(map(lambda str: 'echo "{0}" >> bin/g++'.format(str) , ['#!/bin/sh', 'args="\\$$@"'] + docker_cmd('livadk/toshokan_build_intermediate', 'g++ \\$$args'))) +
+        [Chmod("$TARGET", '775')])
 
 AlwaysBuild(env.Alias('doc', '', 'find . \( -name \*.cc -or -name \*.c -or -name \*.h -or -name \*.S \) | xargs cat | awk \'/DOC START/,/DOC END/\' | grep -v "DOC START" | grep -v "DOC END" | grep -E --color=always "$|#.*$"'))
 
