@@ -44,7 +44,7 @@ env.AddMethod(build_container, "BuildContainer")
 
 huge_container_list = []
 def build_container_with_image(env, name, base, source):
-  container = env.Command('docker_images/' + name + '.tar', env.BuildContainer(name, base, source), 'docker save -o $TARGET {0}'.format('livadk/toshokan_' + name))
+  container = env.Command('.docker_images/' + name + '.tar', env.BuildContainer(name, base, source), 'docker save -o $TARGET {0}'.format('livadk/toshokan_' + name))
   huge_container_list.append(container)
   return container
 env.AddMethod(build_container_with_image, "BuildContainerWithImage")
