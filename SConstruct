@@ -27,7 +27,7 @@ docker_tmp_dir = Command('docker/build', [], Mkdir("$TARGET"))
 
 def build_container(env, name, base, source):
   script = name + '.sh'
-  return env.Command('.docker_toshokan_' + name, [docker_tmp_dir, 'docker/' + script] + source, [
+  return env.Command('.docker_images/sha1_' + name, [docker_tmp_dir, 'docker/' + script] + source, [
     'docker rm -f $CONTAINER_NAME > /dev/null 2>&1 || :',
     Chmod('docker/' + script, '755'),
     'docker run --name=$CONTAINER_NAME -v {0}/docker:/mnt -w / {1} mnt/{2}'.format(curdir, base, script),
@@ -44,14 +44,14 @@ def build_container_with_image(env, name, base, source):
   return container
 env.AddMethod(build_container_with_image, "BuildContainerWithImage")
 
-build_intermediate_container = env.BuildContainer('build_intermediate', 'alpine:3.8', [])
+build_intermediate_container = env.BuildContainerWithImage('build_intermediate', 'alpine:3.8', [])
 
 #TODO: add libraries
 #TODO: add include copy
 build_container = env.BuildContainer('build', 'livadk/toshokan_build_intermediate', [build_intermediate_container, Glob('include/*.h')])
 qemu_kernel_container = env.BuildContainerWithImage('qemu_kernel', 'ubuntu:16.04', [])
 gdb_container = env.BuildContainer('gdb', 'alpine:3.8', [])
-ssh_container = env.BuildContainer('ssh', 'alpine:3.8', ['docker/config', 'docker/id_rsa', 'docker/wait-for'])
+ssh_container = env.BuildContainerWithImage('ssh', 'alpine:3.8', ['docker/config', 'docker/id_rsa', 'docker/wait-for'])
 qemu_kernel_image_container = env.BuildContainer('qemu_kernel_image', 'livadk/toshokan_qemu_kernel', [qemu_kernel_container])
 rootfs_container = env.BuildContainer('rootfs', 'alpine:3.8', [qemu_kernel_image_container])
 build_qemu_bin_container = env.BuildContainer('build_qemu_bin', 'ubuntu:16.04', [])
