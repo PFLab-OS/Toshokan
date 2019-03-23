@@ -17,19 +17,6 @@ jobs:
       - run:
           command: |
             scons CI=1 format
-      - restore_cache:
-          keys:
-            - docker-buildcache-{{ .Branch }}-python2
-      - run:
-          command: if test -d .docker_images; then cd .docker_images; for f in `find . -name '*.tar'`; do docker load -i $f; done; fi
-      - run:
-          command: |
-            scons build_huge_docker_images -j3
-      - save_cache:
-          key: docker-buildcache-{{ .Branch }}-python2-{{ epoch }}
-          paths:
-              - .sconsign.dblite
-              - .docker_images
       - run:
           command: |
             scons test -j3
@@ -44,19 +31,6 @@ jobs:
       - run:
           command: |
             scons CI=1 format
-      - restore_cache:
-          keys:
-            - docker-buildcache-{{ .Branch }}-python3
-      - run:
-          command: if test -d .docker_images; then cd .docker_images; for f in `find . -name '*.tar'`; do docker load -i $f; done; fi
-      - run:
-          command: |
-            scons build_huge_docker_images -j3
-      - save_cache:
-          key: docker-buildcache-{{ .Branch }}-python3-{{ epoch }}
-          paths:
-              - .sconsign.dblite
-              - .docker_images
       - run:
           command: |
             scons test -j3

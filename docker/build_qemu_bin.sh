@@ -21,4 +21,4 @@ cd build-qemu
 make -j`nproc`
 make install
 rm -r /qemu_install/var/run
-cp -r /qemu_install /mnt/build/
+cp -r /qemu_install /share/

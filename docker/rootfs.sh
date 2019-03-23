@@ -42,6 +42,6 @@ chroot . chown hakase:hakase /home/hakase/.ssh
 chroot . chown hakase:hakase /home/hakase/.ssh/authorized_keys
 chroot . chmod 700 /home/hakase/.ssh
 chroot . chmod 600 /home/hakase/.ssh/authorized_keys
-cp -r /mnt/build/modules lib/modules
+cp -r /share/modules lib/modules
 fakeroot && find | cpio --quiet -o -H newc | gzip -9 > ../rootfs
-cp /rootfs /mnt/build/
+cp /rootfs /share/

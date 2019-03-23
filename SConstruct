@@ -23,46 +23,30 @@ def docker_cmd(container, arg, workdir=curdir):
 def docker_format_cmd(arg, workdir=curdir):
   return docker_cmd('-v /etc/group:/etc/group:ro -v /etc/passwd:/etc/passwd:ro -u `id -u $USER`:`id -g $USER` livadk/clang-format:9f1d281b0a30b98fbb106840d9504e2307d3ad8f', arg, workdir)
 
-docker_tmp_dir = Command('docker/build', [], Mkdir("$TARGET"))
-
-# BuildContainer only produces SHA1 (requires for dependency resolution of SCons)
-# BuildContainerWithImage also produces docker container image (used for cache on circleci)
-# If a container is an intermediate container (to build another container), you should use BuildContainer. (It will reduce cache size.)
-# If the container is expected to be used by another part of the build, you have to use BuildContainerWithImage.
-
 def build_container(env, name, base, source):
   script = name + '.sh'
-  return env.Command('.docker_images/sha1_' + name, [docker_tmp_dir, 'docker/' + script] + source, [
+  return env.Command('.docker_tmp/sha1_' + name, ['docker/' + script] + source, [
     'docker rm -f $CONTAINER_NAME > /dev/null 2>&1 || :',
     Chmod('docker/' + script, '755'),
-    'docker run --name=$CONTAINER_NAME -v {0}/docker:/mnt -w / {1} mnt/{2}'.format(curdir, base, script),
+    'docker run --name=$CONTAINER_NAME -v {0}/docker:/mnt -v {0}/.docker_tmp:/share -w / {1} mnt/{2}'.format(curdir, base, script),
     'docker commit -c "CMD sh" $CONTAINER_NAME $IMG_NAME',
     'docker rm -f $CONTAINER_NAME',
     'docker images --digests -q --no-trunc $IMG_NAME > $TARGET'
   ], CONTAINER_NAME='toshokan_containerbuild_' + name, IMG_NAME='livadk/toshokan_' + name)
 env.AddMethod(build_container, "BuildContainer")
 
-huge_container_list = []
-def build_container_with_image(env, name, base, source):
-  container = env.Command('.docker_images/' + name + '.tar', env.BuildContainer(name, base, source), 'docker save -o $TARGET {0}'.format('livadk/toshokan_' + name))
-  huge_container_list.append(container)
-  return container
-env.AddMethod(build_container_with_image, "BuildContainerWithImage")
-
-build_intermediate_container = env.BuildContainerWithImage('build_intermediate', 'alpine:3.8', [])
+build_intermediate_container = env.BuildContainer('build_intermediate', 'alpine:3.8', [])
 
 #TODO: add libraries
 #TODO: add include copy
 build_container = env.BuildContainer('build', 'livadk/toshokan_build_intermediate', [build_intermediate_container, Glob('include/*.h')])
-qemu_kernel_container = env.BuildContainerWithImage('qemu_kernel', 'ubuntu:16.04', [])
+qemu_kernel_container = env.BuildContainer('qemu_kernel', 'ubuntu:16.04', [])
 gdb_container = env.BuildContainer('gdb', 'alpine:3.8', [])
-ssh_container = env.BuildContainerWithImage('ssh', 'alpine:3.8', ['docker/config', 'docker/id_rsa', 'docker/wait-for'])
+ssh_container = env.BuildContainer('ssh', 'alpine:3.8', ['docker/config', 'docker/id_rsa', 'docker/wait-for'])
 qemu_kernel_image_container = env.BuildContainer('qemu_kernel_image', 'ubuntu:16.04', [])
 rootfs_container = env.BuildContainer('rootfs', 'alpine:3.8', [qemu_kernel_image_container])
 build_qemu_bin_container = env.BuildContainer('build_qemu_bin', 'ubuntu:16.04', [])
-qemu_intermediate_container = env.BuildContainerWithImage('qemu_intermediate', 'alpine:3.8', [build_qemu_bin_container, qemu_kernel_image_container, rootfs_container])
-
-AlwaysBuild(env.Alias('build_huge_docker_images', huge_container_list))
+qemu_intermediate_container = env.BuildContainer('qemu_intermediate', 'alpine:3.8', [build_qemu_bin_container, qemu_kernel_image_container, rootfs_container])
 
 def create_wrapper(target, source, env):
   if type(target) == list:
