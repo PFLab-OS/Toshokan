@@ -45,8 +45,7 @@ gdb_container = env.BuildContainer('gdb', 'alpine:3.8', [])
 ssh_container = env.BuildContainer('ssh', 'alpine:3.8', ['docker/config', 'docker/id_rsa', 'docker/wait-for'])
 qemu_kernel_image_container = env.BuildContainer('qemu_kernel_image', 'ubuntu:16.04', [])
 rootfs_container = env.BuildContainer('rootfs', 'alpine:3.8', [qemu_kernel_image_container])
-build_qemu_bin_container = env.BuildContainer('build_qemu_bin', 'ubuntu:16.04', [])
-qemu_intermediate_container = env.BuildContainer('qemu_intermediate', 'alpine:3.8', [build_qemu_bin_container, qemu_kernel_image_container, rootfs_container])
+qemu_intermediate_container = env.BuildContainer('qemu_intermediate', 'alpine:3.8', [qemu_kernel_image_container, rootfs_container])
 
 def create_wrapper(target, source, env):
   if type(target) == list:

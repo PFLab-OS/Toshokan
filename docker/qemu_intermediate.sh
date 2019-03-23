@@ -1,6 +1,5 @@
 #!/bin/sh -ex
-apk add --no-cache xterm
-cp -r /share/qemu_install/* /
+apk add --no-cache qemu-system-x86_64 qemu-img
 cp -r /share/vmlinuz-4.13.0-45-generic /
 cp -r /share/rootfs /
 qemu-img create -f qcow2 /backing.qcow2 5G
