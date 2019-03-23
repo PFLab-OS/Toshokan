@@ -25,6 +25,11 @@ def docker_format_cmd(arg, workdir=curdir):
 
 docker_tmp_dir = Command('docker/build', [], Mkdir("$TARGET"))
 
+# BuildContainer only produces SHA1 (requires for dependency resolution of SCons)
+# BuildContainerWithImage also produces docker container image (used for cache on circleci)
+# If a container is an intermediate container (to build another container), you should use BuildContainer. (It will reduce cache size.)
+# If the container is expected to be used by another part of the build, you have to use BuildContainerWithImage.
+
 def build_container(env, name, base, source):
   script = name + '.sh'
   return env.Command('.docker_images/sha1_' + name, [docker_tmp_dir, 'docker/' + script] + source, [
