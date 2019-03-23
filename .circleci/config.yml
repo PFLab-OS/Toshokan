@@ -9,6 +9,10 @@ workflows:
     triggers:
       - schedule:
           cron: "0 1 * * *" # UTC
+          filters:
+            branches:
+              only:
+                - master
     jobs:
       - build_python2
       - build_python3
