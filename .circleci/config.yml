@@ -5,6 +5,13 @@ workflows:
     jobs:
       - build_python2
       - build_python3
+  nightly_workflow:
+    triggers:
+      - schedule:
+          cron: "0 1 * * *" # UTC
+    jobs:
+      - build_python2
+      - build_python3
 jobs:
   build_python2:
     machine: true
