@@ -57,7 +57,7 @@ build_container = env.BuildContainer('build', 'livadk/toshokan_build_intermediat
 qemu_kernel_container = env.BuildContainerWithImage('qemu_kernel', 'ubuntu:16.04', [])
 gdb_container = env.BuildContainer('gdb', 'alpine:3.8', [])
 ssh_container = env.BuildContainerWithImage('ssh', 'alpine:3.8', ['docker/config', 'docker/id_rsa', 'docker/wait-for'])
-qemu_kernel_image_container = env.BuildContainer('qemu_kernel_image', 'livadk/toshokan_qemu_kernel', [qemu_kernel_container])
+qemu_kernel_image_container = env.BuildContainer('qemu_kernel_image', 'ubuntu:16.04', [])
 rootfs_container = env.BuildContainer('rootfs', 'alpine:3.8', [qemu_kernel_image_container])
 build_qemu_bin_container = env.BuildContainer('build_qemu_bin', 'ubuntu:16.04', [])
 qemu_intermediate_container = env.BuildContainerWithImage('qemu_intermediate', 'alpine:3.8', [build_qemu_bin_container, qemu_kernel_image_container, rootfs_container])
@@ -115,9 +115,9 @@ SConscript(dirs=['common/tests'])
 trampoline_env = env.Clone(ASFLAGS=trampoline_flag, LINKFLAGS=trampoline_flag, CFLAGS=trampoline_flag, CXXFLAGS=trampoline_flag, CPPPATH=friend_include_path)
 trampoline_env.Program(target='hakase/FriendLoader/trampoline/boot_trampoline.bin', source=['hakase/FriendLoader/trampoline/bootentry.S', 'hakase/FriendLoader/trampoline/main.cc'])
 
-env.Command('hakase/FriendLoader/trampoline/bin.o', [qemu_kernel_container, 'hakase/FriendLoader/trampoline/boot_trampoline.bin'],
-    docker_cmd('livadk/toshokan_qemu_kernel', 'objcopy -I binary -O elf64-x86-64 -B i386:x86-64 boot_trampoline.bin bin.o', curdir + '/hakase/FriendLoader/trampoline') +
-    docker_cmd('livadk/toshokan_qemu_kernel', 'script/check_trampoline_bin_size.sh $TARGET'))
+env.Command('hakase/FriendLoader/trampoline/bin.o', [build_intermediate_container, 'hakase/FriendLoader/trampoline/boot_trampoline.bin'],
+    docker_cmd('livadk/toshokan_build_intermediate', 'objcopy -I binary -O elf64-x86-64 -B i386:x86-64 boot_trampoline.bin bin.o', curdir + '/hakase/FriendLoader/trampoline') +
+    docker_cmd('livadk/toshokan_build_intermediate', 'script/check_trampoline_bin_size.sh $TARGET'))
 
 AlwaysBuild(env.Command('hakase/FriendLoader/friend_loader.ko', [qemu_kernel_container, Glob('hakase/FriendLoader/*.h'), Glob('hakase/FriendLoader/*.c'), 'hakase/FriendLoader/trampoline/bin.o'], docker_cmd('livadk/toshokan_qemu_kernel', 'sh -c "KERN_VER=4.13.0-45-generic make all"', curdir + '/hakase/FriendLoader')))
 
