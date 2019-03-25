@@ -142,6 +142,7 @@ depends_for_qemu_container = [
 AlwaysBuild(env.Alias('common_test', [build_intermediate_container, 'common/tests/cpputest'], docker_cmd('livadk/toshokan_build_intermediate', './common/tests/cpputest -c -v')))
 
 qemu_intermediate_container = env.BuildContainer('qemu_intermediate', 'livadk/toshokan_ssh', [ssh_container, qemu_kernel_image_container, rootfs_container] + depends_for_qemu_container)
+Clean(qemu_intermediate_container, 'build')
 qemu_container = env.BuildContainer('qemu', 'alpine:3.8', [qemu_intermediate_container])
 
 # test pattern
@@ -154,6 +155,7 @@ test = AlwaysBuild(env.Alias('test', ['common_test', qemu_container, ssh_contain
     reduce(lambda list, ele: list + ssh_cmd('./test_hakase.sh ' + ele), expand_hakase_test_targets_to_lists('./'), []) +
     ['docker rm -f toshokan_qemu']))
 
+Clean(test, '.docker_tmp')
 Default(test)
 
 AlwaysBuild(env.Alias('doc', '', 'find . \( -name \*.cc -or -name \*.c -or -name \*.h -or -name \*.S \) | xargs cat | awk \'/DOC START/,/DOC END/\' | grep -v "DOC START" | grep -v "DOC END" | grep -E --color=always "$|#.*$"'))
