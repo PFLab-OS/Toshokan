@@ -26,6 +26,17 @@ void pagetable_init() {
     (1 << 0) | (1 << 1) | (1 << 2) | (1 << 7);
 }
 
+void trampoline_region_init() {
+  extern uint8_t _binary_boot_trampoline_bin_start[];
+  extern uint8_t _binary_boot_trampoline_bin_end[];
+  extern uint8_t _binary_boot_trampoline_bin_size[];
+  size_t binary_boot_trampoline_bin_size =
+      (size_t)_binary_boot_trampoline_bin_size;
+  uint8_t *buf;
+  const size_t kRegionSize = binary_boot_trampoline_bin_size + static_cast<uint64_t>(MemoryMap::kTrampolineBinLoadPoint);
+
+}
+
 int main(int argc, const char **argv) {
   FILE *cmdline_fp = fopen("/proc/cmdline", "r");
   if (!cmdline_fp) {
