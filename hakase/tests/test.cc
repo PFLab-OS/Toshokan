@@ -11,13 +11,15 @@ int main(int argc, const char **argv) {
     perror("Open call failed");
     return 255;
   }
-  char *mem = static_cast<char *>(mmap((void *)0x40000000UL, 0x40000000UL, PROT_READ | PROT_WRITE, MAP_SHARED, mem_fd, 0));
+  char *mem =
+      static_cast<char *>(mmap((void *)0x40000000UL, 0x40000000UL,
+                               PROT_READ | PROT_WRITE, MAP_SHARED, mem_fd, 0));
   if (mem == MAP_FAILED) {
     perror("mmap operation failed...");
     return 255;
   }
   close(mem_fd);
-  
+
   int configfd_h2f = open("/sys/module/friend_loader/call/h2f", O_RDWR);
   int configfd_f2h = open("/sys/module/friend_loader/call/f2h", O_RDWR);
   int configfd_i2h = open("/sys/module/friend_loader/call/i2h", O_RDWR);
