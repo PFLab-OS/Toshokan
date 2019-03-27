@@ -223,10 +223,6 @@ int cpu_start() {
     return -1;
   }
 
-  if (pagetable_init() < 0) {
-    return -1;
-  }
-
   if (get_uv_system_type() != UV_NON_UNIQUE_APIC) {
     smpboot_setup_warm_reset_vector(tregion.paddr);
   }
@@ -270,8 +266,6 @@ int cpu_start() {
   }
 
   preempt_enable();
-
-  pagetable_clean();
 
   return ret1;
 }

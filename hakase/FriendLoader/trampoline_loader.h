@@ -13,5 +13,3 @@ int trampoline_region_init(struct trampoline_region *region,
                            phys_addr_t phys_addr_end);
 int trampoline_region_set_id(struct trampoline_region *region, int cpuid,
                              int apicid);
-int pagetable_init(void);
-void pagetable_clean(void);

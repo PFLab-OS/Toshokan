@@ -4,7 +4,27 @@
 #include <string.h>
 #include <sys/mman.h>
 #include <unistd.h>
+#include "_memory.h"
 #include "channel2.h"
+
+void pagetable_init() {
+  uint64_t *mem = reinterpret_cast<uint64_t *>(DEPLOY_PHYS_ADDR_START);
+
+  mem[static_cast<uint64_t>(MemoryMap::kPml4t) / sizeof(uint64_t)] = (static_cast<uint64_t>(MemoryMap::kPdpt) + DEPLOY_PHYS_ADDR_START) |
+    (1 << 0) | (1 << 1) | (1 << 2);
+  mem[static_cast<uint64_t>(MemoryMap::kPdpt) / sizeof(uint64_t)] = (static_cast<uint64_t>(MemoryMap::kPd) + DEPLOY_PHYS_ADDR_START) |
+    (1 << 0) | (1 << 1) | (1 << 2);
+  mem[static_cast<uint64_t>(MemoryMap::kPdpt) / sizeof(uint64_t) + 1] = (static_cast<uint64_t>(MemoryMap::kTmpPd) + DEPLOY_PHYS_ADDR_START) |
+    (1 << 0) | (1 << 1) | (1 << 2);
+  
+  for (int i = 0; i < 512; i++) {
+    mem[static_cast<uint64_t>(MemoryMap::kPd) / sizeof(uint64_t) + i] = (DEPLOY_PHYS_ADDR_START + (0x200000UL * i)) |
+      (1 << 0) | (1 << 1) | (1 << 2) | (1 << 7);
+  }
+  
+  mem[static_cast<uint64_t>(MemoryMap::kTmpPd) / sizeof(uint64_t)] = DEPLOY_PHYS_ADDR_START |
+    (1 << 0) | (1 << 1) | (1 << 2) | (1 << 7);
+}
 
 int main(int argc, const char **argv) {
   FILE *cmdline_fp = fopen("/proc/cmdline", "r");
@@ -19,20 +39,8 @@ int main(int argc, const char **argv) {
     fprintf(stderr, "error: physical memory is not isolated for toshokan.\n");
     return 255;
   }
-
-  
+ 
   fclose(cmdline_fp);
-
-  int boot_fd = open("/sys/module/friend_loader/parameters/boot", O_RDWR);
-  if (boot_fd < 0) {
-    perror("failed to open `boot`");
-    return 255;
-  }
-
-  if (write(boot_fd, "1", 2) != 2) {
-    perror("write to `boot` failed");
-    return 255;
-  }
 
   int mem_fd = open("/sys/module/friend_loader/call/mem", O_RDWR);
   if (mem_fd < 0) {
@@ -47,6 +55,20 @@ int main(int argc, const char **argv) {
     return 255;
   }
   close(mem_fd);
+
+  pagetable_init();
+  munmap(mem, 0x40000000UL);
+
+  int boot_fd = open("/sys/module/friend_loader/parameters/boot", O_RDWR);
+  if (boot_fd < 0) {
+    perror("failed to open `boot`");
+    return 255;
+  }
+
+  if (write(boot_fd, "1", 2) != 2) {
+    perror("write to `boot` failed");
+    return 255;
+  }
 
   int configfd_h2f = open("/sys/module/friend_loader/call/h2f", O_RDWR);
   int configfd_f2h = open("/sys/module/friend_loader/call/f2h", O_RDWR);

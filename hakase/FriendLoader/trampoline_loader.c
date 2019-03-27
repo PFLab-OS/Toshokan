@@ -103,7 +103,7 @@ int trampoline_region_init(struct trampoline_region *region,
     return -1;
   }
 
-  if (deploy_zero(kMemoryMapPml4t, kMemoryMapStack + kStackSize * get_cpu_num() - kMemoryMapPml4t) < 0) {
+  if (deploy_zero(kMemoryMapStack, kStackSize * get_cpu_num()) < 0) {
     pr_err("friend_loader: deploy failed\n");
     return -1;
   }
@@ -133,45 +133,4 @@ int trampoline_region_set_id(struct trampoline_region *region, int cpuid, int ap
     return -1;
   }
   return 0;
-}
-
-int pagetable_init(void) {
-  int i;
-  uint64_t entry;
-
-  entry = (kMemoryMapPdpt + DEPLOY_PHYS_ADDR_START) |
-    (1 << 0) | (1 << 1) | (1 << 2);
-  if (deploy((const char *)&entry, sizeof(uint64_t), kMemoryMapPml4t) < 0) {
-    return -1;
-  }
-  entry = (kMemoryMapPd + DEPLOY_PHYS_ADDR_START) |
-    (1 << 0) | (1 << 1) | (1 << 2);
-  if (deploy((const char *)&entry, sizeof(uint64_t), kMemoryMapPdpt) < 0) {
-    return -1;
-  }
-  entry = (kMemoryMapTmpPd + DEPLOY_PHYS_ADDR_START) |
-    (1 << 0) | (1 << 1) | (1 << 2);
-  if (deploy((const char *)&entry, sizeof(uint64_t), kMemoryMapPdpt + 8) < 0) {
-    return -1;
-  }
-  
-  for (i = 0; i < 512; i++) {
-    entry = (DEPLOY_PHYS_ADDR_START + (0x200000UL * i)) |
-      (1 << 0) | (1 << 1) | (1 << 2) | (1 << 7);
-    if (deploy((const char *)&entry, sizeof(uint64_t), kMemoryMapPd + sizeof(uint64_t) * i) < 0) {
-      return -1;
-    }
-  }
-  entry = DEPLOY_PHYS_ADDR_START |
-    (1 << 0) | (1 << 1) | (1 << 2) | (1 << 7);
-  if (deploy((const char *)&entry, sizeof(uint64_t), kMemoryMapTmpPd) < 0) {
-    return -1;
-  }
-  return 0;
-}
-
-// clean up a temporary page table
-void pagetable_clean(void) {
-  uint64_t entry = 0;
-  deploy((const char *)&entry, sizeof(uint64_t), kMemoryMapPdpt + 8);
 }
