@@ -135,7 +135,6 @@ def expand_hakase_test_targets_to_lists(prefix):
 
 depends_for_qemu_container = [
   env.Command(".docker_tmp/friend_loader.ko", "hakase/FriendLoader/friend_loader.ko", Copy("$TARGET", "$SOURCE")),
-  env.Command(".docker_tmp/run.sh", "hakase/FriendLoader/run.sh", Copy("$TARGET", "$SOURCE")),
   env.Command(".docker_tmp/test_hakase.sh", "hakase/tests/test_hakase.sh", Copy("$TARGET", "$SOURCE")),
   env.Command(".docker_tmp/test_library.sh", "hakase/tests/test_library.sh", Copy("$TARGET", "$SOURCE")),
 ]

@@ -1,11 +1,39 @@
 #include "test.h"
 #include <fcntl.h>
 #include <stdio.h>
+#include <string.h>
 #include <sys/mman.h>
 #include <unistd.h>
 #include "channel2.h"
 
 int main(int argc, const char **argv) {
+  FILE *cmdline_fp = fopen("/proc/cmdline", "r");
+  if (!cmdline_fp) {
+    perror("failed to open `cmdline`");
+    return 255;
+  }
+
+  char buf[256];
+  buf[fread(buf, 1, 255, cmdline_fp)] = '\0';
+  if (!strstr(buf, "memmap=0x70000$4K memmap=0x40000000$0x40000000")) {
+    fprintf(stderr, "error: physical memory is not isolated for toshokan.\n");
+    return 255;
+  }
+
+  
+  fclose(cmdline_fp);
+
+  int boot_fd = open("/sys/module/friend_loader/parameters/boot", O_RDWR);
+  if (boot_fd < 0) {
+    perror("failed to open `boot`");
+    return 255;
+  }
+
+  if (write(boot_fd, "1", 2) != 2) {
+    perror("write to `boot` failed");
+    return 255;
+  }
+
   int mem_fd = open("/sys/module/friend_loader/call/mem", O_RDWR);
   if (mem_fd < 0) {
     perror("Open call failed");
@@ -45,6 +73,13 @@ int main(int argc, const char **argv) {
 
   int rval = test_main(f2h, h2f, i2h, argc, argv);
 
+  if (write(boot_fd, "0", 2) != 2) {
+    perror("write to `boot` failed");
+    return 255;
+  }
+
+  close(boot_fd);
+  close(mem_fd);
   close(configfd_h2f);
   close(configfd_f2h);
   close(configfd_i2h);
