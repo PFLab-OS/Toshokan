@@ -180,7 +180,7 @@ static int call_mem_mmap(struct file *filep, struct kobject *kobj,
   /* Remap-pfn-range will mark the range VM_IO */
   if (remap_pfn_range(vma,
 		      vma->vm_start,
-		      vma->vm_pgoff,
+		      vma->vm_pgoff + (DEPLOY_PHYS_ADDR_START >> PAGE_SHIFT),
 		      size,
 		      vma->vm_page_prot)) {
     pr_info("friend loader: mmap %d\n", __LINE__);
