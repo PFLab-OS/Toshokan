@@ -37,9 +37,10 @@ env.AddMethod(build_container, "BuildContainer")
 
 build_intermediate_container = env.BuildContainer('build_intermediate', 'alpine:3.8', [])
 
+headers = Command('.docker_tmp/$SOURCE', Glob('include/*.h'), Copy("$TARGET", "$SOURCE"))
+
 #TODO: add libraries
-#TODO: add include copy
-build_container = env.BuildContainer('build', 'livadk/toshokan_build_intermediate', [build_intermediate_container, Glob('include/*.h')])
+build_container = env.BuildContainer('build', 'livadk/toshokan_build_intermediate', [build_intermediate_container, headers])
 qemu_kernel_container = env.BuildContainer('qemu_kernel', 'ubuntu:16.04', [])
 gdb_container = env.BuildContainer('gdb', 'alpine:3.8', [])
 ssh_container = env.BuildContainer('ssh', 'alpine:3.8', ['docker/config', 'docker/id_rsa', 'docker/wait-for'])

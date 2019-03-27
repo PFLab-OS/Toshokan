@@ -1,3 +1,3 @@
 #!/bin/sh -ex
 mkdir -p /usr/local/include/toshokan
-# cp -r /mnt/include /usr/local/include/tosohokan
+cp -r /share/include/* /usr/local/include/toshokan
