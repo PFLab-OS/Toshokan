@@ -56,6 +56,8 @@ int main(int argc, const char **argv) {
   }
   close(mem_fd);
 
+  memset(mem, 0, 1000 * 4096);
+
   pagetable_init();
   munmap(mem, 0x40000000UL);
 
