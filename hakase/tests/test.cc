@@ -10,20 +10,24 @@
 void pagetable_init() {
   uint64_t *mem = reinterpret_cast<uint64_t *>(DEPLOY_PHYS_ADDR_START);
 
-  mem[static_cast<uint64_t>(MemoryMap::kPml4t) / sizeof(uint64_t)] = (static_cast<uint64_t>(MemoryMap::kPdpt) + DEPLOY_PHYS_ADDR_START) |
-    (1 << 0) | (1 << 1) | (1 << 2);
-  mem[static_cast<uint64_t>(MemoryMap::kPdpt) / sizeof(uint64_t)] = (static_cast<uint64_t>(MemoryMap::kPd) + DEPLOY_PHYS_ADDR_START) |
-    (1 << 0) | (1 << 1) | (1 << 2);
-  mem[static_cast<uint64_t>(MemoryMap::kPdpt) / sizeof(uint64_t) + 1] = (static_cast<uint64_t>(MemoryMap::kTmpPd) + DEPLOY_PHYS_ADDR_START) |
-    (1 << 0) | (1 << 1) | (1 << 2);
-  
+  mem[static_cast<uint64_t>(MemoryMap::kPml4t) / sizeof(uint64_t)] =
+      (static_cast<uint64_t>(MemoryMap::kPdpt) + DEPLOY_PHYS_ADDR_START) |
+      (1 << 0) | (1 << 1) | (1 << 2);
+  mem[static_cast<uint64_t>(MemoryMap::kPdpt) / sizeof(uint64_t)] =
+      (static_cast<uint64_t>(MemoryMap::kPd) + DEPLOY_PHYS_ADDR_START) |
+      (1 << 0) | (1 << 1) | (1 << 2);
+  mem[static_cast<uint64_t>(MemoryMap::kPdpt) / sizeof(uint64_t) + 1] =
+      (static_cast<uint64_t>(MemoryMap::kTmpPd) + DEPLOY_PHYS_ADDR_START) |
+      (1 << 0) | (1 << 1) | (1 << 2);
+
   for (int i = 0; i < 512; i++) {
-    mem[static_cast<uint64_t>(MemoryMap::kPd) / sizeof(uint64_t) + i] = (DEPLOY_PHYS_ADDR_START + (0x200000UL * i)) |
-      (1 << 0) | (1 << 1) | (1 << 2) | (1 << 7);
+    mem[static_cast<uint64_t>(MemoryMap::kPd) / sizeof(uint64_t) + i] =
+        (DEPLOY_PHYS_ADDR_START + (0x200000UL * i)) | (1 << 0) | (1 << 1) |
+        (1 << 2) | (1 << 7);
   }
-  
-  mem[static_cast<uint64_t>(MemoryMap::kTmpPd) / sizeof(uint64_t)] = DEPLOY_PHYS_ADDR_START |
-    (1 << 0) | (1 << 1) | (1 << 2) | (1 << 7);
+
+  mem[static_cast<uint64_t>(MemoryMap::kTmpPd) / sizeof(uint64_t)] =
+      DEPLOY_PHYS_ADDR_START | (1 << 0) | (1 << 1) | (1 << 2) | (1 << 7);
 }
 
 void trampoline_region_init() {
@@ -33,8 +37,9 @@ void trampoline_region_init() {
   size_t binary_boot_trampoline_bin_size =
       (size_t)_binary_boot_trampoline_bin_size;
   uint8_t *buf;
-  const size_t kRegionSize = binary_boot_trampoline_bin_size + static_cast<uint64_t>(MemoryMap::kTrampolineBinLoadPoint);
-
+  const size_t kRegionSize =
+      binary_boot_trampoline_bin_size +
+      static_cast<uint64_t>(MemoryMap::kTrampolineBinLoadPoint);
 }
 
 int main(int argc, const char **argv) {
@@ -50,7 +55,7 @@ int main(int argc, const char **argv) {
     fprintf(stderr, "error: physical memory is not isolated for toshokan.\n");
     return 255;
   }
- 
+
   fclose(cmdline_fp);
 
   int mem_fd = open("/sys/module/friend_loader/call/mem", O_RDWR);
