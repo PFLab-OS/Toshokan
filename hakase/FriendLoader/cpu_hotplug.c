@@ -238,16 +238,18 @@ int cpu_start() {
 
       if (apicid == 0) {
         ret1 = -1;
-        continue;
+	break;
       }
 
       if (trampoline_region_set_id(&tregion, i + 1, apicid) < 0) {
 	ret1 = -1;
+	break;
       }
 
       ret2 = wakeup_secondary_cpu_via_init(apicid, tregion.paddr);
       if (ret2 < 0) {
         ret1 = -1;
+	break;
       }
 
       do {

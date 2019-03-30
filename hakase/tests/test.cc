@@ -4,12 +4,15 @@
 #include <string.h>
 #include <sys/mman.h>
 #include <unistd.h>
+#include <assert.h>
 #include "_memory.h"
 #include "channel2.h"
 
-void pagetable_init() {
-  uint64_t *mem = reinterpret_cast<uint64_t *>(DEPLOY_PHYS_ADDR_START);
+extern char friend_mem_start[];
+extern char friend_mem_end[];
+uint64_t *mem = reinterpret_cast<uint64_t *>(friend_mem_start);
 
+void pagetable_init() {
   mem[static_cast<uint64_t>(MemoryMap::kPml4t) / sizeof(uint64_t)] =
       (static_cast<uint64_t>(MemoryMap::kPdpt) + DEPLOY_PHYS_ADDR_START) |
       (1 << 0) | (1 << 1) | (1 << 2);
@@ -30,16 +33,70 @@ void pagetable_init() {
       DEPLOY_PHYS_ADDR_START | (1 << 0) | (1 << 1) | (1 << 2) | (1 << 7);
 }
 
-void trampoline_region_init() {
+static uint64_t add_base_addr_to_segment_descriptor(uint64_t desc) {
+  return desc | ((DEPLOY_PHYS_ADDR_START & 0xFFFFFF) << 16) | ((DEPLOY_PHYS_ADDR_START >> 24) << 56);
+}
+
+int trampoline_region_init() {
   extern uint8_t _binary_boot_trampoline_bin_start[];
   extern uint8_t _binary_boot_trampoline_bin_end[];
   extern uint8_t _binary_boot_trampoline_bin_size[];
   size_t binary_boot_trampoline_bin_size =
       (size_t)_binary_boot_trampoline_bin_size;
-  uint8_t *buf;
   const size_t kRegionSize =
       binary_boot_trampoline_bin_size +
       static_cast<uint64_t>(MemoryMap::kTrampolineBinLoadPoint);
+
+
+  static uint8_t jmp_bin[] = {0xeb, static_cast<uint64_t>(MemoryMap::kTrampolineBinEntry) - 2, 0x66, 0x90}; // jmp TrampolineBinEntry; xchg %ax, &ax
+  memcpy(mem, jmp_bin, sizeof(jmp_bin) / sizeof(jmp_bin[0]));
+
+  if (PAGE_SIZE < kRegionSize) {
+    // trampoline code is so huge
+    return -1;
+  }
+
+  if (_binary_boot_trampoline_bin_start + binary_boot_trampoline_bin_size !=
+      _binary_boot_trampoline_bin_end) {
+     // invalid state
+    return -1;
+  }
+
+  // copy trampoline binary to trampoline region + 8 byte
+  memcpy(reinterpret_cast<uint8_t *>(mem) + static_cast<uint64_t>(MemoryMap::kTrampolineBinLoadPoint),
+	 _binary_boot_trampoline_bin_start, binary_boot_trampoline_bin_size);
+
+  // initialize trampoline header
+  mem[static_cast<uint64_t>(MemoryMap::kPhysAddrStart) / sizeof(*mem)] = DEPLOY_PHYS_ADDR_START;
+  // null descriptor
+  mem[static_cast<uint64_t>(MemoryMap::kGdtPtr32) / sizeof(*mem) + 0] = 0;
+  // kernel code descriptor
+  mem[static_cast<uint64_t>(MemoryMap::kGdtPtr32) / sizeof(*mem) + 1] = add_base_addr_to_segment_descriptor(0x00CF9A000000FFFFUL);
+  // kernel data descriptor
+  mem[static_cast<uint64_t>(MemoryMap::kGdtPtr32) / sizeof(*mem) + 2] = add_base_addr_to_segment_descriptor(0x00CF92000000FFFFUL);
+  mem[static_cast<uint64_t>(MemoryMap::kId) / sizeof(*mem)] = 0;            // will be initialized by trampoline_region_set_id()
+  mem[static_cast<uint64_t>(MemoryMap::kStackVirtAddr) / sizeof(*mem)] = 0; // will be initialized by trampoline_region_set_id()
+
+  
+  int bootmem_fd = open("/sys/module/friend_loader/call/bootmem", O_RDWR);
+  if (bootmem_fd < 0) {
+    perror("Open call failed");
+    return -1;
+  }
+  char *bootmem =
+      static_cast<char *>(mmap(NULL, PAGE_SIZE,
+                               PROT_READ | PROT_WRITE, MAP_SHARED, bootmem_fd, 0));
+  if (bootmem == MAP_FAILED) {
+    perror("mmap operation failed...");
+    return -1;
+  }
+  close(bootmem_fd);
+
+  memcpy(bootmem, mem, kRegionSize);
+
+  munmap(bootmem, PAGE_SIZE);
+
+  return 0;
 }
 
 int main(int argc, const char **argv) {
@@ -56,6 +113,9 @@ int main(int argc, const char **argv) {
     return 255;
   }
 
+  assert(friend_mem_start == reinterpret_cast<char *>(DEPLOY_PHYS_ADDR_START));
+  assert(friend_mem_end == reinterpret_cast<char *>(DEPLOY_PHYS_ADDR_END));
+
   fclose(cmdline_fp);
 
   int mem_fd = open("/sys/module/friend_loader/call/mem", O_RDWR);
@@ -63,19 +123,27 @@ int main(int argc, const char **argv) {
     perror("Open call failed");
     return 255;
   }
-  char *mem =
-      static_cast<char *>(mmap((void *)0x40000000UL, 0x40000000UL,
-                               PROT_READ | PROT_WRITE, MAP_SHARED, mem_fd, 0));
-  if (mem == MAP_FAILED) {
+
+  void *mmapped_addr = mmap(mem, DEPLOY_PHYS_MEM_SIZE,
+       PROT_READ | PROT_WRITE, MAP_SHARED | MAP_FIXED, mem_fd, 0);
+  if (mmapped_addr == MAP_FAILED) {
     perror("mmap operation failed...");
     return 255;
   }
+  assert(reinterpret_cast<void *>(mem) == mmapped_addr);
+  
   close(mem_fd);
 
   memset(mem, 0, 1000 * 4096);
 
   pagetable_init();
-  munmap(mem, 0x40000000UL);
+
+  if (trampoline_region_init() < 0) {
+    fprintf(stderr, "error: failed to init trampoline region\n");
+    return 255;
+  }
+
+  munmap(mem, DEPLOY_PHYS_MEM_SIZE);
 
   int boot_fd = open("/sys/module/friend_loader/parameters/boot", O_RDWR);
   if (boot_fd < 0) {

@@ -70,7 +70,7 @@ static_obj.add_emitter('.c', container_emitter)
 static_obj.add_emitter('.S', container_emitter)
 static_obj.add_emitter('.o', container_emitter)
 
-hakase_flag = '-g -O0 -MMD -MP -Wall --std=c++14 -static -D __HAKASE__'
+hakase_flag = '-g -O0 -MMD -MP -Wall --std=c++14 -static -fno-pie -no-pie -D __HAKASE__'
 friend_flag = '-O0 -Wall --std=c++14 -nostdinc -nostdlib -D__FRIEND__'
 friend_elf_flag = friend_flag + ' -T {0}/friend/friend.ld'.format(curdir)
 trampoline_flag = '-Os --std=c++14 -nostdinc -nostdlib -ffreestanding -fno-builtin -fomit-frame-pointer -fno-exceptions -fno-asynchronous-unwind-tables -fno-unwind-tables -D__FRIEND__ -T {0}/hakase/FriendLoader/trampoline/boot_trampoline.ld'.format(curdir)
