@@ -11,10 +11,8 @@
 #include "common.h"
 #include "cpu_hotplug.h"
 #include "deploy.h"
-#include "trampoline_loader.h"
 #include "_memory.h"
 
-static struct trampoline_region tregion;
 static int *unpluged_cpu_list = NULL;
 
 // from linux-4.14.34 arch/x86/kernel/smpboot.c
@@ -232,11 +230,6 @@ int cpu_start(int i) {
       break;
     }
     
-    /* if (trampoline_region_set_id(&tregion, i, apicid) < 0) { */
-    /*   rval = -1; */
-    /*   break; */
-    /* } */
-    
     if (wakeup_secondary_cpu_via_init(apicid, TRAMPOLINE_ADDR) < 0) {
       rval = -1;
       break;
@@ -276,8 +269,6 @@ int cpu_replug(void) {
       }
     }
   }
-
-  trampoline_region_free(&tregion);
 
   kfree(unpluged_cpu_list);
   unpluged_cpu_list = NULL;

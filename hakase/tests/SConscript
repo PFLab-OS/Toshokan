@@ -8,9 +8,9 @@ def define_simple_tests(target, source):
     test_targets.append([target])
 
 define_simple_tests(target='callback.bin', source=["test.cc", "test.ld", '#hakase/FriendLoader/trampoline/bin.o', "callback/hakase.cc"])
-define_simple_tests(target='reading_signature.bin', source=["test.cc", "test.ld", '#hakase/FriendLoader/trampoline/bin.o', "memrw/reading_signature.cc"])
-define_simple_tests(target='rw_small.bin', source=["test.cc", "test.ld", '#hakase/FriendLoader/trampoline/bin.o', "memrw/rw_small.cc"])
-define_simple_tests(target='rw_large.bin', source=["test.cc", "test.ld", '#hakase/FriendLoader/trampoline/bin.o', "memrw/rw_large.cc"])
+#define_simple_tests(target='reading_signature.bin', source=["test.cc", "test.ld", '#hakase/FriendLoader/trampoline/bin.o', "memrw/reading_signature.cc"])
+#define_simple_tests(target='rw_small.bin', source=["test.cc", "test.ld", '#hakase/FriendLoader/trampoline/bin.o', "memrw/rw_small.cc"])
+#define_simple_tests(target='rw_large.bin', source=["test.cc", "test.ld", '#hakase/FriendLoader/trampoline/bin.o', "memrw/rw_large.cc"])
 
 friend_raw_env = friend_env.Clone(LINKFLAGS=friend_env.Dictionary('LINKFLAGS') + ' -T {0}/simple_loader/raw.ld'.format(Dir('.').abspath))
 
