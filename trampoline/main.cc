@@ -56,7 +56,7 @@ void rw_memory(CalleeChannelAccessor &callee_ca) {
 
 extern "C" void trampoline_main() {
   uint32_t *id = reinterpret_cast<uint32_t *>(MemoryMap::kId);
-  int32_t cpuid = id[1];
+  int32_t cpuid = id[0];
   uint64_t *pc_st = reinterpret_cast<uint64_t *>(MemoryMap::kPerCoreStruct);
   pc_st[cpuid] = *reinterpret_cast<uint64_t *>(id);
   if (&pc_st[cpuid] >= reinterpret_cast<uint64_t *>(MemoryMap::kEnd)) {

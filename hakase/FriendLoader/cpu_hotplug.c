@@ -8,9 +8,7 @@
 #include <linux/spinlock.h> // spin_lock_irqsave, spin_unlock_irqrestore
 #include <linux/mc146818rtc.h> // spin_lock_irqsave
 
-#include "common.h"
 #include "cpu_hotplug.h"
-#include "deploy.h"
 #include "_memory.h"
 
 static int *unpluged_cpu_list = NULL;
@@ -217,9 +215,12 @@ int cpu_start(int i) {
    * Wake up AP by INIT, INIT, STARTUP sequence.
    */
   do {
-    // TOOD: 存在チェック
-    // TODO: offlineだったらunplug
-    if (cpu_down(i) < 0) {
+    if (!cpu_present(i)) {
+      rval = -1;
+      break;
+    }
+
+    if (cpu_online(i) && cpu_down(i) < 0) {
       rval = -1;
       break;
     }
@@ -234,19 +235,6 @@ int cpu_start(int i) {
       rval = -1;
       break;
     }
-
-    /* do { */
-    /*   // wait until kMemoryMapId is written by a friend. */
-    /*     uint64_t i; */
-    /*     if (read_deploy_area((char *)&i, sizeof(i), kMemoryMapId) < 0) { */
-    /*       ret1 = -1; */
-    /*       break; */
-    /*     } */
-    /*     if (i == 0) { */
-    /*       break; */
-    /*     } */
-    /*     asm volatile("pause":::"memory"); */
-    /*   } while(1); */
   } while(0);
 
   preempt_enable();
@@ -254,25 +242,10 @@ int cpu_start(int i) {
   return rval;
 }
 
-int cpu_replug(void) {
-  int i, ret1, ret2;
-  ret1 = 0;
-  if (unpluged_cpu_list == NULL) {
+int cpu_replug(int i) {
+  if (cpu_up(i) < 0) {
     return -1;
   }
-
-  for (i = 0; i < num_possible_cpus(); i++) {
-    if (unpluged_cpu_list[i] > 0) {
-      ret2 = cpu_up(unpluged_cpu_list[i]);
-      if (ret2 < 0) {
-        ret1 = -1;
-      }
-    }
-  }
-
-  kfree(unpluged_cpu_list);
-  unpluged_cpu_list = NULL;
-
-  return ret1;
+  return 0;
 }
 

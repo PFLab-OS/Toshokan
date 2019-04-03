@@ -166,27 +166,27 @@ int main(int argc, const char **argv) {
     fprintf(stderr, "error: failed to init trampoline region\n");
     return 255;
   }
-
-  int boot_fd = open("/sys/module/friend_loader/parameters/boot", O_RDWR);
-  if (boot_fd < 0) {
-    perror("failed to open `boot`");
-    return 255;
-  }
-
-  // TODO: fix static ID
-  int32_t id_buf[2];
-  id_buf[0] = 1;  // TODO: apicid
-  id_buf[1] = 1;  // TODO: cpuid
-  uint64_t stack_addr = 1 /* TODO: cpuid */ * kStackSize +
-                        static_cast<uint64_t>(MemoryMap::kStack);
-  memcpy(mem + static_cast<uint64_t>(MemoryMap::kId) / sizeof(uint64_t), id_buf,
-         sizeof(id_buf));
-  mem[static_cast<uint64_t>(MemoryMap::kStackVirtAddr) / sizeof(uint64_t)] =
+  
+  for(int i = 1; ; i++) {
+    mem[static_cast<uint64_t>(MemoryMap::kId) / sizeof(uint64_t)] = i;
+    uint64_t stack_addr = i * kStackSize +
+      static_cast<uint64_t>(MemoryMap::kStack);
+    mem[static_cast<uint64_t>(MemoryMap::kStackVirtAddr) / sizeof(uint64_t)] =
       stack_addr;
-
-  if (write(boot_fd, "1", 2) != 2) {
-    perror("write to `boot` failed");
-    return 255;
+    
+    char buf[20];
+    sprintf(buf, "/dev/friend_cpu%d", i);
+    if (open(buf, O_RDONLY) < 0) {
+      break;
+    }
+    
+    do {
+      // wait until kMemoryMapId is written by a friend.
+      if (mem[static_cast<uint64_t>(MemoryMap::kId) / sizeof(uint64_t)] == 0) {
+	break;
+      }
+      asm volatile("pause":::"memory");
+    } while(1);
   }
 
   int configfd_h2f = open("/sys/module/friend_loader/call/h2f", O_RDWR);
@@ -214,12 +214,6 @@ int main(int argc, const char **argv) {
 
   int rval = test_main(f2h, h2f, i2h, argc, argv);
 
-  if (write(boot_fd, "0", 2) != 2) {
-    perror("write to `boot` failed");
-    return 255;
-  }
-
-  close(boot_fd);
   close(configfd_h2f);
   close(configfd_f2h);
   close(configfd_i2h);

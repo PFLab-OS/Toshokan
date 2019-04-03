@@ -73,7 +73,7 @@ static_obj.add_emitter('.o', container_emitter)
 hakase_flag = '-g -O0 -MMD -MP -Wall --std=c++14 -static -fno-pie -no-pie -D __HAKASE__'
 friend_flag = '-O0 -Wall --std=c++14 -nostdinc -nostdlib -D__FRIEND__'
 friend_elf_flag = friend_flag + ' -T {0}/friend/friend.ld'.format(curdir)
-trampoline_flag = '-Os --std=c++14 -nostdinc -nostdlib -ffreestanding -fno-builtin -fomit-frame-pointer -fno-exceptions -fno-asynchronous-unwind-tables -fno-unwind-tables -D__FRIEND__ -T {0}/hakase/FriendLoader/trampoline/boot_trampoline.ld'.format(curdir)
+trampoline_flag = '-Os --std=c++14 -nostdinc -nostdlib -ffreestanding -fno-builtin -fomit-frame-pointer -fno-exceptions -fno-asynchronous-unwind-tables -fno-unwind-tables -D__FRIEND__ -T {0}/trampoline/boot_trampoline.ld'.format(curdir)
 trampoline_ld_flag = '-Os -nostdlib -T {0}/boot_trampoline.ld'.format(curdir)
 cpputest_flag = '--std=c++14 --coverage -D__CPPUTEST__ -pthread'
 
@@ -96,13 +96,13 @@ SConscript(dirs=['common/tests'])
 
 # FriendLoader & trampoline
 trampoline_env = env.Clone(ASFLAGS=trampoline_flag, LINKFLAGS=trampoline_flag, CFLAGS=trampoline_flag, CXXFLAGS=trampoline_flag, CPPPATH=friend_include_path)
-trampoline_env.Program(target='hakase/FriendLoader/trampoline/boot_trampoline.bin', source=['hakase/FriendLoader/trampoline/bootentry.S', 'hakase/FriendLoader/trampoline/main.cc'])
+trampoline_env.Program(target='trampoline/boot_trampoline.bin', source=['trampoline/bootentry.S', 'trampoline/main.cc'])
 
-trampoline_bin = env.Command('hakase/FriendLoader/trampoline/bin.o', [build_intermediate_container, 'hakase/FriendLoader/trampoline/boot_trampoline.bin'],
-    docker_cmd('livadk/toshokan_build_intermediate', 'objcopy -I binary -O elf64-x86-64 -B i386:x86-64 boot_trampoline.bin bin.o', curdir + '/hakase/FriendLoader/trampoline') +
+trampoline_bin = env.Command('trampoline/bin.o', [build_intermediate_container, 'trampoline/boot_trampoline.bin'],
+    docker_cmd('livadk/toshokan_build_intermediate', 'objcopy -I binary -O elf64-x86-64 -B i386:x86-64 boot_trampoline.bin bin.o', curdir + '/trampoline') +
     docker_cmd('livadk/toshokan_build_intermediate', 'script/check_trampoline_bin_size.sh $TARGET'))
 
-AlwaysBuild(env.Command('hakase/FriendLoader/friend_loader.ko', [qemu_kernel_container, Glob('hakase/FriendLoader/*.h'), Glob('hakase/FriendLoader/*.c'), trampoline_bin], docker_cmd('livadk/toshokan_qemu_kernel', 'sh -c "KERN_VER=4.13.0-45-generic make all"', curdir + '/hakase/FriendLoader')))
+AlwaysBuild(env.Command('hakase/FriendLoader/friend_loader.ko', [qemu_kernel_container, Glob('hakase/FriendLoader/*.h'), Glob('hakase/FriendLoader/*.c')], docker_cmd('livadk/toshokan_qemu_kernel', 'sh -c "KERN_VER=4.13.0-45-generic make all"', curdir + '/hakase/FriendLoader')))
 
 # local circleci
 AlwaysBuild(env.Alias('circleci', [], 

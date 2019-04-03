@@ -8,6 +8,7 @@
 #define PML4T 0x1000
 #define PDPT 0x2000
 #define PD 0x3000
+/* TODO: remove TMP_STACK (since not used) */
 #define TMP_STACK 0x9000
 
 #include "_memory.h"

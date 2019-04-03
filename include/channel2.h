@@ -171,7 +171,7 @@ class H2F2 : public Channel2 {
  private:
   static Channel2::Id GetId() {
     int32_t my_id;
-    asm volatile("movl %%fs:0x4, %0" : "=r"(my_id));
+    asm volatile("movl %%fs:0x0, %0" : "=r"(my_id));
     return Channel2::Id(my_id);
   }
 };
@@ -183,7 +183,7 @@ class F2H2 : public Channel2 {
  private:
   static Channel2::Id GetId() {
     int32_t my_id;
-    asm volatile("movl %%fs:0x4, %0" : "=r"(my_id));
+    asm volatile("movl %%fs:0x0, %0" : "=r"(my_id));
     return Channel2::Id(my_id);
   }
 };
@@ -195,7 +195,7 @@ class I2H2 : public Channel2 {
  private:
   static Channel2::Id GetId() {
     int32_t my_id;
-    asm volatile("movl %%fs:0x4, %0" : "=r"(my_id));
+    asm volatile("movl %%fs:0x0, %0" : "=r"(my_id));
     return Channel2::Id(my_id);
   }
 };

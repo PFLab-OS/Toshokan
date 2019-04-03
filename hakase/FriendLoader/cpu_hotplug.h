@@ -16,4 +16,4 @@ int cpu_start(int i);
 
 // Replug CPU.
 // Returns repluged CPU number, or negative number on error.
-int cpu_replug(void);
+int cpu_replug(int i);
