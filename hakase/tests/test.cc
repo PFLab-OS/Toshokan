@@ -13,6 +13,7 @@ extern char friend_mem_end[];
 uint64_t *mem = reinterpret_cast<uint64_t *>(friend_mem_start);
 
 void pagetable_init() {
+  //TODO: refactor this(not to use offset, but structure)
   mem[static_cast<uint64_t>(MemoryMap::kPml4t) / sizeof(uint64_t)] =
       (static_cast<uint64_t>(MemoryMap::kPdpt) + DEPLOY_PHYS_ADDR_START) |
       (1 << 0) | (1 << 1) | (1 << 2);
@@ -106,6 +107,7 @@ int main(int argc, const char **argv) {
     return 255;
   }
 
+  // TODO: refactor name
   char buf[256];
   buf[fread(buf, 1, 255, cmdline_fp)] = '\0';
   if (!strstr(buf, "memmap=0x70000$4K memmap=0x40000000$0x40000000")) {
@@ -143,13 +145,22 @@ int main(int argc, const char **argv) {
     return 255;
   }
 
-  munmap(mem, DEPLOY_PHYS_MEM_SIZE);
+  //TODO: refactor this
+  //  munmap(mem, DEPLOY_PHYS_MEM_SIZE);
 
   int boot_fd = open("/sys/module/friend_loader/parameters/boot", O_RDWR);
   if (boot_fd < 0) {
     perror("failed to open `boot`");
     return 255;
   }
+
+  // TODO: fix static ID
+  int32_t id_buf[2];
+  id_buf[0] = 1;// TODO: apicid
+  id_buf[1] = 1;// TODO: cpuid
+  uint64_t stack_addr = 1 /* TODO: cpuid */ * kStackSize + static_cast<uint64_t>(MemoryMap::kStack);
+  memcpy(mem + static_cast<uint64_t>(MemoryMap::kId) / sizeof(uint64_t), id_buf, sizeof(id_buf));
+  mem[static_cast<uint64_t>(MemoryMap::kStackVirtAddr) / sizeof(uint64_t)] = stack_addr;
 
   if (write(boot_fd, "1", 2) != 2) {
     perror("write to `boot` failed");

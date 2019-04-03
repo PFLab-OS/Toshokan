@@ -27,21 +27,24 @@ static int __init friend_loader_init(void) {
     return -1;
   }
 
+  return 0;
+  // TODO: refactor this
   // Unplug friend core
-  ret = cpu_unplug();
-  if (ret < 0) {
-    pr_warn("friend_loader_init: cpu_unplug failed: %d\n", ret);
-    return -1;
-  } else {
-    return 0;
-  }
+  /* ret = cpu_unplug(); */
+  /* if (ret < 0) { */
+  /*   pr_warn("friend_loader_init: cpu_unplug failed: %d\n", ret); */
+  /*   return -1; */
+  /* } else { */
+  /*   return 0; */
+  /* } */
 }
 
 static void __exit friend_loader_exit(void) {
-  int ret = cpu_replug();
-  if (ret < 0) {
-    pr_warn("friend_loader_exit: cpu_replug failed: %d\n", ret);
-  }
+  // TODO: refactor this
+  /* int ret = cpu_replug(); */
+  /* if (ret < 0) { */
+  /*   pr_warn("friend_loader_exit: cpu_replug failed: %d\n", ret); */
+  /* } */
 
   debugmem_exit();
   call_interface_exit();
@@ -57,7 +60,7 @@ static int boot_flag_set(const char *val, struct kernel_param *kp) {
     return -EINVAL;
 
   if (n == 1) {
-    if (cpu_start() == 0) {
+    if (cpu_start(n) == 0) {
       pr_info("friend_loader: starting processor cores from 0x%lx\n",
               DEPLOY_PHYS_ADDR_START);
     } else {
@@ -65,18 +68,19 @@ static int boot_flag_set(const char *val, struct kernel_param *kp) {
       return -EIO;
     }
   } else if (n == 0) {
-    pr_info("friend_loader: stop processor cores\n");
-    int ret = cpu_replug();
-    if (ret < 0) {
-      pr_warn("friend_loade_exit: cpu_replug failed: %d\n", ret);
-      return -EIO;
-    }
+    // TODO: refactor this
+    /* pr_info("friend_loader: stop processor cores\n"); */
+    /* int ret = cpu_replug(); */
+    /* if (ret < 0) { */
+    /*   pr_warn("friend_loade_exit: cpu_replug failed: %d\n", ret); */
+    /*   return -EIO; */
+    /* } */
 
-    ret = cpu_unplug();
-    if (ret < 0) {
-      pr_warn("friend_loader: cpu_unplug failed: %d\n", ret);
-      return -EIO;
-    }
+    /* ret = cpu_unplug(); */
+    /* if (ret < 0) { */
+    /*   pr_warn("friend_loader: cpu_unplug failed: %d\n", ret); */
+    /*   return -EIO; */
+    /* } */
   }
 
   return param_set_int(val, kp);

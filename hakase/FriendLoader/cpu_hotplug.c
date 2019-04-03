@@ -206,25 +206,11 @@ int cpu_unplug(void) {
   return ret1;
 }
 
-int cpu_start() {
-  int ret1, ret2;
-  int i;
-  ret1 = 0;
-
-  if (trampoline_region_alloc(&tregion) != 0) {
-    return -1;
-  }
-
-  pr_info("friend_loader: allocate trampoline region at 0x%llx\n",
-          tregion.paddr);
-
-  if (trampoline_region_init(&tregion, DEPLOY_PHYS_ADDR_START,
-                             DEPLOY_PHYS_ADDR_END) < 0) {
-    return -1;
-  }
+int cpu_start(int i) {
+  int rval = 0;
 
   if (get_uv_system_type() != UV_NON_UNIQUE_APIC) {
-    smpboot_setup_warm_reset_vector(tregion.paddr);
+    smpboot_setup_warm_reset_vector(TRAMPOLINE_ADDR);
   }
 
   preempt_disable();
@@ -232,44 +218,47 @@ int cpu_start() {
   /*
    * Wake up AP by INIT, INIT, STARTUP sequence.
    */
-  for (i = 0; i < num_possible_cpus(); i++) {
-    if (unpluged_cpu_list[i] > 0) {
-      int apicid = apic->cpu_present_to_apicid(unpluged_cpu_list[i]);
-
-      if (apicid == 0) {
-        ret1 = -1;
-	break;
-      }
-
-      if (trampoline_region_set_id(&tregion, i + 1, apicid) < 0) {
-	ret1 = -1;
-	break;
-      }
-
-      ret2 = wakeup_secondary_cpu_via_init(apicid, tregion.paddr);
-      if (ret2 < 0) {
-        ret1 = -1;
-	break;
-      }
-
-      do {
-	// wait until kMemoryMapId is written by a friend.
-        uint64_t i;
-        if (read_deploy_area((char *)&i, sizeof(i), kMemoryMapId) < 0) {
-          ret1 = -1;
-          break;
-        }
-        if (i == 0) {
-          break;
-        }
-        asm volatile("pause":::"memory");
-      } while(1);
+  do {
+    // TOOD: 存在チェック
+    // TODO: offlineだったらunplug
+    if (cpu_down(i) < 0) {
+      rval = -1;
+      break;
     }
-  }
+    int apicid = apic->cpu_present_to_apicid(i);
+    
+    if (i == 0 || apicid == 0) {
+      rval = -1;
+      break;
+    }
+    
+    /* if (trampoline_region_set_id(&tregion, i, apicid) < 0) { */
+    /*   rval = -1; */
+    /*   break; */
+    /* } */
+    
+    if (wakeup_secondary_cpu_via_init(apicid, TRAMPOLINE_ADDR) < 0) {
+      rval = -1;
+      break;
+    }
+
+    /* do { */
+    /*   // wait until kMemoryMapId is written by a friend. */
+    /*     uint64_t i; */
+    /*     if (read_deploy_area((char *)&i, sizeof(i), kMemoryMapId) < 0) { */
+    /*       ret1 = -1; */
+    /*       break; */
+    /*     } */
+    /*     if (i == 0) { */
+    /*       break; */
+    /*     } */
+    /*     asm volatile("pause":::"memory"); */
+    /*   } while(1); */
+  } while(0);
 
   preempt_enable();
 
-  return ret1;
+  return rval;
 }
 
 int cpu_replug(void) {
