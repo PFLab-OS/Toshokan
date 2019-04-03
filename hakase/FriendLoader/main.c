@@ -28,24 +28,9 @@ static int __init friend_loader_init(void) {
   }
 
   return 0;
-  // TODO: refactor this
-  // Unplug friend core
-  /* ret = cpu_unplug(); */
-  /* if (ret < 0) { */
-  /*   pr_warn("friend_loader_init: cpu_unplug failed: %d\n", ret); */
-  /*   return -1; */
-  /* } else { */
-  /*   return 0; */
-  /* } */
 }
 
 static void __exit friend_loader_exit(void) {
-  // TODO: refactor this
-  /* int ret = cpu_replug(); */
-  /* if (ret < 0) { */
-  /*   pr_warn("friend_loader_exit: cpu_replug failed: %d\n", ret); */
-  /* } */
-
   debugmem_exit();
   call_interface_exit();
 

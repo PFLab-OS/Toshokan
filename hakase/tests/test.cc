@@ -12,6 +12,47 @@ extern char friend_mem_start[];
 extern char friend_mem_end[];
 uint64_t *mem = reinterpret_cast<uint64_t *>(friend_mem_start);
 
+int check_bootparam() {
+  FILE *cmdline_fp = fopen("/proc/cmdline", "r");
+  if (!cmdline_fp) {
+    perror("failed to open `cmdline`");
+    return -1;
+  }
+
+  char buf[256];
+  buf[fread(buf, 1, 255, cmdline_fp)] = '\0';
+  if (!strstr(buf, "memmap=0x70000$4K memmap=0x40000000$0x40000000")) {
+    fprintf(stderr, "error: physical memory is not isolated for toshokan.\n");
+    return -1;
+  }
+
+  fclose(cmdline_fp);
+
+  return 0;
+}
+
+int mmap_friend_mem() {
+  int mem_fd = open("/sys/module/friend_loader/call/mem", O_RDWR);
+  if (mem_fd < 0) {
+    perror("Open call failed");
+    return -1;
+  }
+
+  void *mmapped_addr = mmap(mem, DEPLOY_PHYS_MEM_SIZE, PROT_READ | PROT_WRITE,
+                            MAP_SHARED | MAP_FIXED, mem_fd, 0);
+  if (mmapped_addr == MAP_FAILED) {
+    perror("mmap operation failed...");
+    return -1;
+  }
+  assert(reinterpret_cast<void *>(mem) == mmapped_addr);
+
+  close(mem_fd);
+
+  // zero clear (only 4MB, because it is too slow to clear whole memory)
+  memset(mem, 0, 1024 * 4096);
+  return 0;
+}
+
 void pagetable_init() {
   // TODO: refactor this(not to use offset, but structure)
   mem[static_cast<uint64_t>(MemoryMap::kPml4t) / sizeof(uint64_t)] =
@@ -61,7 +102,7 @@ int trampoline_region_init() {
 
   if (_binary_boot_trampoline_bin_start + binary_boot_trampoline_bin_size !=
       _binary_boot_trampoline_bin_end) {
-    // invalid state
+    // impossible...
     return -1;
   }
 
@@ -86,7 +127,7 @@ int trampoline_region_init() {
   mem[static_cast<uint64_t>(MemoryMap::kStackVirtAddr) / sizeof(*mem)] =
       0;  // will be initialized by trampoline_region_set_id()
 
-  int bootmem_fd = open("/sys/module/friend_loader/call/bootmem", O_RDWR);
+  int bootmem_fd = open("/sys/module/friend_loader/call/" TRAMPOLINE_ADDR_STR, O_RDWR);
   if (bootmem_fd < 0) {
     perror("Open call failed");
     return -1;
@@ -107,42 +148,16 @@ int trampoline_region_init() {
 }
 
 int main(int argc, const char **argv) {
-  FILE *cmdline_fp = fopen("/proc/cmdline", "r");
-  if (!cmdline_fp) {
-    perror("failed to open `cmdline`");
-    return 255;
-  }
-
-  // TODO: refactor name
-  char buf[256];
-  buf[fread(buf, 1, 255, cmdline_fp)] = '\0';
-  if (!strstr(buf, "memmap=0x70000$4K memmap=0x40000000$0x40000000")) {
-    fprintf(stderr, "error: physical memory is not isolated for toshokan.\n");
+  if (check_bootparam() < 0) {
     return 255;
   }
 
   assert(friend_mem_start == reinterpret_cast<char *>(DEPLOY_PHYS_ADDR_START));
   assert(friend_mem_end == reinterpret_cast<char *>(DEPLOY_PHYS_ADDR_END));
 
-  fclose(cmdline_fp);
-
-  int mem_fd = open("/sys/module/friend_loader/call/mem", O_RDWR);
-  if (mem_fd < 0) {
-    perror("Open call failed");
+  if (mmap_friend_mem() < 0) {
     return 255;
   }
-
-  void *mmapped_addr = mmap(mem, DEPLOY_PHYS_MEM_SIZE, PROT_READ | PROT_WRITE,
-                            MAP_SHARED | MAP_FIXED, mem_fd, 0);
-  if (mmapped_addr == MAP_FAILED) {
-    perror("mmap operation failed...");
-    return 255;
-  }
-  assert(reinterpret_cast<void *>(mem) == mmapped_addr);
-
-  close(mem_fd);
-
-  memset(mem, 0, 1000 * 4096);
 
   pagetable_init();
 
@@ -150,9 +165,6 @@ int main(int argc, const char **argv) {
     fprintf(stderr, "error: failed to init trampoline region\n");
     return 255;
   }
-
-  // TODO: refactor this
-  //  munmap(mem, DEPLOY_PHYS_MEM_SIZE);
 
   int boot_fd = open("/sys/module/friend_loader/parameters/boot", O_RDWR);
   if (boot_fd < 0) {
@@ -207,7 +219,6 @@ int main(int argc, const char **argv) {
   }
 
   close(boot_fd);
-  close(mem_fd);
   close(configfd_h2f);
   close(configfd_f2h);
   close(configfd_i2h);

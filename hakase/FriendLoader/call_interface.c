@@ -66,7 +66,7 @@ static struct bin_attribute call_mem_attr = {
 static struct bin_attribute call_bootmem_attr = {
     .attr =
         {
-            .name = "bootmem", .mode = S_IWUSR | S_IRUGO,
+            .name = TRAMPOLINE_ADDR_STR, .mode = S_IWUSR | S_IRUGO,
         },
     .size = PAGE_SIZE,
     .mmap = call_bootmem_mmap,

@@ -90,3 +90,6 @@ DOC END
 // - paddr must be <0x100000
 // - 0xA0000-0xBF000 is reserved.
 #define TRAMPOLINE_ADDR 0x70000
+#define TMP_WRAPPER1(x) #x
+#define TMP_WRAPPER2(x) TMP_WRAPPER1(x)
+#define TRAMPOLINE_ADDR_STR TMP_WRAPPER2(TRAMPOLINE_ADDR)
