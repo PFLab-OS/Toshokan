@@ -127,7 +127,8 @@ int trampoline_region_init() {
   mem[static_cast<uint64_t>(MemoryMap::kStackVirtAddr) / sizeof(*mem)] =
       0;  // will be initialized by trampoline_region_set_id()
 
-  int bootmem_fd = open("/sys/module/friend_loader/call/" TRAMPOLINE_ADDR_STR, O_RDWR);
+  int bootmem_fd =
+      open("/sys/module/friend_loader/call/" TRAMPOLINE_ADDR_STR, O_RDWR);
   if (bootmem_fd < 0) {
     perror("Open call failed");
     return -1;
