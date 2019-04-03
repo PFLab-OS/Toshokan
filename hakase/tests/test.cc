@@ -1,10 +1,10 @@
 #include "test.h"
+#include <assert.h>
 #include <fcntl.h>
 #include <stdio.h>
 #include <string.h>
 #include <sys/mman.h>
 #include <unistd.h>
-#include <assert.h>
 #include "_memory.h"
 #include "channel2.h"
 
@@ -13,7 +13,7 @@ extern char friend_mem_end[];
 uint64_t *mem = reinterpret_cast<uint64_t *>(friend_mem_start);
 
 void pagetable_init() {
-  //TODO: refactor this(not to use offset, but structure)
+  // TODO: refactor this(not to use offset, but structure)
   mem[static_cast<uint64_t>(MemoryMap::kPml4t) / sizeof(uint64_t)] =
       (static_cast<uint64_t>(MemoryMap::kPdpt) + DEPLOY_PHYS_ADDR_START) |
       (1 << 0) | (1 << 1) | (1 << 2);
@@ -35,7 +35,8 @@ void pagetable_init() {
 }
 
 static uint64_t add_base_addr_to_segment_descriptor(uint64_t desc) {
-  return desc | ((DEPLOY_PHYS_ADDR_START & 0xFFFFFF) << 16) | ((DEPLOY_PHYS_ADDR_START >> 24) << 56);
+  return desc | ((DEPLOY_PHYS_ADDR_START & 0xFFFFFF) << 16) |
+         ((DEPLOY_PHYS_ADDR_START >> 24) << 56);
 }
 
 int trampoline_region_init() {
@@ -48,8 +49,9 @@ int trampoline_region_init() {
       binary_boot_trampoline_bin_size +
       static_cast<uint64_t>(MemoryMap::kTrampolineBinLoadPoint);
 
-
-  static uint8_t jmp_bin[] = {0xeb, static_cast<uint64_t>(MemoryMap::kTrampolineBinEntry) - 2, 0x66, 0x90}; // jmp TrampolineBinEntry; xchg %ax, &ax
+  static uint8_t jmp_bin[] = {
+      0xeb, static_cast<uint64_t>(MemoryMap::kTrampolineBinEntry) - 2, 0x66,
+      0x90};  // jmp TrampolineBinEntry; xchg %ax, &ax
   memcpy(mem, jmp_bin, sizeof(jmp_bin) / sizeof(jmp_bin[0]));
 
   if (PAGE_SIZE < kRegionSize) {
@@ -59,34 +61,38 @@ int trampoline_region_init() {
 
   if (_binary_boot_trampoline_bin_start + binary_boot_trampoline_bin_size !=
       _binary_boot_trampoline_bin_end) {
-     // invalid state
+    // invalid state
     return -1;
   }
 
   // copy trampoline binary to trampoline region + 8 byte
-  memcpy(reinterpret_cast<uint8_t *>(mem) + static_cast<uint64_t>(MemoryMap::kTrampolineBinLoadPoint),
-	 _binary_boot_trampoline_bin_start, binary_boot_trampoline_bin_size);
+  memcpy(reinterpret_cast<uint8_t *>(mem) +
+             static_cast<uint64_t>(MemoryMap::kTrampolineBinLoadPoint),
+         _binary_boot_trampoline_bin_start, binary_boot_trampoline_bin_size);
 
   // initialize trampoline header
-  mem[static_cast<uint64_t>(MemoryMap::kPhysAddrStart) / sizeof(*mem)] = DEPLOY_PHYS_ADDR_START;
+  mem[static_cast<uint64_t>(MemoryMap::kPhysAddrStart) / sizeof(*mem)] =
+      DEPLOY_PHYS_ADDR_START;
   // null descriptor
   mem[static_cast<uint64_t>(MemoryMap::kGdtPtr32) / sizeof(*mem) + 0] = 0;
   // kernel code descriptor
-  mem[static_cast<uint64_t>(MemoryMap::kGdtPtr32) / sizeof(*mem) + 1] = add_base_addr_to_segment_descriptor(0x00CF9A000000FFFFUL);
+  mem[static_cast<uint64_t>(MemoryMap::kGdtPtr32) / sizeof(*mem) + 1] =
+      add_base_addr_to_segment_descriptor(0x00CF9A000000FFFFUL);
   // kernel data descriptor
-  mem[static_cast<uint64_t>(MemoryMap::kGdtPtr32) / sizeof(*mem) + 2] = add_base_addr_to_segment_descriptor(0x00CF92000000FFFFUL);
-  mem[static_cast<uint64_t>(MemoryMap::kId) / sizeof(*mem)] = 0;            // will be initialized by trampoline_region_set_id()
-  mem[static_cast<uint64_t>(MemoryMap::kStackVirtAddr) / sizeof(*mem)] = 0; // will be initialized by trampoline_region_set_id()
+  mem[static_cast<uint64_t>(MemoryMap::kGdtPtr32) / sizeof(*mem) + 2] =
+      add_base_addr_to_segment_descriptor(0x00CF92000000FFFFUL);
+  mem[static_cast<uint64_t>(MemoryMap::kId) / sizeof(*mem)] =
+      0;  // will be initialized by trampoline_region_set_id()
+  mem[static_cast<uint64_t>(MemoryMap::kStackVirtAddr) / sizeof(*mem)] =
+      0;  // will be initialized by trampoline_region_set_id()
 
-  
   int bootmem_fd = open("/sys/module/friend_loader/call/bootmem", O_RDWR);
   if (bootmem_fd < 0) {
     perror("Open call failed");
     return -1;
   }
-  char *bootmem =
-      static_cast<char *>(mmap(NULL, PAGE_SIZE,
-                               PROT_READ | PROT_WRITE, MAP_SHARED, bootmem_fd, 0));
+  char *bootmem = static_cast<char *>(
+      mmap(NULL, PAGE_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, bootmem_fd, 0));
   if (bootmem == MAP_FAILED) {
     perror("mmap operation failed...");
     return -1;
@@ -126,14 +132,14 @@ int main(int argc, const char **argv) {
     return 255;
   }
 
-  void *mmapped_addr = mmap(mem, DEPLOY_PHYS_MEM_SIZE,
-       PROT_READ | PROT_WRITE, MAP_SHARED | MAP_FIXED, mem_fd, 0);
+  void *mmapped_addr = mmap(mem, DEPLOY_PHYS_MEM_SIZE, PROT_READ | PROT_WRITE,
+                            MAP_SHARED | MAP_FIXED, mem_fd, 0);
   if (mmapped_addr == MAP_FAILED) {
     perror("mmap operation failed...");
     return 255;
   }
   assert(reinterpret_cast<void *>(mem) == mmapped_addr);
-  
+
   close(mem_fd);
 
   memset(mem, 0, 1000 * 4096);
@@ -145,7 +151,7 @@ int main(int argc, const char **argv) {
     return 255;
   }
 
-  //TODO: refactor this
+  // TODO: refactor this
   //  munmap(mem, DEPLOY_PHYS_MEM_SIZE);
 
   int boot_fd = open("/sys/module/friend_loader/parameters/boot", O_RDWR);
@@ -156,11 +162,14 @@ int main(int argc, const char **argv) {
 
   // TODO: fix static ID
   int32_t id_buf[2];
-  id_buf[0] = 1;// TODO: apicid
-  id_buf[1] = 1;// TODO: cpuid
-  uint64_t stack_addr = 1 /* TODO: cpuid */ * kStackSize + static_cast<uint64_t>(MemoryMap::kStack);
-  memcpy(mem + static_cast<uint64_t>(MemoryMap::kId) / sizeof(uint64_t), id_buf, sizeof(id_buf));
-  mem[static_cast<uint64_t>(MemoryMap::kStackVirtAddr) / sizeof(uint64_t)] = stack_addr;
+  id_buf[0] = 1;  // TODO: apicid
+  id_buf[1] = 1;  // TODO: cpuid
+  uint64_t stack_addr = 1 /* TODO: cpuid */ * kStackSize +
+                        static_cast<uint64_t>(MemoryMap::kStack);
+  memcpy(mem + static_cast<uint64_t>(MemoryMap::kId) / sizeof(uint64_t), id_buf,
+         sizeof(id_buf));
+  mem[static_cast<uint64_t>(MemoryMap::kStackVirtAddr) / sizeof(uint64_t)] =
+      stack_addr;
 
   if (write(boot_fd, "1", 2) != 2) {
     perror("write to `boot` failed");
