@@ -102,7 +102,7 @@ trampoline_bin = env.Command('trampoline/bin.o', [build_intermediate_container, 
     docker_cmd('livadk/toshokan_build_intermediate', 'objcopy -I binary -O elf64-x86-64 -B i386:x86-64 boot_trampoline.bin bin.o', curdir + '/trampoline') +
     docker_cmd('livadk/toshokan_build_intermediate', 'script/check_trampoline_bin_size.sh $TARGET'))
 
-AlwaysBuild(env.Command('hakase/FriendLoader/friend_loader.ko', [qemu_kernel_container, Glob('hakase/FriendLoader/*.h'), Glob('hakase/FriendLoader/*.c')], docker_cmd('livadk/toshokan_qemu_kernel', 'sh -c "KERN_VER=4.13.0-45-generic make all"', curdir + '/hakase/FriendLoader')))
+AlwaysBuild(env.Command('FriendLoader/friend_loader.ko', [qemu_kernel_container, Glob('FriendLoader/*.h'), Glob('FriendLoader/*.c')], docker_cmd('livadk/toshokan_qemu_kernel', 'sh -c "KERN_VER=4.13.0-45-generic make all"', curdir + '/FriendLoader')))
 
 # local circleci
 AlwaysBuild(env.Alias('circleci', [], 
@@ -134,7 +134,7 @@ def expand_hakase_test_targets_to_lists(prefix):
     return list(map(lambda ele: reduce(add_path_func, ele, ''), hakase_test_targets))
 
 depends_for_qemu_container = [
-  env.Command(".docker_tmp/friend_loader.ko", "hakase/FriendLoader/friend_loader.ko", Copy("$TARGET", "$SOURCE")),
+  env.Command(".docker_tmp/friend_loader.ko", "FriendLoader/friend_loader.ko", Copy("$TARGET", "$SOURCE")),
   env.Command(".docker_tmp/test_hakase.sh", "hakase/tests/test_hakase.sh", Copy("$TARGET", "$SOURCE")),
   env.Command(".docker_tmp/test_library.sh", "hakase/tests/test_library.sh", Copy("$TARGET", "$SOURCE")),
 ]
