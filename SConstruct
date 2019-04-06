@@ -74,7 +74,7 @@ hakase_flag = '-g -O0 -MMD -MP -Wall --std=c++14 -static -fno-pie -no-pie -D __H
 friend_flag = '-O0 -Wall --std=c++14 -nostdinc -nostdlib -D__FRIEND__'
 friend_elf_flag = friend_flag + ' -T {0}/friend/friend.ld'.format(curdir)
 trampoline_flag = '-Os --std=c++14 -nostdinc -nostdlib -ffreestanding -fno-builtin -fomit-frame-pointer -fno-exceptions -fno-asynchronous-unwind-tables -fno-unwind-tables -D__FRIEND__ -T {0}/trampoline/boot_trampoline.ld'.format(curdir)
-trampoline_ld_flag = '-Os -nostdlib -T {0}/boot_trampoline.ld'.format(curdir)
+trampoline16_flag = '-Os --std=c++14 -nostdinc -nostdlib -ffreestanding -fno-builtin -fomit-frame-pointer -fno-exceptions -fno-asynchronous-unwind-tables -fno-unwind-tables -D__FRIEND__ -T {0}/trampoline/boot_trampoline16.ld'.format(curdir)
 cpputest_flag = '--std=c++14 --coverage -D__CPPUTEST__ -pthread'
 
 def extract_include_path(list_):
@@ -94,13 +94,16 @@ hakase_test_targets = SConscript(dirs=['hakase/tests'])
 
 SConscript(dirs=['common/tests'])
 
-# FriendLoader & trampoline
+trampoline16_env = env.Clone(ASFLAGS=trampoline16_flag, LINKFLAGS=trampoline16_flag, CFLAGS=trampoline16_flag, CXXFLAGS=trampoline16_flag, CPPPATH=friend_include_path)
+boot_trampoline16 = trampoline16_env.Program(target='trampoline/boot_trampoline16.bin', source=['trampoline/bootentry16.S'])
 trampoline_env = env.Clone(ASFLAGS=trampoline_flag, LINKFLAGS=trampoline_flag, CFLAGS=trampoline_flag, CXXFLAGS=trampoline_flag, CPPPATH=friend_include_path)
-trampoline_env.Program(target='trampoline/boot_trampoline.bin', source=['trampoline/bootentry.S', 'trampoline/main.cc'])
+boot_trampoline = trampoline_env.Program(target='trampoline/boot_trampoline.bin', source=['trampoline/bootentry.S', 'trampoline/main.cc'])
 
-trampoline_bin = env.Command('trampoline/bin.o', [build_intermediate_container, 'trampoline/boot_trampoline.bin'],
-    docker_cmd('livadk/toshokan_build_intermediate', 'objcopy -I binary -O elf64-x86-64 -B i386:x86-64 boot_trampoline.bin bin.o', curdir + '/trampoline') +
-    docker_cmd('livadk/toshokan_build_intermediate', 'script/check_trampoline_bin_size.sh $TARGET'))
+trampoline16_bin = env.Command('trampoline/bin16.o', [build_intermediate_container, boot_trampoline16],
+    docker_cmd('livadk/toshokan_build_intermediate', 'objcopy -I binary -O elf64-x86-64 -B i386:x86-64 boot_trampoline16.bin bin16.o', curdir + '/trampoline'))
+
+trampoline_bin = env.Command('trampoline/bin.o', [build_intermediate_container, boot_trampoline],
+    docker_cmd('livadk/toshokan_build_intermediate', 'objcopy -I binary -O elf64-x86-64 -B i386:x86-64 boot_trampoline.bin bin.o', curdir + '/trampoline'))
 
 AlwaysBuild(env.Command('FriendLoader/friend_loader.ko', [qemu_kernel_container, Glob('FriendLoader/*.h'), Glob('FriendLoader/*.c')], docker_cmd('livadk/toshokan_qemu_kernel', 'sh -c "KERN_VER=4.13.0-45-generic make all"', curdir + '/FriendLoader')))
 

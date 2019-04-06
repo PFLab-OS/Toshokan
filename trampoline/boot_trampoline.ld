@@ -1,11 +1,10 @@
 OUTPUT_FORMAT(binary);
 
-ENTRY (entry)
+ENTRY(entry)
 
-SECTIONS{
-  . = 0x08;
-  .text : {
-    KEEP(*(.text.boot))
+SECTIONS {
+  . = 0x40000000;
+  .text : AT(0) {
     *(.text)
     *(.gnu.linkonce.t*)
   }

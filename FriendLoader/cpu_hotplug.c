@@ -203,6 +203,7 @@ int cpu_unplug(void) {
 }
 
 int cpu_start(int i) {
+  int apicid;
   int rval = 0;
 
   if (get_uv_system_type() != UV_NON_UNIQUE_APIC) {
@@ -224,7 +225,7 @@ int cpu_start(int i) {
       rval = -1;
       break;
     }
-    int apicid = apic->cpu_present_to_apicid(i);
+    apicid = apic->cpu_present_to_apicid(i);
     
     if (i == 0 || apicid == 0) {
       rval = -1;

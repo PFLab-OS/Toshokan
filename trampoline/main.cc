@@ -30,7 +30,7 @@ void rw_memory(CalleeChannelAccessor &callee_ca) {
   uint64_t size =
       callee_ca.Read<uint64_t>(CalleeChannelAccessor::Offset<uint64_t>(16));
 
-  if (address_ + 2048 / sizeof(uint64_t) >= 1024 * 1024 * 1024 /* 1GB */) {
+  if (address_ < DEPLOY_PHYS_ADDR_START || address_ + size > DEPLOY_PHYS_ADDR_END) {
     // avoid accessing to page unmapped region
     callee_ca.Return(-1);
     return;
@@ -54,26 +54,32 @@ void rw_memory(CalleeChannelAccessor &callee_ca) {
   callee_ca.Return(0);
 }
 
+static int32_t cpuid_cnt = 1;
+extern "C" size_t stack_virt_addr;
+size_t stack_virt_addr= DEPLOY_PHYS_ADDR_START + static_cast<size_t>(MemoryMap::kStack) + kStackSize;
+
 extern "C" void trampoline_main() {
-  uint32_t *id = reinterpret_cast<uint32_t *>(MemoryMap::kId);
-  int32_t cpuid = id[0];
-  uint64_t *pc_st = reinterpret_cast<uint64_t *>(MemoryMap::kPerCoreStruct);
-  pc_st[cpuid] = *reinterpret_cast<uint64_t *>(id);
-  if (&pc_st[cpuid] >= reinterpret_cast<uint64_t *>(MemoryMap::kEnd)) {
+  int32_t cpuid = cpuid_cnt;
+  cpuid_cnt++;
+  stack_virt_addr += kStackSize;
+  uint64_t *pc_st = reinterpret_cast<uint64_t *>(DEPLOY_PHYS_ADDR_START + static_cast<size_t>(MemoryMap::kPerCoreStruct));
+  pc_st[cpuid] = cpuid;
+  if (&pc_st[cpuid] >= reinterpret_cast<uint64_t *>(DEPLOY_PHYS_ADDR_START + static_cast<size_t>(MemoryMap::kEnd))) {
     panic();
   }
-  *reinterpret_cast<uint64_t *>(id) = 0;  // notify to FriendLoader
-  asm volatile("wrmsr" ::"c"(0xC0000100 /* MSR_IA32_FS_BASE */), "d"(0),
-               "a"(&pc_st[cpuid]));
-
-  H2F2 h2f;
-  F2H2 f2h;
 
   if (cpuid == 1) {
-    Channel2::InitBuffer(reinterpret_cast<uint8_t *>(MemoryMap::kH2f));
-    Channel2::InitBuffer(reinterpret_cast<uint8_t *>(MemoryMap::kF2h));
-    Channel2::InitBuffer(reinterpret_cast<uint8_t *>(MemoryMap::kI2h));
+    Channel2::InitBuffer(reinterpret_cast<uint8_t *>(DEPLOY_PHYS_ADDR_START + static_cast<size_t>(MemoryMap::kH2f)));
+    Channel2::InitBuffer(reinterpret_cast<uint8_t *>(DEPLOY_PHYS_ADDR_START + static_cast<size_t>(MemoryMap::kF2h)));
+    Channel2::InitBuffer(reinterpret_cast<uint8_t *>(DEPLOY_PHYS_ADDR_START + static_cast<size_t>(MemoryMap::kI2h)));
   }
+  
+  *reinterpret_cast<int32_t *>(DEPLOY_PHYS_ADDR_START + static_cast<size_t>(MemoryMap::kSync)) = cpuid;  // notify to FriendLoader
+  asm volatile("wrmsr" ::"c"(0xC0000100 /* MSR_IA32_FS_BASE */), "d"(0),
+               "a"(&pc_st[cpuid]));
+  
+  H2F2 h2f;
+  F2H2 f2h;
 
   while (true) {
     CalleeChannelAccessor callee_ca(h2f);

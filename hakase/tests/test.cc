@@ -10,7 +10,7 @@
 
 extern char friend_mem_start[];
 extern char friend_mem_end[];
-uint64_t *mem = reinterpret_cast<uint64_t *>(friend_mem_start);
+uint64_t * const mem = reinterpret_cast<uint64_t *>(friend_mem_start);
 
 int check_bootparam() {
   FILE *cmdline_fp = fopen("/proc/cmdline", "r");
@@ -54,78 +54,41 @@ int mmap_friend_mem() {
 }
 
 void pagetable_init() {
+  static const size_t k256TB = 256UL * 1024 * 1024 * 1024 * 1024;
+  static const size_t k512GB = 512UL * 1024 * 1024 * 1024;
+  static const size_t k1GB = 1024UL * 1024 * 1024;
+  static const size_t k2MB = 2UL * 1024 * 1024;
+  uint64_t * const pml4t = &mem[static_cast<uint64_t>(MemoryMap::kPml4t) / sizeof(uint64_t)];
+  uint64_t * const pdpt = &mem[static_cast<uint64_t>(MemoryMap::kPdpt) / sizeof(uint64_t)];
+  uint64_t * const pd = &mem[static_cast<uint64_t>(MemoryMap::kPd) / sizeof(uint64_t)];
+  
   // TODO: refactor this(not to use offset, but structure)
-  mem[static_cast<uint64_t>(MemoryMap::kPml4t) / sizeof(uint64_t)] =
-      (static_cast<uint64_t>(MemoryMap::kPdpt) + DEPLOY_PHYS_ADDR_START) |
-      (1 << 0) | (1 << 1) | (1 << 2);
-  mem[static_cast<uint64_t>(MemoryMap::kPdpt) / sizeof(uint64_t)] =
-      (static_cast<uint64_t>(MemoryMap::kPd) + DEPLOY_PHYS_ADDR_START) |
-      (1 << 0) | (1 << 1) | (1 << 2);
-  mem[static_cast<uint64_t>(MemoryMap::kPdpt) / sizeof(uint64_t) + 1] =
-      (static_cast<uint64_t>(MemoryMap::kTmpPd) + DEPLOY_PHYS_ADDR_START) |
-      (1 << 0) | (1 << 1) | (1 << 2);
+  pml4t[(DEPLOY_PHYS_ADDR_START % k256TB) / k512GB] =
+    reinterpret_cast<size_t>(pdpt) |
+    (1 << 0) | (1 << 1) | (1 << 2);
+  pdpt[(DEPLOY_PHYS_ADDR_START % k512GB) / k1GB] =
+    reinterpret_cast<size_t>(pd) |
+    (1 << 0) | (1 << 1) | (1 << 2);
 
-  for (int i = 0; i < 512; i++) {
-    mem[static_cast<uint64_t>(MemoryMap::kPd) / sizeof(uint64_t) + i] =
-        (DEPLOY_PHYS_ADDR_START + (0x200000UL * i)) | (1 << 0) | (1 << 1) |
+  static_assert((DEPLOY_PHYS_ADDR_START % k1GB) == 0, "");
+  static_assert(DEPLOY_PHYS_MEM_SIZE <= k1GB, "");
+  for (size_t addr = DEPLOY_PHYS_ADDR_START; addr < DEPLOY_PHYS_ADDR_END; addr += k2MB) {
+    pd[(addr % k1GB) / k2MB] =
+        addr | (1 << 0) | (1 << 1) |
         (1 << 2) | (1 << 7);
   }
-
-  mem[static_cast<uint64_t>(MemoryMap::kTmpPd) / sizeof(uint64_t)] =
-      DEPLOY_PHYS_ADDR_START | (1 << 0) | (1 << 1) | (1 << 2) | (1 << 7);
 }
 
-static uint64_t add_base_addr_to_segment_descriptor(uint64_t desc) {
-  return desc | ((DEPLOY_PHYS_ADDR_START & 0xFFFFFF) << 16) |
-         ((DEPLOY_PHYS_ADDR_START >> 24) << 56);
-}
+int trampoline16_region_init() {
+  extern uint8_t _binary_boot_trampoline16_bin_start[];
+  extern uint8_t _binary_boot_trampoline16_bin_size[];
+  const size_t binary_boot_trampoline16_bin_size =
+    reinterpret_cast<size_t>(_binary_boot_trampoline16_bin_size);
 
-int trampoline_region_init() {
-  extern uint8_t _binary_boot_trampoline_bin_start[];
-  extern uint8_t _binary_boot_trampoline_bin_end[];
-  extern uint8_t _binary_boot_trampoline_bin_size[];
-  size_t binary_boot_trampoline_bin_size =
-      (size_t)_binary_boot_trampoline_bin_size;
-  const size_t kRegionSize =
-      binary_boot_trampoline_bin_size +
-      static_cast<uint64_t>(MemoryMap::kTrampolineBinLoadPoint);
-
-  static uint8_t jmp_bin[] = {
-      0xeb, static_cast<uint64_t>(MemoryMap::kTrampolineBinEntry) - 2, 0x66,
-      0x90};  // jmp TrampolineBinEntry; xchg %ax, &ax
-  memcpy(mem, jmp_bin, sizeof(jmp_bin) / sizeof(jmp_bin[0]));
-
-  if (PAGE_SIZE < kRegionSize) {
+  if (binary_boot_trampoline16_bin_size > PAGE_SIZE) {
     // trampoline code is so huge
     return -1;
   }
-
-  if (_binary_boot_trampoline_bin_start + binary_boot_trampoline_bin_size !=
-      _binary_boot_trampoline_bin_end) {
-    // impossible...
-    return -1;
-  }
-
-  // copy trampoline binary to trampoline region + 8 byte
-  memcpy(reinterpret_cast<uint8_t *>(mem) +
-             static_cast<uint64_t>(MemoryMap::kTrampolineBinLoadPoint),
-         _binary_boot_trampoline_bin_start, binary_boot_trampoline_bin_size);
-
-  // initialize trampoline header
-  mem[static_cast<uint64_t>(MemoryMap::kPhysAddrStart) / sizeof(*mem)] =
-      DEPLOY_PHYS_ADDR_START;
-  // null descriptor
-  mem[static_cast<uint64_t>(MemoryMap::kGdtPtr32) / sizeof(*mem) + 0] = 0;
-  // kernel code descriptor
-  mem[static_cast<uint64_t>(MemoryMap::kGdtPtr32) / sizeof(*mem) + 1] =
-      add_base_addr_to_segment_descriptor(0x00CF9A000000FFFFUL);
-  // kernel data descriptor
-  mem[static_cast<uint64_t>(MemoryMap::kGdtPtr32) / sizeof(*mem) + 2] =
-      add_base_addr_to_segment_descriptor(0x00CF92000000FFFFUL);
-  mem[static_cast<uint64_t>(MemoryMap::kId) / sizeof(*mem)] =
-      0;  // will be initialized by trampoline_region_set_id()
-  mem[static_cast<uint64_t>(MemoryMap::kStackVirtAddr) / sizeof(*mem)] =
-      0;  // will be initialized by trampoline_region_set_id()
 
   int bootmem_fd =
       open("/sys/module/friend_loader/call/" TRAMPOLINE_ADDR_STR, O_RDWR);
@@ -141,9 +104,29 @@ int trampoline_region_init() {
   }
   close(bootmem_fd);
 
-  memcpy(bootmem, mem, kRegionSize);
+  // copy trampoline binary to trampoline region + 8 byte
+  memcpy(bootmem,
+         _binary_boot_trampoline16_bin_start, binary_boot_trampoline16_bin_size);
 
   munmap(bootmem, PAGE_SIZE);
+
+  return 0;
+}
+
+int trampoline_region_init() {
+  extern uint8_t _binary_boot_trampoline_bin_start[];
+  extern uint8_t _binary_boot_trampoline_bin_size[];
+  size_t binary_boot_trampoline_bin_size =
+    reinterpret_cast<size_t>(_binary_boot_trampoline_bin_size);
+
+  if (binary_boot_trampoline_bin_size > static_cast<size_t>(MemoryMap::kPml4t)) {
+    // trampoline code is so huge
+    return -1;
+  }
+
+  // copy trampoline binary
+  memcpy(mem,
+         _binary_boot_trampoline_bin_start, binary_boot_trampoline_bin_size);
 
   return 0;
 }
@@ -162,27 +145,28 @@ int main(int argc, const char **argv) {
 
   pagetable_init();
 
+  if (trampoline16_region_init() < 0) {
+    fprintf(stderr, "error: failed to init trampoline16 region\n");
+    return 255;
+  }
+
   if (trampoline_region_init() < 0) {
     fprintf(stderr, "error: failed to init trampoline region\n");
     return 255;
   }
-  
+
   for(int i = 1; ; i++) {
-    mem[static_cast<uint64_t>(MemoryMap::kId) / sizeof(uint64_t)] = i;
-    uint64_t stack_addr = i * kStackSize +
-      static_cast<uint64_t>(MemoryMap::kStack);
-    mem[static_cast<uint64_t>(MemoryMap::kStackVirtAddr) / sizeof(uint64_t)] =
-      stack_addr;
+    mem[static_cast<uint64_t>(MemoryMap::kSync) / sizeof(uint64_t)] = 0;
     
     char buf[20];
     sprintf(buf, "/dev/friend_cpu%d", i);
     if (open(buf, O_RDONLY) < 0) {
       break;
     }
-    
+
     do {
       // wait until kMemoryMapId is written by a friend.
-      if (mem[static_cast<uint64_t>(MemoryMap::kId) / sizeof(uint64_t)] == 0) {
+      if (reinterpret_cast<int32_t *>(mem)[static_cast<uint64_t>(MemoryMap::kSync) / sizeof(int32_t)] == i) {
 	break;
       }
       asm volatile("pause":::"memory");

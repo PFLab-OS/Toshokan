@@ -1,59 +1,14 @@
 #define ASM_FILE
 #include "memory.h"	
-	
-	.section ".text.boot"
-	.code16
-	.globl entry
-	
-	/* written by FriendLoader */
-phys_addr_start:
-	.quad 0
-gdt_desc32:
-	.quad 0
-	.quad 0
-	.quad 0
-reserved:
-	.quad 0
-id:
-	.quad 0
-stack_virt_addr:
-	.quad 0	
 
-entry:
-	cli
-	movw %cs, %ax
-	movw %ax, %ds
-
-	//
-	// switch to protect mode
-	//
-	lgdtl gdtr32
-
-	// set PE bit
-	movl %cr0, %eax
-	orl $(1 << 0), %eax
-	movl %eax, %cr0
-	ljmpl $0x08, $entry32
-	
-	.balign 8
-	.word 0
-gdtr32:
-	.word 8*4 - 1
-	.long gdt_desc32 + TRAMPOLINE_ADDR
-
+.text
 .code32
 entry32:
 	movw $0x10, %ax
 	movw %ax, %ds
 	
-	//
-	// setup paging
-	// page tables are initialized by FriendLoader/trampoline_loader.c
-	//
-	movl (phys_addr_start), %edx
-	leal PML4T(%edx), %edi
-	
 	// load cr3
+	movl $(DEPLOY_PHYS_ADDR_START + PML4T), %edi
 	movl %edi, %cr3
 	
 	// set PAE&PGE&PSE bit
@@ -92,6 +47,7 @@ stop:
 
 .code64
 .extern trampoline_main
+.extern stack_virt_addr
 start:
 	// Now we use gdt_desc (64bit segmentation)
 	// physical address: (phys_addr) + %rip

@@ -4,8 +4,8 @@
 #include <vector>
 #include "channel2.h"
 #include "result.h"
-
-static const uint64_t kDeployAddressStart = 0x100000;
+// TODO remove this
+static const uint64_t kDeployAddressStart = DEPLOY_PHYS_ADDR_START + 0x200000;
 
 class SimpleLoader {
  public:
