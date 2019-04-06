@@ -7,17 +7,6 @@
 
 static struct kobject *call_sysfs_kobj;
 
-static int call_h2f_mmap(struct file *filep, struct kobject *kobj,
-                         struct bin_attribute *attr,
-                         struct vm_area_struct *vma);
-static int call_f2h_mmap(struct file *filep, struct kobject *kobj,
-                         struct bin_attribute *attr,
-                         struct vm_area_struct *vma);
-
-static int call_i2h_mmap(struct file *filep, struct kobject *kobj,
-                         struct bin_attribute *attr,
-                         struct vm_area_struct *vma);
-
 static int call_mem_mmap(struct file *filep, struct kobject *kobj,
                          struct bin_attribute *attr,
                          struct vm_area_struct *vma);
@@ -25,33 +14,6 @@ static int call_mem_mmap(struct file *filep, struct kobject *kobj,
 static int call_bootmem_mmap(struct file *filep, struct kobject *kobj,
                          struct bin_attribute *attr,
                          struct vm_area_struct *vma);
-
-static struct bin_attribute call_h2f_attr = {
-    .attr =
-        {
-            .name = "h2f", .mode = S_IWUSR | S_IRUGO,
-        },
-    .size = 4096,
-    .mmap = call_h2f_mmap,
-};
-
-static struct bin_attribute call_f2h_attr = {
-    .attr =
-        {
-            .name = "f2h", .mode = S_IWUSR | S_IRUGO,
-        },
-    .size = 4096,
-    .mmap = call_f2h_mmap,
-};
-
-static struct bin_attribute call_i2h_attr = {
-    .attr =
-        {
-            .name = "i2h", .mode = S_IWUSR | S_IRUGO,
-        },
-    .size = 4096,
-    .mmap = call_i2h_mmap,
-};
 
 static struct bin_attribute call_mem_attr = {
     .attr =
@@ -72,7 +34,7 @@ static struct bin_attribute call_bootmem_attr = {
 };
 
 static struct bin_attribute *call_sysfs_attrs[] = {
-  &call_h2f_attr, &call_f2h_attr, &call_i2h_attr, &call_mem_attr, &call_bootmem_attr, NULL,
+  &call_mem_attr, &call_bootmem_attr, NULL,
 };
 static struct attribute_group call_sysfs_attr_group = {
     .bin_attrs = call_sysfs_attrs,
@@ -110,60 +72,6 @@ int __init call_interface_init(void) {
 }
 
 void __exit call_interface_exit(void) { kobject_put(call_sysfs_kobj); }
-
-static int call_h2f_mmap(struct file *filep, struct kobject *kobj,
-                         struct bin_attribute *attr,
-                         struct vm_area_struct *vma) {
-  if (vma->vm_pgoff > 0) {
-    return -EINVAL;
-  }
-
-  vma->vm_ops = &mmap_vm_ops;
-
-  if (remap_pfn_range(vma, vma->vm_start,
-                      (DEPLOY_PHYS_ADDR_START + kMemoryMapH2f) >> PAGE_SHIFT,
-                      vma->vm_end - vma->vm_start, vma->vm_page_prot)) {
-    return -EAGAIN;
-  }
-
-  return 0;
-}
-
-static int call_f2h_mmap(struct file *filep, struct kobject *kobj,
-                         struct bin_attribute *attr,
-                         struct vm_area_struct *vma) {
-  if (vma->vm_pgoff > 0) {
-    return -EINVAL;
-  }
-
-  vma->vm_ops = &mmap_vm_ops;
-
-  if (remap_pfn_range(vma, vma->vm_start,
-                      (DEPLOY_PHYS_ADDR_START + kMemoryMapF2h) >> PAGE_SHIFT,
-                      vma->vm_end - vma->vm_start, vma->vm_page_prot)) {
-    return -EAGAIN;
-  }
-
-  return 0;
-}
-
-static int call_i2h_mmap(struct file *filep, struct kobject *kobj,
-                         struct bin_attribute *attr,
-                         struct vm_area_struct *vma) {
-  if (vma->vm_pgoff > 0) {
-    return -EINVAL;
-  }
-
-  vma->vm_ops = &mmap_vm_ops;
-
-  if (remap_pfn_range(vma, vma->vm_start,
-                      (DEPLOY_PHYS_ADDR_START + kMemoryMapI2h) >> PAGE_SHIFT,
-                      vma->vm_end - vma->vm_start, vma->vm_page_prot)) {
-    return -EAGAIN;
-  }
-
-  return 0;
-}
 
 // from drivers/char/mem.c
 static int call_mem_mmap(struct file *filep, struct kobject *kobj,

@@ -176,33 +176,12 @@ int main(int argc, const char **argv) {
     } while (1);
   }
 
-  int configfd_h2f = open("/sys/module/friend_loader/call/h2f", O_RDWR);
-  int configfd_f2h = open("/sys/module/friend_loader/call/f2h", O_RDWR);
-  int configfd_i2h = open("/sys/module/friend_loader/call/i2h", O_RDWR);
-  if (configfd_h2f < 0 || configfd_f2h < 0 || configfd_i2h < 0) {
-    perror("Open call failed");
-    return 255;
-  }
+  H2F2 h2f(reinterpret_cast<char *>(DEPLOY_PHYS_ADDR_START +
+                                    static_cast<size_t>(MemoryMap::kH2f)));
+  F2H2 f2h(reinterpret_cast<char *>(DEPLOY_PHYS_ADDR_START +
+                                    static_cast<size_t>(MemoryMap::kF2h)));
+  I2H2 i2h(reinterpret_cast<char *>(DEPLOY_PHYS_ADDR_START +
+                                    static_cast<size_t>(MemoryMap::kI2h)));
 
-  char *h2f_address = static_cast<char *>(mmap(
-      nullptr, PAGE_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, configfd_h2f, 0));
-  char *f2h_address = static_cast<char *>(mmap(
-      nullptr, PAGE_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, configfd_f2h, 0));
-  char *i2h_address = static_cast<char *>(mmap(
-      nullptr, PAGE_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, configfd_i2h, 0));
-  if (h2f_address == MAP_FAILED || f2h_address == MAP_FAILED ||
-      i2h_address == MAP_FAILED) {
-    perror("mmap operation failed");
-    return 255;
-  }
-  F2H2 f2h(f2h_address);
-  H2F2 h2f(h2f_address);
-  I2H2 i2h(i2h_address);
-
-  int rval = test_main(f2h, h2f, i2h, argc, argv);
-
-  close(configfd_h2f);
-  close(configfd_f2h);
-  close(configfd_i2h);
-  return rval;
+  return test_main(f2h, h2f, i2h, argc, argv);
 }
