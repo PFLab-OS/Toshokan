@@ -166,7 +166,11 @@ class I2H2 : public Channel2 {
 
 class H2F2 : public Channel2 {
  public:
- H2F2() : Channel2(reinterpret_cast<uint8_t *>(DEPLOY_PHYS_ADDR_START + static_cast<size_t>(MemoryMap::kH2f)), GetId()) {}
+  H2F2()
+      : Channel2(
+            reinterpret_cast<uint8_t *>(DEPLOY_PHYS_ADDR_START +
+                                        static_cast<size_t>(MemoryMap::kH2f)),
+            GetId()) {}
 
   // private:
   static Channel2::Id GetId() {
@@ -178,7 +182,11 @@ class H2F2 : public Channel2 {
 
 class F2H2 : public Channel2 {
  public:
- F2H2() : Channel2(reinterpret_cast<uint8_t *>(DEPLOY_PHYS_ADDR_START + static_cast<size_t>(MemoryMap::kF2h)), GetId()) {}
+  F2H2()
+      : Channel2(
+            reinterpret_cast<uint8_t *>(DEPLOY_PHYS_ADDR_START +
+                                        static_cast<size_t>(MemoryMap::kF2h)),
+            GetId()) {}
 
  private:
   static Channel2::Id GetId() {
@@ -190,7 +198,11 @@ class F2H2 : public Channel2 {
 
 class I2H2 : public Channel2 {
  public:
- I2H2() : Channel2(reinterpret_cast<uint8_t *>(DEPLOY_PHYS_ADDR_START + static_cast<size_t>(MemoryMap::kI2h)), GetId()) {}
+  I2H2()
+      : Channel2(
+            reinterpret_cast<uint8_t *>(DEPLOY_PHYS_ADDR_START +
+                                        static_cast<size_t>(MemoryMap::kI2h)),
+            GetId()) {}
 
  private:
   static Channel2::Id GetId() {

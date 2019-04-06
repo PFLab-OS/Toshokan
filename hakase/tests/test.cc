@@ -10,7 +10,7 @@
 
 extern char friend_mem_start[];
 extern char friend_mem_end[];
-uint64_t * const mem = reinterpret_cast<uint64_t *>(friend_mem_start);
+uint64_t *const mem = reinterpret_cast<uint64_t *>(friend_mem_start);
 
 int check_bootparam() {
   FILE *cmdline_fp = fopen("/proc/cmdline", "r");
@@ -58,24 +58,24 @@ void pagetable_init() {
   static const size_t k512GB = 512UL * 1024 * 1024 * 1024;
   static const size_t k1GB = 1024UL * 1024 * 1024;
   static const size_t k2MB = 2UL * 1024 * 1024;
-  uint64_t * const pml4t = &mem[static_cast<uint64_t>(MemoryMap::kPml4t) / sizeof(uint64_t)];
-  uint64_t * const pdpt = &mem[static_cast<uint64_t>(MemoryMap::kPdpt) / sizeof(uint64_t)];
-  uint64_t * const pd = &mem[static_cast<uint64_t>(MemoryMap::kPd) / sizeof(uint64_t)];
-  
+  uint64_t *const pml4t =
+      &mem[static_cast<uint64_t>(MemoryMap::kPml4t) / sizeof(uint64_t)];
+  uint64_t *const pdpt =
+      &mem[static_cast<uint64_t>(MemoryMap::kPdpt) / sizeof(uint64_t)];
+  uint64_t *const pd =
+      &mem[static_cast<uint64_t>(MemoryMap::kPd) / sizeof(uint64_t)];
+
   // TODO: refactor this(not to use offset, but structure)
   pml4t[(DEPLOY_PHYS_ADDR_START % k256TB) / k512GB] =
-    reinterpret_cast<size_t>(pdpt) |
-    (1 << 0) | (1 << 1) | (1 << 2);
+      reinterpret_cast<size_t>(pdpt) | (1 << 0) | (1 << 1) | (1 << 2);
   pdpt[(DEPLOY_PHYS_ADDR_START % k512GB) / k1GB] =
-    reinterpret_cast<size_t>(pd) |
-    (1 << 0) | (1 << 1) | (1 << 2);
+      reinterpret_cast<size_t>(pd) | (1 << 0) | (1 << 1) | (1 << 2);
 
   static_assert((DEPLOY_PHYS_ADDR_START % k1GB) == 0, "");
   static_assert(DEPLOY_PHYS_MEM_SIZE <= k1GB, "");
-  for (size_t addr = DEPLOY_PHYS_ADDR_START; addr < DEPLOY_PHYS_ADDR_END; addr += k2MB) {
-    pd[(addr % k1GB) / k2MB] =
-        addr | (1 << 0) | (1 << 1) |
-        (1 << 2) | (1 << 7);
+  for (size_t addr = DEPLOY_PHYS_ADDR_START; addr < DEPLOY_PHYS_ADDR_END;
+       addr += k2MB) {
+    pd[(addr % k1GB) / k2MB] = addr | (1 << 0) | (1 << 1) | (1 << 2) | (1 << 7);
   }
 }
 
@@ -83,7 +83,7 @@ int trampoline16_region_init() {
   extern uint8_t _binary_boot_trampoline16_bin_start[];
   extern uint8_t _binary_boot_trampoline16_bin_size[];
   const size_t binary_boot_trampoline16_bin_size =
-    reinterpret_cast<size_t>(_binary_boot_trampoline16_bin_size);
+      reinterpret_cast<size_t>(_binary_boot_trampoline16_bin_size);
 
   if (binary_boot_trampoline16_bin_size > PAGE_SIZE) {
     // trampoline code is so huge
@@ -105,8 +105,8 @@ int trampoline16_region_init() {
   close(bootmem_fd);
 
   // copy trampoline binary to trampoline region + 8 byte
-  memcpy(bootmem,
-         _binary_boot_trampoline16_bin_start, binary_boot_trampoline16_bin_size);
+  memcpy(bootmem, _binary_boot_trampoline16_bin_start,
+         binary_boot_trampoline16_bin_size);
 
   munmap(bootmem, PAGE_SIZE);
 
@@ -117,16 +117,17 @@ int trampoline_region_init() {
   extern uint8_t _binary_boot_trampoline_bin_start[];
   extern uint8_t _binary_boot_trampoline_bin_size[];
   size_t binary_boot_trampoline_bin_size =
-    reinterpret_cast<size_t>(_binary_boot_trampoline_bin_size);
+      reinterpret_cast<size_t>(_binary_boot_trampoline_bin_size);
 
-  if (binary_boot_trampoline_bin_size > static_cast<size_t>(MemoryMap::kPml4t)) {
+  if (binary_boot_trampoline_bin_size >
+      static_cast<size_t>(MemoryMap::kPml4t)) {
     // trampoline code is so huge
     return -1;
   }
 
   // copy trampoline binary
-  memcpy(mem,
-         _binary_boot_trampoline_bin_start, binary_boot_trampoline_bin_size);
+  memcpy(mem, _binary_boot_trampoline_bin_start,
+         binary_boot_trampoline_bin_size);
 
   return 0;
 }
@@ -155,9 +156,9 @@ int main(int argc, const char **argv) {
     return 255;
   }
 
-  for(int i = 1; ; i++) {
+  for (int i = 1;; i++) {
     mem[static_cast<uint64_t>(MemoryMap::kSync) / sizeof(uint64_t)] = 0;
-    
+
     char buf[20];
     sprintf(buf, "/dev/friend_cpu%d", i);
     if (open(buf, O_RDONLY) < 0) {
@@ -166,11 +167,13 @@ int main(int argc, const char **argv) {
 
     do {
       // wait until kMemoryMapId is written by a friend.
-      if (reinterpret_cast<int32_t *>(mem)[static_cast<uint64_t>(MemoryMap::kSync) / sizeof(int32_t)] == i) {
-	break;
+      if (reinterpret_cast<int32_t *>(
+              mem)[static_cast<uint64_t>(MemoryMap::kSync) / sizeof(int32_t)] ==
+          i) {
+        break;
       }
-      asm volatile("pause":::"memory");
-    } while(1);
+      asm volatile("pause" ::: "memory");
+    } while (1);
   }
 
   int configfd_h2f = open("/sys/module/friend_loader/call/h2f", O_RDWR);
