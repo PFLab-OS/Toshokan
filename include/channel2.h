@@ -172,7 +172,7 @@ class H2F2 : public Channel2 {
                                         static_cast<size_t>(MemoryMap::kH2f)),
             GetId()) {}
 
-  // private:
+ private:
   static Channel2::Id GetId() {
     int32_t my_id;
     asm volatile("movl %%fs:0x0, %0" : "=r"(my_id));
