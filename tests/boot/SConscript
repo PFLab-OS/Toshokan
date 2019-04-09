@@ -1,0 +1,26 @@
+#!python
+Import('hakase_env friend_env')
+
+friend16_env = friend_env.Clone()
+friend16_env['LINKFLAGS']+=' -T {0}/friend16.ld'.format(Dir('.').abspath)
+
+friend_env['LINKFLAGS']+=' -T {0}/friend.ld'.format(Dir('.').abspath)
+
+friend16 = friend16_env.Program(target='friend16.bin', source=['friend_boot16.S'])
+friend16_env.Depends(friend16, 'friend16.ld')
+friend = friend_env.Program(target='friend.bin', source=['friend_boot.S', 'friend.cc'])
+friend_env.Depends(friend, 'friend.ld')
+
+friend_obj16 = friend16_env.Command('friend16_bin.o', [friend16],
+    'bin/objcopy -I binary -O elf64-x86-64 -B i386:x86-64 $SOURCES $TARGET')
+friend16_env.Depends(friend_obj16, '#bin/objcopy')
+
+friend_obj = friend_env.Command('friend_bin.o', [friend],
+    'bin/objcopy -I binary -O elf64-x86-64 -B i386:x86-64 $SOURCES $TARGET')
+friend_env.Depends(friend_obj, '#bin/objcopy')
+
+hakase_env.Program(target='#build/boot', source=[friend_obj, friend_obj16, "hakase.cc", "hakase.ld"])
+
+target = 'boot'
+
+Return('target')

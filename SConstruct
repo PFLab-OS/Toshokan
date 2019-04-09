@@ -50,17 +50,23 @@ rootfs_container = env.BuildContainer('rootfs', 'alpine:3.8', [qemu_kernel_image
 def create_wrapper(target, source, env):
   if type(target) == list:
     target = target[0]
-  with open(str(target), mode='w') as f:
+  target = str(target)
+  with open(target, mode='w') as f:
     f.write('#!/bin/sh\n'\
             'args="$@"\n' + 
-            '\n'.join(docker_cmd('livadk/toshokan_build_intermediate', 'g++ $args')))
+            '\n'.join(docker_cmd('livadk/toshokan_build_intermediate', os.path.basename(target) + ' $args')))
 
 gcc_wrapper = Command('bin/g++', build_intermediate_container,[
         create_wrapper,
         Chmod("$TARGET", '775')])
 
+# add dependency explicitly
+Command('bin/objcopy', build_intermediate_container,[
+        create_wrapper,
+        Chmod("$TARGET", '775')])
+
 def container_emitter(target, source, env):
-  env.Depends(target, gcc_wrapper)
+  env.Depends(target, [gcc_wrapper])
   return (target, source)
 
 from SCons.Tool import createObjBuilders
@@ -93,6 +99,7 @@ Export('hakase_env friend_env friend_elf_env cpputest_env')
 hakase_test_targets = SConscript(dirs=['hakase/tests'])
 
 SConscript(dirs=['common/tests'])
+hakase_test_targets.append([SConscript(dirs=['tests/boot'])])
 
 trampoline16_env = env.Clone(ASFLAGS=trampoline16_flag, LINKFLAGS=trampoline16_flag, CFLAGS=trampoline16_flag, CXXFLAGS=trampoline16_flag, CPPPATH=friend_include_path)
 boot_trampoline16 = trampoline16_env.Program(target='trampoline/boot_trampoline16.bin', source=['trampoline/bootentry16.S'])

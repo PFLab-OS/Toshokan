@@ -31,7 +31,7 @@ DOC END
 #endif /* __FRIEND_LOADER__ */
 
 #ifdef __cplusplus
-
+// TODO: move
 enum class MemoryMap : uint64_t {
 #define DEFINE_MEMMAP(name, value) k##name = value
 
@@ -60,7 +60,7 @@ static const int kStackSize = 0x100000;
 /*
 DOC START
 
-# architecture/trampoline
+# architecture/trampoline (a.k.a friend16)
 The objective of the trampoline code is to switch CPU mode (from real mode to
 long mode) and transit from low memory to high memory. This transition is
 required because of the limitation at x86 boot sequence: x86 can only boot from
@@ -88,3 +88,5 @@ DOC END
 #define TMP_WRAPPER1(x) #x
 #define TMP_WRAPPER2(x) TMP_WRAPPER1(x)
 #define TRAMPOLINE_ADDR_STR TMP_WRAPPER2(TRAMPOLINE_ADDR)
+
+#define PAGE_SIZE 0x1000
