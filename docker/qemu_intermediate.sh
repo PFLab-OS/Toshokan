@@ -5,7 +5,6 @@ cp -r /share/rootfs /
 sed -i.bak -e "s/toshokan_qemu/localhost/g" /root/.ssh/config
 mkdir build
 cp /share/friend_loader.ko build
-cp /share/test_hakase.sh build
 cp /share/test_library.sh build
 apk add rsync
 qemu-img create -f qcow2 /backing.qcow2 5G
