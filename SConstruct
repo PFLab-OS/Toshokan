@@ -119,7 +119,7 @@ qemu_dir = '/home/hakase/'
 
 depends_for_qemu_container = [
   env.Command(".docker_tmp/friend_loader.ko", "FriendLoader/friend_loader.ko", Copy("$TARGET", "$SOURCE")),
-  env.Command(".docker_tmp/test_library.sh", "hakase/tests/test_library.sh", Copy("$TARGET", "$SOURCE")),
+  env.Command(".docker_tmp/test_library.sh", "tests/test_library.sh", Copy("$TARGET", "$SOURCE")),
 ]
 
 AlwaysBuild(env.Alias('common_test', [build_intermediate_container, 'common/tests/cpputest'], docker_cmd('livadk/toshokan_build_intermediate', './common/tests/cpputest -c -v')))
