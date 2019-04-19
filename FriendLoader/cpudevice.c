@@ -4,7 +4,7 @@
 
 #include "cpudevice.h"
 #include "cpu_hotplug.h"
-#include "_memory.h"
+#include "memory.h"
 
 #define DRIVER_NAME "FriendLoader"
 

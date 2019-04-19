@@ -1,6 +1,6 @@
 #pragma once
 
-#include "_memory.h"
+#include "memory.h"
 
 // Up to DEPLOY_PHYS_ADDR_START + 0x1000 is pre-allocated area.
 // This restricts binary size smaller than 0x1000.

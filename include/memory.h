@@ -22,41 +22,6 @@ pages.(e.g. channels, the trampoline header)
 DOC END
 */
 
-#ifndef ASM_FILE
-
-#ifdef __FRIEND_LOADER__
-#include <linux/types.h>
-#else
-#include <stdint.h>
-#endif /* __FRIEND_LOADER__ */
-
-#ifdef __cplusplus
-// TODO: move
-enum class MemoryMap : uint64_t {
-#define DEFINE_MEMMAP(name, value) k##name = value
-
-#else /* __cplusplus */
-
-enum MemoryMap {
-#define DEFINE_MEMMAP(name, value) kMemoryMap##name = value
-
-#endif /* __cplusplus */
-  DEFINE_MEMMAP(Pml4t, 0x1000),
-  DEFINE_MEMMAP(Pdpt, 0x2000),
-  DEFINE_MEMMAP(Pd, 0x3000),
-  DEFINE_MEMMAP(H2f, 0x5000),
-  DEFINE_MEMMAP(F2h, 0x6000),
-  DEFINE_MEMMAP(I2h, 0x7000),
-  DEFINE_MEMMAP(Sync, 0x8000),
-  DEFINE_MEMMAP(PerCoreStruct, 0x9000),
-  DEFINE_MEMMAP(End, 0x10000),
-  DEFINE_MEMMAP(Stack, 0x100000),
-};
-
-static const int kStackSize = 0x100000;
-#undef DEFINE_MEMMAP
-#endif /* ASM_FILE */
-
 /*
 DOC START
 

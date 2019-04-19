@@ -3,7 +3,7 @@
 #include <linux/sysfs.h>
 
 #include "call_interface.h"
-#include "_memory.h"
+#include "memory.h"
 
 static struct kobject *call_sysfs_kobj;
 

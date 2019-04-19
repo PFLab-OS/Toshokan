@@ -9,7 +9,7 @@
 #include <linux/mc146818rtc.h> // spin_lock_irqsave
 
 #include "cpu_hotplug.h"
-#include "_memory.h"
+#include "memory.h"
 
 static int *unpluged_cpu_list = NULL;
 

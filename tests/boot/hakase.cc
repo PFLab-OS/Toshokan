@@ -4,7 +4,7 @@
 #include <string.h>
 #include <sys/mman.h>
 #include <unistd.h>
-#include "_memory.h"
+#include "memory.h"
 #include "preallocated.h"
 
 extern char friend_mem_start[];

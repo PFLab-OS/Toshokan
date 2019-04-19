@@ -2,7 +2,7 @@
 #include <linux/module.h>
 
 #include "call_interface.h"
-#include "_memory.h"
+#include "memory.h"
 #include "cpudevice.h"
 
 MODULE_DESCRIPTION("Friend Loader");
