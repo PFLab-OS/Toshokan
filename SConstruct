@@ -6,6 +6,8 @@ Decider('MD5-timestamp')
 import os
 import errno
 import stat
+import random
+import string
 from functools import reduce
 
 curdir = Dir('.').abspath
@@ -79,8 +81,6 @@ static_obj.add_emitter('.o', container_emitter)
 hakase_flag = '-g -O0 -MMD -MP -Wall --std=c++14 -static -fno-pie -no-pie -D __HAKASE__'
 friend_flag = '-O0 -Wall --std=c++14 -nostdinc -nostdlib -D__FRIEND__'
 friend_elf_flag = friend_flag + ' -T {0}/friend/friend.ld'.format(curdir)
-trampoline_flag = '-Os --std=c++14 -nostdinc -nostdlib -ffreestanding -fno-builtin -fomit-frame-pointer -fno-exceptions -fno-asynchronous-unwind-tables -fno-unwind-tables -D__FRIEND__ -T {0}/trampoline/boot_trampoline.ld'.format(curdir)
-trampoline16_flag = '-Os --std=c++14 -nostdinc -nostdlib -ffreestanding -fno-builtin -fomit-frame-pointer -fno-exceptions -fno-asynchronous-unwind-tables -fno-unwind-tables -D__FRIEND__ -T {0}/trampoline/boot_trampoline16.ld'.format(curdir)
 cpputest_flag = '--std=c++14 --coverage -D__CPPUTEST__ -pthread'
 
 def extract_include_path(list_):
@@ -96,21 +96,10 @@ friend_elf_env = env.Clone(ASFLAGS=friend_elf_flag, CXXFLAGS=friend_elf_flag, LI
 cpputest_env = env.Clone(ASFLAGS=cpputest_flag, CXXFLAGS=cpputest_flag, LINKFLAGS=cpputest_flag, CPPPATH=cpputest_include_path)
 
 Export('hakase_env friend_env friend_elf_env cpputest_env')
-hakase_test_targets = SConscript(dirs=['hakase/tests'])
 
+test_bins = []
 SConscript(dirs=['common/tests'])
-hakase_test_targets.append([SConscript(dirs=['tests/boot'])])
-
-trampoline16_env = env.Clone(ASFLAGS=trampoline16_flag, LINKFLAGS=trampoline16_flag, CFLAGS=trampoline16_flag, CXXFLAGS=trampoline16_flag, CPPPATH=friend_include_path)
-boot_trampoline16 = trampoline16_env.Program(target='trampoline/boot_trampoline16.bin', source=['trampoline/bootentry16.S'])
-trampoline_env = env.Clone(ASFLAGS=trampoline_flag, LINKFLAGS=trampoline_flag, CFLAGS=trampoline_flag, CXXFLAGS=trampoline_flag, CPPPATH=friend_include_path)
-boot_trampoline = trampoline_env.Program(target='trampoline/boot_trampoline.bin', source=['trampoline/bootentry.S', 'trampoline/main.cc'])
-
-trampoline16_bin = env.Command('trampoline/bin16.o', [build_intermediate_container, boot_trampoline16],
-    docker_cmd('livadk/toshokan_build_intermediate', 'objcopy -I binary -O elf64-x86-64 -B i386:x86-64 boot_trampoline16.bin bin16.o', curdir + '/trampoline'))
-
-trampoline_bin = env.Command('trampoline/bin.o', [build_intermediate_container, boot_trampoline],
-    docker_cmd('livadk/toshokan_build_intermediate', 'objcopy -I binary -O elf64-x86-64 -B i386:x86-64 boot_trampoline.bin bin.o', curdir + '/trampoline'))
+test_bins += SConscript(dirs=['tests/boot'])
 
 AlwaysBuild(env.Command('FriendLoader/friend_loader.ko', [qemu_kernel_container, Glob('FriendLoader/*.h'), Glob('FriendLoader/*.c')], docker_cmd('livadk/toshokan_qemu_kernel', 'sh -c "KERN_VER=4.13.0-45-generic make all"', curdir + '/FriendLoader')))
 
@@ -128,24 +117,8 @@ AlwaysBuild(env.Alias('format', [],
 
 qemu_dir = '/home/hakase/'
 
-def ssh_cmd(arg):
-    return docker_cmd('--network toshokan_net livadk/toshokan_ssh', 'wait-for toshokan_qemu:2222 -- ssh toshokan_qemu cd {0} \&\& {1}'.format(qemu_dir, arg))
-def transfer_cmd():
-    return docker_cmd('--network toshokan_net livadk/toshokan_ssh', 'wait-for toshokan_qemu:2222 -- rsync build/* toshokan_qemu:.')
-
-hakase_test_bin = ['hakase/tests/callback/callback.bin', 'hakase/tests/print/print.bin', 'hakase/tests/memrw/reading_signature.bin', 'hakase/tests/memrw/rw_small.bin', 'hakase/tests/memrw/rw_large.bin', 'hakase/tests/simple_loader/simple_loader.bin', 'hakase/tests/simple_loader/raw', 'hakase/tests/elf_loader/elf_loader.bin', 'hakase/tests/elf_loader/elf_loader.elf', 'hakase/tests/interrupt/interrupt.bin', 'hakase/tests/interrupt/interrupt.elf']
-
-def expand_hakase_test_targets_to_depends():
-    add_path_func = lambda ele: './build/' + ele
-    return reduce(lambda list_, ele: list_ + list(map(add_path_func, ele)), hakase_test_targets, [])
-
-def expand_hakase_test_targets_to_lists(prefix):
-    add_path_func = lambda str, ele: str + ' ' + prefix + ele
-    return list(map(lambda ele: reduce(add_path_func, ele, ''), hakase_test_targets))
-
 depends_for_qemu_container = [
   env.Command(".docker_tmp/friend_loader.ko", "FriendLoader/friend_loader.ko", Copy("$TARGET", "$SOURCE")),
-  env.Command(".docker_tmp/test_hakase.sh", "hakase/tests/test_hakase.sh", Copy("$TARGET", "$SOURCE")),
   env.Command(".docker_tmp/test_library.sh", "hakase/tests/test_library.sh", Copy("$TARGET", "$SOURCE")),
 ]
 
@@ -156,14 +129,23 @@ Clean(qemu_intermediate_container, 'build')
 qemu_container = env.BuildContainer('qemu', 'alpine:3.8', [qemu_intermediate_container])
 
 # test pattern
-test = AlwaysBuild(env.Alias('test', ['common_test', qemu_container, ssh_container] + expand_hakase_test_targets_to_depends(), [
-    'docker rm -f toshokan_qemu > /dev/null 2>&1 || :',
-    'docker network rm toshokan_net || :',
-    'docker network create --driver bridge toshokan_net',
-    'docker run -d --name toshokan_qemu --network toshokan_net livadk/toshokan_qemu qemu-system-x86_64 -cpu Haswell -s -d cpu_reset -no-reboot -smp 5 -m 4G -D /qemu.log -loadvm snapshot1 -hda /backing.qcow2 -net nic -net user,hostfwd=tcp::2222-:22 -serial telnet::4444,server,nowait -monitor telnet::4445,server,nowait -nographic'] +
-    transfer_cmd() +
-    reduce(lambda list, ele: list + ssh_cmd('./test_hakase.sh ' + ele), expand_hakase_test_targets_to_lists('./'), []) +
-    ['docker rm -f toshokan_qemu']))
+test_targets = []
+for test_bin in test_bins:
+  random_str = ''.join(random.choice(string.ascii_letters) for i in range(10))
+  test_target = AlwaysBuild(env.Alias('test_' + str(test_bin), [qemu_container, ssh_container, test_bin], [
+    'docker network create --driver bridge toshokan_net_{0}'.format(random_str),
+    'docker run -d --name toshokan_qemu_{0} --network toshokan_net_{0} --net-alias toshokan_qemu livadk/toshokan_qemu qemu-system-x86_64 -cpu Haswell -s -d cpu_reset -no-reboot -smp 5 -m 4G -D /qemu.log -loadvm snapshot1 -hda /backing.qcow2 -net nic -net user,hostfwd=tcp::2222-:22 -serial telnet::4444,server,nowait -monitor telnet::4445,server,nowait -nographic'.format(random_str)] +
+    docker_cmd('--network toshokan_net_{0} livadk/toshokan_ssh'.format(random_str), 'wait-for toshokan_qemu:2222 -- rsync {0} toshokan_qemu:build/'.format(str(test_bin))) +
+    docker_cmd('--network toshokan_net_{0} livadk/toshokan_ssh'.format(random_str), 'wait-for toshokan_qemu:2222 -- ssh toshokan_qemu sudo ./test_library.sh ' + str(test_bin)) +
+    ['docker rm -f toshokan_qemu_{0}'.format(random_str)]))
+  test_targets.append(test_target)
+
+cleanup_containers = AlwaysBuild(env.Alias('cleanup_containers', [], [
+  'docker network ls | grep toshokan_net_ | cut -f 1 --delim=" " | xargs --no-run-if-empty docker network rm || :',
+  'docker ps -a | grep toshokan_qemu_ | cut -f 1 --delim=" " | xargs --no-run-if-empty docker rm -f || :',
+]))
+
+test = AlwaysBuild(env.Alias('test', [cleanup_containers, 'common_test'] + test_targets))
 
 Clean(test, '.docker_tmp')
 Default(test)
