@@ -16,9 +16,10 @@ ci = True if int(ARGUMENTS.get('CI', 0)) == 1 else False
 
 os.environ["PATH"] += os.pathsep + curdir
 env = DefaultEnvironment().Clone(ENV=os.environ,
-                               AS='bin/g++',
-                               CC='bin/g++',
-                               CXX='bin/g++')
+                                 AR='bin/ar',
+                                 AS='bin/g++',
+                                 CC='bin/g++',
+                                 CXX='bin/g++')
 
 def docker_cmd(container, arg, workdir=curdir):
   return ['docker run -i --rm -v {0}:{0} -w {1} {2} {3}'.format(curdir, workdir, container, arg)]
@@ -39,10 +40,8 @@ env.AddMethod(build_container, "BuildContainer")
 
 build_intermediate_container = env.BuildContainer('build_intermediate', 'alpine:3.8', [])
 
-headers = Command('.docker_tmp/$SOURCE', Glob('include/*.h'), Copy("$TARGET", "$SOURCE"))
+headers = Command('.docker_tmp/$SOURCE', [Glob('include/*.h'), Glob('lib/*.h')], Copy("$TARGET", "$SOURCE"))
 
-#TODO: add libraries
-build_container = env.BuildContainer('build', 'livadk/toshokan_build_intermediate', [build_intermediate_container, headers])
 qemu_kernel_container = env.BuildContainer('qemu_kernel', 'ubuntu:16.04', [])
 gdb_container = env.BuildContainer('gdb', 'alpine:3.8', [])
 ssh_container = env.BuildContainer('ssh', 'alpine:3.8', ['docker/config', 'docker/id_rsa', 'docker/wait-for'])
@@ -56,19 +55,19 @@ def create_wrapper(target, source, env):
   with open(target, mode='w') as f:
     f.write('#!/bin/sh\n'\
             'args="$@"\n' + 
-            '\n'.join(docker_cmd('livadk/toshokan_build_intermediate', os.path.basename(target) + ' $args')))
+            '\n'.join(docker_cmd('livadk/toshokan_build', os.path.basename(target) + ' $args')))
 
-gcc_wrapper = Command('bin/g++', build_intermediate_container,[
+wrappers = []
+wrappers.append(Command('bin/g++', build_intermediate_container,[
         create_wrapper,
-        Chmod("$TARGET", '775')])
+        Chmod("$TARGET", '775')]))
 
-# add dependency explicitly
-Command('bin/objcopy', build_intermediate_container,[
+wrappers.append(Command('bin/ar', build_intermediate_container,[
         create_wrapper,
-        Chmod("$TARGET", '775')])
+        Chmod("$TARGET", '775')]))
 
 def container_emitter(target, source, env):
-  env.Depends(target, [gcc_wrapper])
+  env.Depends(target, wrappers)
   return (target, source)
 
 from SCons.Tool import createObjBuilders
@@ -77,6 +76,12 @@ static_obj.add_emitter('.cc', container_emitter)
 static_obj.add_emitter('.c', container_emitter)
 static_obj.add_emitter('.S', container_emitter)
 static_obj.add_emitter('.o', container_emitter)
+static_obj.add_emitter('.a', container_emitter)
+
+# add dependency explicitly
+Command('bin/objcopy', build_intermediate_container,[
+        create_wrapper,
+        Chmod("$TARGET", '775')])
 
 hakase_flag = '-g -O0 -MMD -MP -Wall --std=c++14 -static -fno-pie -no-pie -D __HAKASE__'
 friend_flag = '-O0 -Wall --std=c++14 -nostdinc -nostdlib -D__FRIEND__'
@@ -90,12 +95,17 @@ hakase_include_path = extract_include_path(['{0}/hakase', '{0}/include', '{0}'])
 friend_include_path = extract_include_path(['{0}/friend', '{0}/include', '{0}'])
 cpputest_include_path = extract_include_path(['{0}/common/tests/mock', '{0}/hakase', '{0}/include', '{0}'])
 
-hakase_env = env.Clone(ASFLAGS=hakase_flag, CXXFLAGS=hakase_flag, LINKFLAGS=hakase_flag, CPPPATH=hakase_include_path)
-friend_env = env.Clone(ASFLAGS=friend_flag, CXXFLAGS=friend_flag, LINKFLAGS=friend_flag, CPPPATH=friend_include_path)
-friend_elf_env = env.Clone(ASFLAGS=friend_elf_flag, CXXFLAGS=friend_elf_flag, LINKFLAGS=friend_elf_flag, CPPPATH=friend_include_path)
-cpputest_env = env.Clone(ASFLAGS=cpputest_flag, CXXFLAGS=cpputest_flag, LINKFLAGS=cpputest_flag, CPPPATH=cpputest_include_path)
+hakase_env = env.Clone(ASFLAGS=hakase_flag, CXXFLAGS=hakase_flag, LINKFLAGS=hakase_flag, CPPPATH=hakase_include_path, LIBPATH='#lib/')
+friend_env = env.Clone(ASFLAGS=friend_flag, CXXFLAGS=friend_flag, LINKFLAGS=friend_flag, CPPPATH=friend_include_path, LIBPATH='#lib/')
+friend_elf_env = env.Clone(ASFLAGS=friend_elf_flag, CXXFLAGS=friend_elf_flag, LINKFLAGS=friend_elf_flag, CPPPATH=friend_include_path, LIBPATH='#lib/')
+cpputest_env = env.Clone(ASFLAGS=cpputest_flag, CXXFLAGS=cpputest_flag, LINKFLAGS=cpputest_flag, CPPPATH=cpputest_include_path, LIBPATH='#lib/')
 
 Export('hakase_env friend_env friend_elf_env cpputest_env')
+
+lib = SConscript(dirs=['hakase'])
+build_container = env.BuildContainer('build', 'livadk/toshokan_build_intermediate', [build_intermediate_container, headers, lib])
+
+Export('lib')
 
 test_bins = []
 SConscript(dirs=['common/tests'])
@@ -122,7 +132,7 @@ depends_for_qemu_container = [
   env.Command(".docker_tmp/test_library.sh", "tests/test_library.sh", Copy("$TARGET", "$SOURCE")),
 ]
 
-AlwaysBuild(env.Alias('common_test', [build_intermediate_container, 'common/tests/cpputest'], docker_cmd('livadk/toshokan_build_intermediate', './common/tests/cpputest -c -v')))
+AlwaysBuild(env.Alias('common_test', [build_intermediate_container, 'common/tests/cpputest'], docker_cmd('livadk/toshokan_build', './common/tests/cpputest -c -v')))
 
 qemu_intermediate_container = env.BuildContainer('qemu_intermediate', 'livadk/toshokan_ssh', [ssh_container, qemu_kernel_image_container, rootfs_container] + depends_for_qemu_container)
 Clean(qemu_intermediate_container, 'build')
@@ -145,7 +155,8 @@ cleanup_containers = AlwaysBuild(env.Alias('cleanup_containers', [], [
   'docker ps -a | grep toshokan_qemu_ | cut -f 1 --delim=" " | xargs --no-run-if-empty docker rm -f || :',
 ]))
 
-test = AlwaysBuild(env.Alias('test', [cleanup_containers, 'common_test'] + test_targets))
+# TODO remove build_container
+test = AlwaysBuild(env.Alias('test', [build_container, cleanup_containers, 'common_test'] + test_targets))
 
 Clean(test, '.docker_tmp')
 Default(test)

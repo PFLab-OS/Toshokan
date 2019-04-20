@@ -6,6 +6,7 @@
 #include <unistd.h>
 #include "memory.h"
 #include "preallocated.h"
+#include "hakase/loader16.h"
 
 extern char friend_mem_start[];
 extern char friend_mem_end[];
@@ -76,40 +77,6 @@ void pagetable_init() {
   }
 }
 
-int friend16_region_init() {
-  extern uint8_t _binary_tests_boot_friend16_bin_start[];
-  extern uint8_t _binary_tests_boot_friend16_bin_size[];
-  const size_t binary_tests_boot_friend16_bin_size =
-      reinterpret_cast<size_t>(_binary_tests_boot_friend16_bin_size);
-
-  if (binary_tests_boot_friend16_bin_size > PAGE_SIZE) {
-    // friend code is so huge
-    return -1;
-  }
-
-  int bootmem_fd =
-      open("/sys/module/friend_loader/call/" TRAMPOLINE_ADDR_STR, O_RDWR);
-  if (bootmem_fd < 0) {
-    perror("Open call failed");
-    return -1;
-  }
-  char *bootmem = static_cast<char *>(
-      mmap(NULL, PAGE_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, bootmem_fd, 0));
-  if (bootmem == MAP_FAILED) {
-    perror("mmap operation failed...");
-    return -1;
-  }
-  close(bootmem_fd);
-
-  // copy friend binary to friend region + 8 byte
-  memcpy(bootmem, _binary_tests_boot_friend16_bin_start,
-         binary_tests_boot_friend16_bin_size);
-
-  munmap(bootmem, PAGE_SIZE);
-
-  return 0;
-}
-
 int friend_region_init() {
   extern uint8_t _binary_tests_boot_friend_bin_start[];
   extern uint8_t _binary_tests_boot_friend_bin_size[];
@@ -130,6 +97,8 @@ int friend_region_init() {
 }
 
 int main(int argc, const char **argv) {
+  Loader16 loader16;
+  
   if (check_bootparam() < 0) {
     return 255;
   }
@@ -143,7 +112,7 @@ int main(int argc, const char **argv) {
 
   pagetable_init();
 
-  if (friend16_region_init() < 0) {
+  if (loader16.Init() < 0) {
     fprintf(stderr, "error: failed to init friend16 region\n");
     return 255;
   }
