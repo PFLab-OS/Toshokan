@@ -11,7 +11,6 @@ import string
 from functools import reduce
 
 curdir = Dir('.').abspath
-container_tag = "979612c1397cade043aafa2fef4eea2c6613c246"
 ci = True if int(ARGUMENTS.get('CI', 0)) == 1 else False
 
 os.environ["PATH"] += os.pathsep + curdir
@@ -19,7 +18,8 @@ env = DefaultEnvironment().Clone(ENV=os.environ,
                                  AR='bin/ar',
                                  AS='bin/g++',
                                  CC='bin/g++',
-                                 CXX='bin/g++')
+                                 CXX='bin/g++',
+                                 RANLIB='bin/ranlib')
 
 def docker_cmd(container, arg, workdir=curdir):
   return ['docker run -i --rm -v {0}:{0} -w {1} {2} {3}'.format(curdir, workdir, container, arg)]
@@ -40,7 +40,7 @@ env.AddMethod(build_container, "BuildContainer")
 
 build_intermediate_container = env.BuildContainer('build_intermediate', 'alpine:3.8', [])
 
-headers = Command('.docker_tmp/$SOURCE', [Glob('include/*.h'), Glob('lib/*.h')], Copy("$TARGET", "$SOURCE"))
+headers = Command('.docker_tmp/$SOURCE', Glob('include/*.h') + Glob('lib/*.h'), Copy("$TARGET", "$SOURCE"))
 
 qemu_kernel_container = env.BuildContainer('qemu_kernel', 'ubuntu:16.04', [])
 gdb_container = env.BuildContainer('gdb', 'alpine:3.8', [])
@@ -63,6 +63,10 @@ wrappers.append(Command('bin/g++', build_intermediate_container,[
         Chmod("$TARGET", '775')]))
 
 wrappers.append(Command('bin/ar', build_intermediate_container,[
+        create_wrapper,
+        Chmod("$TARGET", '775')]))
+
+wrappers.append(Command('bin/ranlib', build_intermediate_container,[
         create_wrapper,
         Chmod("$TARGET", '775')]))
 
@@ -138,25 +142,26 @@ qemu_intermediate_container = env.BuildContainer('qemu_intermediate', 'livadk/to
 Clean(qemu_intermediate_container, 'build')
 qemu_container = env.BuildContainer('qemu', 'alpine:3.8', [qemu_intermediate_container])
 
+cleanup_containers = AlwaysBuild(env.Alias('cleanup_containers', [], [
+  'docker network ls -f name=toshokan_net_ -q | xargs --no-run-if-empty docker network rm || :',
+  'docker ps -a -f name=toshokan_qemu_ -q | xargs --no-run-if-empty docker rm -f || :',
+]))
+
 # test pattern
 test_targets = []
 for test_bin in test_bins:
+  test_bin_name = str(test_bin[0])
   random_str = ''.join(random.choice(string.ascii_letters) for i in range(10))
-  test_target = AlwaysBuild(env.Alias('test_' + str(test_bin), [qemu_container, ssh_container, test_bin], [
+  test_target = AlwaysBuild(env.Alias('test_' + test_bin_name, [cleanup_containers, qemu_container, ssh_container, test_bin], [
     'docker network create --driver bridge toshokan_net_{0}'.format(random_str),
     'docker run -d --name toshokan_qemu_{0} --network toshokan_net_{0} --net-alias toshokan_qemu livadk/toshokan_qemu qemu-system-x86_64 -cpu Haswell -s -d cpu_reset -no-reboot -smp 5 -m 4G -D /qemu.log -loadvm snapshot1 -hda /backing.qcow2 -net nic -net user,hostfwd=tcp::2222-:22 -serial telnet::4444,server,nowait -monitor telnet::4445,server,nowait -nographic'.format(random_str)] +
-    docker_cmd('--network toshokan_net_{0} livadk/toshokan_ssh'.format(random_str), 'wait-for toshokan_qemu:2222 -- rsync {0} toshokan_qemu:build/'.format(str(test_bin))) +
-    docker_cmd('--network toshokan_net_{0} livadk/toshokan_ssh'.format(random_str), 'wait-for toshokan_qemu:2222 -- ssh toshokan_qemu sudo ./test_library.sh ' + str(test_bin)) +
+    docker_cmd('--network toshokan_net_{0} livadk/toshokan_ssh'.format(random_str), 'wait-for toshokan_qemu:2222 -- rsync {0} toshokan_qemu:build/'.format(test_bin_name)) +
+    docker_cmd('--network toshokan_net_{0} livadk/toshokan_ssh'.format(random_str), 'wait-for toshokan_qemu:2222 -- ssh toshokan_qemu sudo ./test_library.sh ' + test_bin_name) +
     ['docker rm -f toshokan_qemu_{0}'.format(random_str)]))
   test_targets.append(test_target)
 
-cleanup_containers = AlwaysBuild(env.Alias('cleanup_containers', [], [
-  'docker network ls | grep toshokan_net_ | cut -f 1 --delim=" " | xargs --no-run-if-empty docker network rm || :',
-  'docker ps -a | grep toshokan_qemu_ | cut -f 1 --delim=" " | xargs --no-run-if-empty docker rm -f || :',
-]))
-
 # TODO remove build_container
-test = AlwaysBuild(env.Alias('test', [build_container, cleanup_containers, 'common_test'] + test_targets))
+test = AlwaysBuild(env.Alias('test', [build_container, 'common_test'] + test_targets))
 
 Clean(test, '.docker_tmp')
 Default(test)
