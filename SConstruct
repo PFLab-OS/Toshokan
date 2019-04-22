@@ -169,5 +169,5 @@ Default(test)
 AlwaysBuild(env.Alias('doc', '', 'find . \( -name \*.cc -or -name \*.c -or -name \*.h -or -name \*.S \) | xargs cat | awk \'/DOC START/,/DOC END/\' | grep -v "DOC START" | grep -v "DOC END" | grep -E --color=always "$|#.*$"'))
 
 # support functions
-AlwaysBuild(env.Alias('monitor', '', 'docker exec -it toshokan_qemu nc toshokan_qemu 4445'))
-AlwaysBuild(env.Alias('ssh', ssh_container, docker_cmd('-t --network toshokan_net livadk/toshokan_ssh', 'ssh toshokan_qemu')))
+AlwaysBuild(env.Alias('monitor', '', 'docker exec -it toshokan_qemu_{0} nc toshokan_qemu 4445'.format(ARGUMENTS.get('SIGNATURE'))))
+AlwaysBuild(env.Alias('ssh', ssh_container, docker_cmd('-t --network toshokan_net_{0} livadk/toshokan_ssh'.format(ARGUMENTS.get('SIGNATURE')), 'ssh toshokan_qemu')))
