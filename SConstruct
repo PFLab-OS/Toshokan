@@ -55,7 +55,7 @@ def create_wrapper(target, source, env):
   with open(target, mode='w') as f:
     f.write('#!/bin/sh\n'\
             'args="$@"\n' + 
-            '\n'.join(docker_cmd('livadk/toshokan_build', os.path.basename(target) + ' $args')))
+            '\n'.join(docker_cmd('livadk/toshokan_build_intermediate', os.path.basename(target) + ' $args')))
 
 wrappers = []
 wrappers.append(Command('bin/g++', build_intermediate_container,[
@@ -136,7 +136,7 @@ depends_for_qemu_container = [
   env.Command(".docker_tmp/test_library.sh", "tests/test_library.sh", Copy("$TARGET", "$SOURCE")),
 ]
 
-AlwaysBuild(env.Alias('common_test', [build_intermediate_container, 'common/tests/cpputest'], docker_cmd('livadk/toshokan_build', './common/tests/cpputest -c -v')))
+AlwaysBuild(env.Alias('common_test', [build_intermediate_container, 'common/tests/cpputest'], docker_cmd('livadk/toshokan_build_intermediate', './common/tests/cpputest -c -v')))
 
 qemu_intermediate_container = env.BuildContainer('qemu_intermediate', 'livadk/toshokan_ssh', [ssh_container, qemu_kernel_image_container, rootfs_container] + depends_for_qemu_container)
 Clean(qemu_intermediate_container, 'build')
