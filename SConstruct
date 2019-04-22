@@ -143,14 +143,14 @@ Clean(qemu_intermediate_container, 'build')
 qemu_container = env.BuildContainer('qemu', 'alpine:3.8', [qemu_intermediate_container])
 
 cleanup_containers = AlwaysBuild(env.Alias('cleanup_containers', [], [
-  'docker network ls -f name=toshokan_net_ -q | xargs --no-run-if-empty docker network rm || :',
-  'docker ps -a -f name=toshokan_qemu_ -q | xargs --no-run-if-empty docker rm -f || :',
+  'docker ps -a -f name=toshokan_qemu_ -q | xargs -L 1 docker rm -f || :',
+  'docker network ls -f name=toshokan_net_ -q | xargs -L 1 docker network rm || :',
 ]))
 
 # test pattern
 test_targets = []
 for test_bin in test_bins:
-  test_bin_name = str(test_bin[0])
+  test_bin_name = str(test_bin)
   random_str = ''.join(random.choice(string.ascii_letters) for i in range(10))
   test_target = AlwaysBuild(env.Alias('test_' + test_bin_name, [cleanup_containers, qemu_container, ssh_container, test_bin], [
     'docker network create --driver bridge toshokan_net_{0}'.format(random_str),
