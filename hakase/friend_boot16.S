@@ -6,6 +6,13 @@
 	.globl entry16
 	
 entry16:
+	jmp _entry16
+
+	.balign 4
+addr:	
+	.long DEPLOY_PHYS_ADDR_START   // overwritten by Loader16::Init()
+
+_entry16:	
 	cli
 	movw %cs, %ax
 	movw %ax, %ds
@@ -19,7 +26,14 @@ entry16:
 	movl %cr0, %eax
 	orl $(1 << 0), %eax
 	movl %eax, %cr0
-	ljmpl $0x08, $DEPLOY_PHYS_ADDR_START
+	ljmpl $0x08, $(TRAMPOLINE_ADDR + entry32)
+
+	.code32
+entry32:
+	movw $0x10, %ax
+	movw %ax, %ds
+	
+	jmpl *(TRAMPOLINE_ADDR + addr)
 	
 	.balign 8
 	.word 0

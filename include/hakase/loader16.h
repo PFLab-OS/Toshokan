@@ -2,5 +2,5 @@
 
 class Loader16 {
  public:
-  int Init();
+  int Init(uint32_t entry);
 };

@@ -7,7 +7,7 @@
 #include "memory.h"
 #include "hakase/loader16.h"
 
-int Loader16::Init() {
+int Loader16::Init(uint32_t entry) {
   extern uint8_t _binary_hakase_friend16_bin_start[];
   extern uint8_t _binary_hakase_friend16_bin_size[];
   const size_t binary_hakase_friend16_bin_size =
@@ -35,6 +35,8 @@ int Loader16::Init() {
   // copy friend binary to friend region + 8 byte
   memcpy(bootmem, _binary_hakase_friend16_bin_start,
          binary_hakase_friend16_bin_size);
+
+  *(reinterpret_cast<uint32_t *>(bootmem)) = entry;
 
   munmap(bootmem, PAGE_SIZE);
 

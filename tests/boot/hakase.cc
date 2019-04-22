@@ -112,7 +112,7 @@ int main(int argc, const char **argv) {
 
   pagetable_init();
 
-  if (loader16.Init() < 0) {
+  if (loader16.Init(DEPLOY_PHYS_ADDR_START) < 0) {
     fprintf(stderr, "error: failed to init friend16 region\n");
     return 255;
   }

@@ -6,9 +6,6 @@
 	.globl entry32
 	.extern pml4t_addr
 entry32:
-	movw $0x10, %ax
-	movw %ax, %ds
-	
 	// load cr3
 	movl $PML4T_ADDR, %edi
 	movl %edi, %cr3
