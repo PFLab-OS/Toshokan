@@ -36,7 +36,7 @@ int Loader16::Init(uint32_t entry) {
   memcpy(bootmem, _binary_hakase_friend16_bin_start,
          binary_hakase_friend16_bin_size);
 
-  *(reinterpret_cast<uint32_t *>(bootmem)) = entry;
+  reinterpret_cast<uint32_t *>(bootmem)[1] = entry;
 
   munmap(bootmem, PAGE_SIZE);
 
