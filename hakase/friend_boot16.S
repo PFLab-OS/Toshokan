@@ -1,6 +1,20 @@
 #define ASM_FILE
 #include "memory.h"
-	
+
+/*
+DOC START
+
+# architecture/trampoline (a.k.a friend16)
+The objective of the trampoline code is to switch CPU mode (from real mode to
+protect mode) and transit from low memory to high memory. This transition is
+required because of the limitation at x86 boot sequence: x86 can only boot from
+low memory (< 0x100000).
+
+The address 0x70000 is reserved by the boot parameter of Linux kernel.
+(memmap=0x70000\$4K)
+
+DOC END
+*/
 	.text
 	.code16
 	.globl entry16

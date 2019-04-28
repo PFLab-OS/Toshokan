@@ -1,9 +1,10 @@
 #!python
+# a simple boot up test
+# This also tests memory mapping.
 Import('hakase_env friend_env lib')
 
-friend_env['LINKFLAGS']+=' -T {0}/friend.ld'.format(Dir('.').abspath)
-
-friend = friend_env.Program(target='friend.bin', source=['friend_boot.S'])
+friend_linkflags = friend_env['LINKFLAGS'] + ' -T {0}/friend.ld'.format(Dir('.').abspath)
+friend = friend_env.Program(target='friend.bin', source=['friend_boot.S'], LINKFLAGS=friend_linkflags)
 friend_env.Depends(friend, 'friend.ld')
 
 friend_obj = friend_env.Command('friend_bin.o', [friend],

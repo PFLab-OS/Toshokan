@@ -22,26 +22,6 @@ pages.(e.g. channels, the trampoline header)
 DOC END
 */
 
-/*
-DOC START
-
-# architecture/trampoline (a.k.a friend16)
-The objective of the trampoline code is to switch CPU mode (from real mode to
-long mode) and transit from low memory to high memory. This transition is
-required because of the limitation at x86 boot sequence: x86 can only boot from
-low memory (< 0x100000).
-
-The trampoline code, which size must be under 4KB, is copied from 0x40000000 to
-0x70000(TRAMPOLINE_ADDR). The latter page is for the processor boot sequence.
-When a friend core is woken up by INIT IPI, it starts execution on the latter
-page. After virtual memory is initialized, the trampoline code jumps to the
-former page and continues execution.
-
-The address 0x70000 is reserved by the boot parameter of Linux kernel.
-(memmap=0x70000\$4K)
-
-DOC END
-*/
 #define DEPLOY_PHYS_ADDR_START 0x40000000UL
 #define DEPLOY_PHYS_ADDR_END 0x80000000UL
 #define DEPLOY_PHYS_MEM_SIZE (DEPLOY_PHYS_ADDR_END - DEPLOY_PHYS_ADDR_START)

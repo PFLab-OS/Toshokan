@@ -88,7 +88,7 @@ Command('bin/objcopy', build_intermediate_container,[
         Chmod("$TARGET", '775')])
 
 hakase_flag = '-g -O0 -MMD -MP -Wall --std=c++14 -static -fno-pie -no-pie -D __HAKASE__'
-friend_flag = '-O0 -Wall --std=c++14 -nostdinc -nostdlib -D__FRIEND__'
+friend_flag = '-O0 -Wall --std=c++14 -nostdinc -nostdlib -fno-pie -no-pie -D__FRIEND__'
 friend_elf_flag = friend_flag + ' -T {0}/friend/friend.ld'.format(curdir)
 cpputest_flag = '--std=c++14 --coverage -D__CPPUTEST__ -pthread'
 
@@ -114,6 +114,7 @@ Export('lib')
 test_bins = []
 SConscript(dirs=['common/tests'])
 test_bins += SConscript(dirs=['tests/boot'])
+test_bins += SConscript(dirs=['tests/elf'])
 
 AlwaysBuild(env.Command('FriendLoader/friend_loader.ko', [qemu_kernel_container, Glob('FriendLoader/*.h'), Glob('FriendLoader/*.c')], docker_cmd('livadk/toshokan_qemu_kernel', 'sh -c "KERN_VER=4.13.0-45-generic make all"', curdir + '/FriendLoader')))
 
