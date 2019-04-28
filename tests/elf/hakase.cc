@@ -257,7 +257,6 @@ void pagetable_init() {
   }
 }
 
-extern "C" void entry32();
 int main(int argc, const char **argv) {
   extern uint8_t _binary_tests_elf_friend_bin_start[];
   extern uint8_t _binary_tests_elf_friend_bin_size[];
@@ -290,7 +289,6 @@ int main(int argc, const char **argv) {
     std::cerr << "error: failed to init friend16 region" << std::endl;
     return 255;
   }
-  assert(entry == (Elf64_Off)entry32);
 
   pagetable_init();
 
