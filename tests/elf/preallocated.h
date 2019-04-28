@@ -5,8 +5,8 @@
 // Up to DEPLOY_PHYS_ADDR_START + 0x1000 is pre-allocated area.
 // This restricts binary size smaller than 0x1000.
 
-#define SYNCFLAG_ADDR (DEPLOY_PHYS_ADDR_START + 0x1000*4096)
-#define PML4T_ADDR (DEPLOY_PHYS_ADDR_START + 0x1000*4096 + 0x1000)
+#define SYNCFLAG_ADDR (DEPLOY_PHYS_ADDR_START + 0x1000 * 4096)
+#define PML4T_ADDR (DEPLOY_PHYS_ADDR_START + 0x1000 * 4096 + 0x1000)
 
 #ifndef ASM_FILE
 #include "stddef.h"
@@ -24,5 +24,6 @@ struct PreallocatedMemory {
 };
 
 static PreallocatedMemory *const preallocated_mem =
-    reinterpret_cast<PreallocatedMemory *>(DEPLOY_PHYS_ADDR_START + 0x1000*4096);
+    reinterpret_cast<PreallocatedMemory *>(DEPLOY_PHYS_ADDR_START +
+                                           0x1000 * 4096);
 #endif

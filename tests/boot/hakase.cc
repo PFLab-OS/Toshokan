@@ -4,9 +4,9 @@
 #include <string.h>
 #include <sys/mman.h>
 #include <unistd.h>
+#include "hakase/loader16.h"
 #include "memory.h"
 #include "preallocated.h"
-#include "hakase/loader16.h"
 
 extern char friend_mem_start[];
 extern char friend_mem_end[];
@@ -98,7 +98,7 @@ int friend_region_init() {
 
 int main(int argc, const char **argv) {
   Loader16 loader16;
-  
+
   if (check_bootparam() < 0) {
     return 255;
   }

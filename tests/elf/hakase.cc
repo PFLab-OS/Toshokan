@@ -5,11 +5,11 @@
 #include <sys/mman.h>
 #include <unistd.h>
 #include <iostream>
-#include "memory.h"
-#include "result.h"
-#include "preallocated.h"
-#include "hakase/loader16.h"
 #include "hakase/elfhead.h"
+#include "hakase/loader16.h"
+#include "memory.h"
+#include "preallocated.h"
+#include "result.h"
 
 #include <memory>
 
@@ -17,29 +17,29 @@
 class ElfLoader {
  public:
   ElfLoader() = delete;
-  ElfLoader(uint8_t * const addr, size_t len) : _addr(addr), _len(len) {}
+  ElfLoader(uint8_t *const addr, size_t len) : _addr(addr), _len(len) {}
   Result<bool> Deploy();
   Elf64_Off GetEntry() {
     Ehdr ehdr(_addr);
     return ehdr.GetEntry();
   }
+
  private:
-  uint8_t * const _addr;
+  uint8_t *const _addr;
   size_t _len;
 
   Result<bool> CheckMemoryRegion(uint64_t vaddr, size_t size) {
-    if (vaddr < DEPLOY_PHYS_ADDR_START ||
-	vaddr + size > DEPLOY_PHYS_ADDR_END) {
+    if (vaddr < DEPLOY_PHYS_ADDR_START || vaddr + size > DEPLOY_PHYS_ADDR_END) {
       // TODO show error
       return Result<bool>();
     } else {
       return Result<bool>(true);
     }
   }
-  
+
   // wrapper of Elf64_Shdr
   class Shdr {
-  public:
+   public:
     Shdr(uint8_t *raw) : _raw(reinterpret_cast<Elf64_Shdr *>(raw)) {}
     Shdr() = delete;
     struct SectionInfo {
@@ -48,21 +48,21 @@ class ElfLoader {
     };
     std::unique_ptr<SectionInfo> GetInfoIfBss() {
       if (_raw->sh_type == SHT_NOBITS && (_raw->sh_flags & SHF_ALLOC) != 0) {
-	auto info = std::unique_ptr<SectionInfo>(new SectionInfo);
-	info->vaddr = _raw->sh_addr;
-	info->size = _raw->sh_size;
-	return info;
+        auto info = std::unique_ptr<SectionInfo>(new SectionInfo);
+        info->vaddr = _raw->sh_addr;
+        info->size = _raw->sh_size;
+        return info;
       }
       return std::unique_ptr<SectionInfo>();
     }
 
-  private:
+   private:
     Elf64_Shdr *_raw;
   };
 
   // wrapper of ELF64_Phdr
   class Phdr {
-  public:
+   public:
     Phdr(uint8_t *raw) : _raw(reinterpret_cast<Elf64_Phdr *>(raw)) {}
     Phdr() = delete;
     struct PhdrInfo {
@@ -72,27 +72,27 @@ class ElfLoader {
     };
     std::unique_ptr<PhdrInfo> GetInfoIfLoad() {
       if (_raw->p_type == PT_LOAD) {
-	auto info = std::unique_ptr<PhdrInfo>(new PhdrInfo);
-	info->vaddr = _raw->p_vaddr;
-	info->file_offset = _raw->p_offset;
-	info->size = _raw->p_filesz;
-	return info;
+        auto info = std::unique_ptr<PhdrInfo>(new PhdrInfo);
+        info->vaddr = _raw->p_vaddr;
+        info->file_offset = _raw->p_offset;
+        info->size = _raw->p_filesz;
+        return info;
       }
       return std::unique_ptr<PhdrInfo>();
     }
 
-  private:
+   private:
     Elf64_Phdr *_raw;
   };
 
   // wrapper of Elf64_Ehdr
   class Ehdr {
-  public:
+   public:
     Ehdr(uint8_t *raw) : _raw(reinterpret_cast<Elf64_Ehdr *>(raw)) {}
     Ehdr() = delete;
     bool IsElf() {
       return _raw->e_ident[0] == ELFMAG0 && _raw->e_ident[1] == ELFMAG1 &&
-	_raw->e_ident[2] == ELFMAG2 && _raw->e_ident[3] == ELFMAG3;
+             _raw->e_ident[2] == ELFMAG2 && _raw->e_ident[3] == ELFMAG3;
     }
     bool IsElf64() { return _raw->e_ident[EI_CLASS] == ELFCLASS64; }
     bool IsOsabiSysv() { return _raw->e_ident[EI_OSABI] == ELFOSABI_SYSV; }
@@ -101,23 +101,23 @@ class ElfLoader {
     Elf64_Off GetEntry() { return _raw->e_entry; }
     Elf64_Off GetShdrOffset(int index) {
       if (_raw->e_shnum > index) {
-	return _raw->e_shoff + _raw->e_shentsize * index;
+        return _raw->e_shoff + _raw->e_shentsize * index;
       } else {
-	return 0;
+        return 0;
       }
     }
     Elf64_Off GetPhdrOffset(int index) {
       if (_raw->e_phnum > index) {
-	return _raw->e_phoff + _raw->e_phentsize * index;
+        return _raw->e_phoff + _raw->e_phentsize * index;
       } else {
-	return 0;
+        return 0;
       }
     }
 
-  private:
+   private:
     Elf64_Ehdr *_raw;
   };
-      
+
   std::unique_ptr<Shdr> CreateShdr(Elf64_Off offset) {
     if (offset == 0) {
       return std::unique_ptr<Shdr>();
@@ -156,8 +156,10 @@ Result<bool> ElfLoader::Deploy() {
     auto info = shdr->GetInfoIfBss();
     if (info) {
       if (CheckMemoryRegion(info->vaddr, info->size).IsError()) {
-	std::cerr << "ElfLoader: error: unable to deploy outside of friend memory!" << std::endl;
-	return Result<bool>();
+        std::cerr
+            << "ElfLoader: error: unable to deploy outside of friend memory!"
+            << std::endl;
+        return Result<bool>();
       }
       memset(reinterpret_cast<void *>(info->vaddr), 0, info->size);
     }
@@ -172,10 +174,13 @@ Result<bool> ElfLoader::Deploy() {
     auto info = phdr->GetInfoIfLoad();
     if (info) {
       if (CheckMemoryRegion(info->vaddr, info->size).IsError()) {
-	std::cerr << "ElfLoader: error: unable to deploy outside of friend memory!" << std::endl;
-	return Result<bool>();
+        std::cerr
+            << "ElfLoader: error: unable to deploy outside of friend memory!"
+            << std::endl;
+        return Result<bool>();
       }
-      memcpy(reinterpret_cast<void *>(info->vaddr), _addr + info->file_offset, info->size);
+      memcpy(reinterpret_cast<void *>(info->vaddr), _addr + info->file_offset,
+             info->size);
     }
   }
 
@@ -196,7 +201,8 @@ int check_bootparam() {
   char buf[256];
   buf[fread(buf, 1, 255, cmdline_fp)] = '\0';
   if (!strstr(buf, "memmap=0x70000$4K memmap=0x40000000$0x40000000")) {
-    std::cerr << "error: physical memory is not isolated for toshokan." << std::endl;
+    std::cerr << "error: physical memory is not isolated for toshokan."
+              << std::endl;
     return -1;
   }
 
@@ -257,10 +263,11 @@ int main(int argc, const char **argv) {
   extern uint8_t _binary_tests_elf_friend_bin_size[];
   size_t binary_tests_elf_friend_bin_size =
       reinterpret_cast<size_t>(_binary_tests_elf_friend_bin_size);
-  
+
   Loader16 loader16;
-  ElfLoader elfloader(_binary_tests_elf_friend_bin_start, binary_tests_elf_friend_bin_size);
-  
+  ElfLoader elfloader(_binary_tests_elf_friend_bin_start,
+                      binary_tests_elf_friend_bin_size);
+
   if (check_bootparam() < 0) {
     return 255;
   }
