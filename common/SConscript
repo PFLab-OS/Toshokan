@@ -1,0 +1,6 @@
+#!python
+Import('friend_env')
+
+lib = friend_env.StaticLibrary('#lib/common', ['dummy.cc'])
+
+Return('lib')

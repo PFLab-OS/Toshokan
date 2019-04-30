@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include "panic.h"
 
+// TODO: need to contain error state
 template <class T>
 class Result {
  public:

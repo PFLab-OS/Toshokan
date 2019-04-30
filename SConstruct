@@ -87,14 +87,15 @@ Command('bin/objcopy', build_intermediate_container,[
         create_wrapper,
         Chmod("$TARGET", '775')])
 
-hakase_flag = '-g -O0 -MMD -MP -Wall --std=c++14 -static -fno-pie -no-pie -D __HAKASE__'
-friend_flag = '-O0 -Wall --std=c++14 -nostdinc -nostdlib -fno-pie -no-pie -D__FRIEND__'
+hakase_flag = '-g -O0 -Wall --std=c++14 -static -fno-pie -no-pie -D __HAKASE__'
+friend_flag = '-g -O0 -Wall --std=c++14 -nostdinc -nostdlib -fno-pie -no-pie -D__FRIEND__'
 friend_elf_flag = friend_flag + ' -T {0}/friend/friend.ld'.format(curdir)
 cpputest_flag = '--std=c++14 --coverage -D__CPPUTEST__ -pthread'
 
 def extract_include_path(list_):
     return list(map(lambda str: str.format(curdir), list_))
 
+#TODO remove the root path
 hakase_include_path = extract_include_path(['{0}/hakase', '{0}/include', '{0}'])
 friend_include_path = extract_include_path(['{0}/friend', '{0}/include', '{0}'])
 cpputest_include_path = extract_include_path(['{0}/common/tests/mock', '{0}/hakase', '{0}/include', '{0}'])
@@ -106,10 +107,10 @@ cpputest_env = env.Clone(ASFLAGS=cpputest_flag, CXXFLAGS=cpputest_flag, LINKFLAG
 
 Export('hakase_env friend_env friend_elf_env cpputest_env')
 
-lib = SConscript(dirs=['hakase'])
-build_container = env.BuildContainer('build', 'livadk/toshokan_build_intermediate', [build_intermediate_container, headers, lib])
+libs = [SConscript(dirs=['hakase']), SConscript(dirs=['common'])]
+build_container = env.BuildContainer('build', 'livadk/toshokan_build_intermediate', [build_intermediate_container, headers, libs])
 
-Export('lib')
+Export('libs')
 
 test_bins = []
 SConscript(dirs=['common/tests'])

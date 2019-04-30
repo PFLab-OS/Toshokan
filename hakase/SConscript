@@ -9,6 +9,6 @@ friend_obj16 = friend16_env.Command('friend16_bin.o', [friend16],
     'bin/objcopy -I binary -O elf64-x86-64 -B i386:x86-64 $SOURCES $TARGET')
 friend16_env.Depends(friend_obj16, '#bin/objcopy')
 
-lib = hakase_env.StaticLibrary('#lib/hakase', ['loader16.cc', friend_obj16])
+lib = hakase_env.StaticLibrary('#lib/hakase', ['loader16.cc', 'elf_loader.cc', friend_obj16])
 
 Return('lib')
