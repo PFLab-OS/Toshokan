@@ -62,7 +62,6 @@ void pagetable_init() {
   Page *pdpt = &preallocated_mem->pdpt;
   Page *pd = &preallocated_mem->pd;
 
-  // TODO: refactor this(not to use offset, but structure)
   pml4t->entry[(DEPLOY_PHYS_ADDR_START % k256TB) / k512GB] =
       reinterpret_cast<size_t>(pdpt) | (1 << 0) | (1 << 1) | (1 << 2);
   pdpt->entry[(DEPLOY_PHYS_ADDR_START % k512GB) / k1GB] =

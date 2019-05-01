@@ -95,7 +95,6 @@ cpputest_flag = '--std=c++14 --coverage -D__CPPUTEST__ -pthread'
 def extract_include_path(list_):
     return list(map(lambda str: str.format(curdir), list_))
 
-#TODO remove the root path
 hakase_include_path = extract_include_path(['{0}/include'])
 friend_include_path = extract_include_path(['{0}/include'])
 cpputest_include_path = extract_include_path(['{0}/common/tests/mock', '{0}/include'])
