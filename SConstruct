@@ -96,9 +96,9 @@ def extract_include_path(list_):
     return list(map(lambda str: str.format(curdir), list_))
 
 #TODO remove the root path
-hakase_include_path = extract_include_path(['{0}/hakase', '{0}/include', '{0}'])
-friend_include_path = extract_include_path(['{0}/friend', '{0}/include', '{0}'])
-cpputest_include_path = extract_include_path(['{0}/common/tests/mock', '{0}/hakase', '{0}/include', '{0}'])
+hakase_include_path = extract_include_path(['{0}/include'])
+friend_include_path = extract_include_path(['{0}/include'])
+cpputest_include_path = extract_include_path(['{0}/common/tests/mock', '{0}/include'])
 
 hakase_env = env.Clone(ASFLAGS=hakase_flag, CXXFLAGS=hakase_flag, LINKFLAGS=hakase_flag, CPPPATH=hakase_include_path, LIBPATH='#lib/')
 friend_env = env.Clone(ASFLAGS=friend_flag, CXXFLAGS=friend_flag, LINKFLAGS=friend_flag, CPPPATH=friend_include_path, LIBPATH='#lib/')

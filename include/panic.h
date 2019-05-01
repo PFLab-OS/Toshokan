@@ -7,3 +7,9 @@ static inline void panic(const char *str = nullptr) {
   }
 }
 #endif /* __FRIEND__ */
+
+#ifdef __HAKASE__
+#include <assert.h>
+
+static inline void panic(const char *str = nullptr) { assert(false); }
+#endif /* __HAKASE__ */
