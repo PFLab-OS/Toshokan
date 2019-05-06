@@ -156,8 +156,9 @@ for test_bin in test_bins:
   test_target = AlwaysBuild(env.Alias('test_' + test_bin_name, [cleanup_containers, qemu_container, ssh_container, test_bin], [
     'docker network create --driver bridge toshokan_net_{0}'.format(random_str),
     'docker run -d --name toshokan_qemu_{0} --network toshokan_net_{0} --net-alias toshokan_qemu livadk/toshokan_qemu qemu-system-x86_64 -cpu Haswell -s -d cpu_reset -no-reboot -smp 5 -m 4G -D /qemu.log -loadvm snapshot1 -hda /backing.qcow2 -net nic -net user,hostfwd=tcp::2222-:22 -serial telnet::4444,server,nowait -monitor telnet::4445,server,nowait -nographic'.format(random_str)] +
-    docker_cmd('--network toshokan_net_{0} livadk/toshokan_ssh'.format(random_str), 'wait-for toshokan_qemu:2222 -- rsync {0} toshokan_qemu:build/'.format(test_bin_name)) +
-    docker_cmd('--network toshokan_net_{0} livadk/toshokan_ssh'.format(random_str), 'wait-for toshokan_qemu:2222 -- ssh toshokan_qemu sudo ./test_library.sh ' + test_bin_name) +
+    docker_cmd('--network toshokan_net_{0} livadk/toshokan_ssh'.format(random_str), 'wait-for-rsync toshokan_qemu') +
+    docker_cmd('--network toshokan_net_{0} livadk/toshokan_ssh'.format(random_str), 'rsync {0} toshokan_qemu:build/'.format(test_bin_name)) +
+    docker_cmd('--network toshokan_net_{0} livadk/toshokan_ssh'.format(random_str), 'ssh toshokan_qemu sudo ./test_library.sh ' + test_bin_name) +
     ['docker rm -f toshokan_qemu_{0}'.format(random_str)]))
   test_targets.append(test_target)
 
