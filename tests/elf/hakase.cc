@@ -114,7 +114,7 @@ int main(int argc, const char **argv) {
   }
 
   pagetable_init();
-  preallocated->sync_flag = 0;
+  preallocated_mem->sync_flag = 0;
 
   int cpunum = 0;
 
