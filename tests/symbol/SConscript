@@ -1,0 +1,19 @@
+#!python
+# symbol resolving
+Import('hakase_env friend_elf_env libs')
+
+friend = friend_elf_env.Program(target='friend.bin', source=['friend_boot.S', 'friend.cc'])
+friend_elf_env.Depends(friend, '#friend/friend.ld')
+
+friend_obj = friend_elf_env.Command('friend_bin.o', [friend],
+    'bin/objcopy -I binary -O elf64-x86-64 -B i386:x86-64 $SOURCES $TARGET')
+friend_elf_env.Depends(friend_obj, '#bin/objcopy')
+
+friend_shared_symbols = friend_elf_env.Command('friend.shsym', [friend],
+    'bin/objcopy -j .shsym $SOURCES $TARGET')
+friend_elf_env.Depends(friend_shared_symbols, '#bin/objcopy')
+
+target = hakase_env.Program(target='#build/symbol', source=[friend_obj, "hakase.cc", "hakase.ld"], LIBS=['hakase'], LINKFLAGS=hakase_env['LINKFLAGS'] + ' -Wl,-R,' + friend_shared_symbols[0].path)
+hakase_env.Depends(target, libs + friend_shared_symbols)
+
+Return('target')

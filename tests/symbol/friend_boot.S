@@ -1,12 +1,12 @@
 #define ASM_FILE
-#include "preallocated.h"
 
 	.section ".text.boot"
 	.code32
 	.globl entry32
+	.extern pml4t
 entry32:
 	// load cr3
-	movl $PML4T_ADDR, %edi
+	movl $pml4t, %edi
 	movl %edi, %cr3
 	
 	// set PAE&PGE&PSE bit
@@ -45,6 +45,7 @@ stop:
 
 .text
 .code64
+.extern sync_flag
 start:
 	// Now we use gdt_desc (64bit segmentation)
 	// physical address: (phys_addr) + %rip
@@ -53,7 +54,7 @@ start:
 	movw $0x18, %ax
 	movw %ax, %ds
 	movw %ax, %ss
-	lock addq $1, (SYNCFLAG_ADDR)
+	lock addq $1, sync_flag
 	jmp stop
 
 	.balign 8

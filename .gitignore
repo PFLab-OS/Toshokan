@@ -67,6 +67,7 @@ Thumbs.db
 # Project files
 *.bin
 *.elf
+*.shsym
 bin/
 build/
 .docker/

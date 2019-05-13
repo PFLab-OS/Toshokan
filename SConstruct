@@ -96,7 +96,7 @@ def extract_include_path(list_):
     return list(map(lambda str: str.format(curdir), list_))
 
 hakase_include_path = extract_include_path(['{0}/include'])
-friend_include_path = extract_include_path(['{0}/include'])
+friend_include_path = extract_include_path(['{0}/include', '{0}/friend'])
 cpputest_include_path = extract_include_path(['{0}/common/tests/mock', '{0}/include'])
 
 hakase_env = env.Clone(ASFLAGS=hakase_flag, CXXFLAGS=hakase_flag, LINKFLAGS=hakase_flag, CPPPATH=hakase_include_path, LIBPATH='#lib/')
@@ -111,10 +111,11 @@ build_container = env.BuildContainer('build', 'livadk/toshokan_build_intermediat
 
 Export('libs')
 
-test_bins = []
 SConscript(dirs=['common/tests'])
+test_bins = []
 test_bins += SConscript(dirs=['tests/boot'])
 test_bins += SConscript(dirs=['tests/elf'])
+test_bins += SConscript(dirs=['tests/symbol'])
 
 AlwaysBuild(env.Command('FriendLoader/friend_loader.ko', [qemu_kernel_container, Glob('FriendLoader/*.h'), Glob('FriendLoader/*.c')], docker_cmd('livadk/toshokan_qemu_kernel', 'sh -c "KERN_VER=4.13.0-45-generic make all"', curdir + '/FriendLoader')))
 
