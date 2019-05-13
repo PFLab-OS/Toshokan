@@ -87,6 +87,10 @@ Command('bin/objcopy', build_intermediate_container,[
         create_wrapper,
         Chmod("$TARGET", '775')])
 
+Command('bin/objdump', build_intermediate_container,[
+        create_wrapper,
+        Chmod("$TARGET", '775')])
+
 hakase_flag = '-g -O0 -Wall --std=c++14 -static -fno-pie -no-pie -D __HAKASE__'
 friend_flag = '-g -O0 -Wall --std=c++14 -nostdinc -nostdlib -fno-pie -no-pie -D__FRIEND__'
 friend_elf_flag = friend_flag + ' -T {0}/friend/friend.ld'.format(curdir)
@@ -164,7 +168,7 @@ for test_bin in test_bins:
   test_targets.append(test_target)
 
 # TODO remove build_container
-test = AlwaysBuild(env.Alias('test', [build_container, 'common_test'] + test_targets))
+test = AlwaysBuild(env.Alias('test', [build_container, 'bin/objdump', 'common_test'] + test_targets))
 
 Clean(test, '.docker_tmp')
 Default(test)
