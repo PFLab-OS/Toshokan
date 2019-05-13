@@ -1,3 +1,4 @@
 #pragma once
 
-#define SHARED_SYMBOL(declaration) declaration __attribute__ ((section (".shsym")))
+#define SHARED_SYMBOL(declaration) \
+  declaration __attribute__((section(".shsym")))
