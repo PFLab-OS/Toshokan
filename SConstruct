@@ -40,8 +40,6 @@ env.AddMethod(build_container, "BuildContainer")
 
 build_intermediate_container = env.BuildContainer('build_intermediate', 'alpine:3.8', [])
 
-headers = Command('.docker_tmp/$SOURCE', Glob('include/*.h') + Glob('lib/*.h'), Copy("$TARGET", "$SOURCE"))
-
 qemu_kernel_container = env.BuildContainer('qemu_kernel', 'ubuntu:16.04', [])
 gdb_container = env.BuildContainer('gdb', 'alpine:3.8', [])
 ssh_container = env.BuildContainer('ssh', 'alpine:3.8', ['docker/config', 'docker/id_rsa', 'docker/wait-for'])
@@ -110,9 +108,23 @@ cpputest_env = env.Clone(ASFLAGS=cpputest_flag, CXXFLAGS=cpputest_flag, LINKFLAG
 
 Export('hakase_env friend_env friend_elf_env cpputest_env')
 
-libs = [SConscript(dirs=['hakase']), SConscript(dirs=['common'])]
-build_container = env.BuildContainer('build', 'livadk/toshokan_build_intermediate', [build_intermediate_container, headers, libs])
+# TODO: remove hakase dir since headers in hakase dir cannot be used in general purpose 
+common_headers = [Install('.docker_tmp/include', Glob('include/*.h')), Install('.docker_tmp/include/hakase', Glob('include/hakase/*.h'))]
+common_libs = SConscript(dirs=['common'])
 
+hakase_headers = common_headers
+hakase_libs = [SConscript(dirs=['hakase']), common_libs]
+hakase_ldscript = Command('.docker_tmp/$SOURCE', 'hakase/hakase.ld', Copy("$TARGET", "$SOURCE"))
+hakase_build_container = env.BuildContainer('build_hakase', 'livadk/toshokan_build_intermediate', [build_intermediate_container, hakase_libs, hakase_ldscript] + hakase_headers)
+
+friend_headers = [Install('.docker_tmp/friend', Glob('friend/*.h')), common_headers]
+friend_libs = [SConscript(dirs=['hakase']), common_libs]
+friend_ldscript = Command('.docker_tmp/$SOURCE', 'friend/friend.ld', Copy("$TARGET", "$SOURCE"))
+friend_build_container = env.BuildContainer('build_friend', 'livadk/toshokan_build_intermediate', [build_intermediate_container, friend_headers, friend_libs, friend_ldscript])
+
+#TODO: refactoring
+# if we prepare build container, we won't need this.
+libs = hakase_libs
 Export('libs')
 
 SConscript(dirs=['common/tests'])
@@ -168,7 +180,7 @@ for test_bin in test_bins:
   test_targets.append(test_target)
 
 # TODO remove build_container
-test = AlwaysBuild(env.Alias('test', [build_container, 'bin/objdump', 'common_test'] + test_targets))
+test = AlwaysBuild(env.Alias('test', [hakase_build_container, friend_build_container, 'bin/objdump', 'common_test'] + test_targets))
 
 Clean(test, '.docker_tmp')
 Default(test)
