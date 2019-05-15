@@ -1,4 +1,4 @@
-#include "result.h"
+#include <toshokan/result.h>
 #include "CppUTest/TestHarness.h"
 
 TEST_GROUP(Result){TEST_SETUP(){}

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "memory.h"
+#include <toshokan/memory.h>
 
 // Up to DEPLOY_PHYS_ADDR_START + 0x1000 is pre-allocated area.
 // This restricts binary size smaller than 0x1000.
@@ -9,8 +9,8 @@
 #define PML4T_ADDR (DEPLOY_PHYS_ADDR_START + 0x2000)
 
 #ifndef ASM_FILE
-#include "stddef.h"
-#include "stdint.h"
+#include <stddef.h>
+#include <stdint.h>
 struct Page {
   uint64_t entry[512];
 };

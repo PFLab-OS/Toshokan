@@ -2,8 +2,8 @@
 #include <linux/mm.h>
 #include <linux/sysfs.h>
 
+#include <toshokan/memory.h>
 #include "call_interface.h"
-#include "memory.h"
 
 static struct kobject *call_sysfs_kobj;
 

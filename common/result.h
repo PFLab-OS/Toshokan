@@ -1,7 +1,7 @@
 #pragma once
 #include <assert.h>
-#include <panic.h>
 #include <stdint.h>
+#include <toshokan/panic.h>
 
 // TODO: need to contain error state
 template <class T>

@@ -5,10 +5,10 @@
 #include <sys/mman.h>
 #include <unistd.h>
 #include <iostream>
-#include "hakase/elf_loader.h"
-#include "hakase/loader16.h"
-#include "memory.h"
-#include "result.h"
+#include <toshokan/memory.h>
+#include <toshokan/result.h>
+#include <toshokan/hakase/elf_loader.h>
+#include <toshokan/hakase/loader16.h>
 #include "shared.h"
 
 extern char friend_mem_start[];

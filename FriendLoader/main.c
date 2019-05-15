@@ -1,8 +1,8 @@
 #include <linux/kernel.h>
 #include <linux/module.h>
 
+#include <toshokan/memory.h>
 #include "call_interface.h"
-#include "memory.h"
 #include "cpudevice.h"
 
 MODULE_DESCRIPTION("Friend Loader");

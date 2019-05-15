@@ -1,5 +1,5 @@
 #define ASM_FILE
-#include "memory.h"
+#include <toshokan/memory.h>
 
 /*
 DOC START

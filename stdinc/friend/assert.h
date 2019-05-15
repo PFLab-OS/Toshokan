@@ -1,6 +1,6 @@
 #pragma once
 
-#include "panic.h"
+#include <toshokan/panic.h>
 #define assert(flag) \
   if (!(flag)) {     \
     panic();         \

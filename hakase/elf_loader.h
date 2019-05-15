@@ -2,9 +2,9 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <memory>
-#include "elfhead.h"
-#include "memory.h"
-#include "result.h"
+#include <toshokan/elfhead.h>
+#include <toshokan/memory.h>
+#include <toshokan/result.h>
 
 // PIE is not supported
 class ElfLoader {

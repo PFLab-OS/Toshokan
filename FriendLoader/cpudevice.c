@@ -2,9 +2,9 @@
 #include <linux/kernel.h>
 #include <linux/cdev.h>
 
+#include <toshokan/memory.h>
 #include "cpudevice.h"
 #include "cpu_hotplug.h"
-#include "memory.h"
 
 #define DRIVER_NAME "FriendLoader"
 

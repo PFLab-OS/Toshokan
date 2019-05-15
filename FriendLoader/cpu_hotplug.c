@@ -8,8 +8,8 @@
 #include <linux/spinlock.h> // spin_lock_irqsave, spin_unlock_irqrestore
 #include <linux/mc146818rtc.h> // spin_lock_irqsave
 
+#include <toshokan/memory.h>
 #include "cpu_hotplug.h"
-#include "memory.h"
 
 static int *unpluged_cpu_list = NULL;
 
