@@ -1,13 +1,10 @@
 #!python
 Import('hakase_env friend_env')
 
-friend16_env = friend_env.Clone()
-friend16_env['LINKFLAGS']+=' -T {0}/friend16.ld'.format(Dir('.').abspath)
-friend16 = friend16_env.Program(target='friend16.bin', source=['friend_boot16.S'])
-friend16_env.Depends(friend16, 'friend16.ld')
-friend_obj16 = friend16_env.Command('friend16_bin.o', [friend16],
-    'bin/objcopy -I binary -O elf64-x86-64 -B i386:x86-64 $SOURCES $TARGET')
-friend16_env.Depends(friend_obj16, '#bin/objcopy')
+friend16 = friend_env.Program(target='friend16.bin', source=['friend_boot16.S'], LINKFLAGS=friend_env['LINKFLAGS'] + ' -T {0}/friend16.ld'.format(Dir('.').abspath))
+friend_env.Depends(friend16, 'friend16.ld')
+friend_obj16 = friend_env.Command('friend16_bin.o', [friend16], 'bin/objcopy -I binary -O elf64-x86-64 -B i386:x86-64 $SOURCES $TARGET')
+friend_env.Depends(friend_obj16, '#bin/objcopy')
 
 lib = hakase_env.StaticLibrary('#lib/hakase', ['loader16.cc', 'elf_loader.cc', friend_obj16])
 
