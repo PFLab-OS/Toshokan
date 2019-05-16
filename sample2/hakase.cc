@@ -84,8 +84,7 @@ int main(int argc, const char **argv) {
       reinterpret_cast<size_t>(_binary_friend_bin_size);
 
   Loader16 loader16;
-  ElfLoader elfloader(_binary_friend_bin_start,
-                      binary_friend_bin_size);
+  ElfLoader elfloader(_binary_friend_bin_start, binary_friend_bin_size);
 
   if (check_bootparam() < 0) {
     return 255;
