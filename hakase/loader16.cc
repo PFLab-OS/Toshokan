@@ -1,11 +1,11 @@
 #include <fcntl.h>
 #include <stdint.h>
 #include <stdio.h>
-#include <sys/mman.h>
-#include <unistd.h>
 #include <string.h>
-#include <toshokan/memory.h>
+#include <sys/mman.h>
 #include <toshokan/hakase/loader16.h>
+#include <toshokan/memory.h>
+#include <unistd.h>
 
 int Loader16::Init(uint32_t entry) {
   extern uint8_t _binary_hakase_friend16_bin_start[];

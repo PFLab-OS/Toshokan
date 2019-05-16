@@ -1,10 +1,10 @@
 #pragma once
 #include <stddef.h>
 #include <stdint.h>
-#include <memory>
 #include <toshokan/elfhead.h>
 #include <toshokan/memory.h>
 #include <toshokan/result.h>
+#include <memory>
 
 // PIE is not supported
 class ElfLoader {

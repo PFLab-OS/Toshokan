@@ -3,9 +3,9 @@
 #include <stdio.h>
 #include <string.h>
 #include <sys/mman.h>
-#include <unistd.h>
-#include <toshokan/memory.h>
 #include <toshokan/hakase/loader16.h>
+#include <toshokan/memory.h>
+#include <unistd.h>
 #include "preallocated.h"
 
 extern char friend_mem_start[];

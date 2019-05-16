@@ -3,12 +3,12 @@
 #include <stdio.h>
 #include <string.h>
 #include <sys/mman.h>
-#include <unistd.h>
-#include <iostream>
-#include <toshokan/memory.h>
-#include <toshokan/result.h>
 #include <toshokan/hakase/elf_loader.h>
 #include <toshokan/hakase/loader16.h>
+#include <toshokan/memory.h>
+#include <toshokan/result.h>
+#include <unistd.h>
+#include <iostream>
 #include "shared.h"
 
 extern char friend_mem_start[];
