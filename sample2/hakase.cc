@@ -78,14 +78,14 @@ void pagetable_init() {
 }
 
 int main(int argc, const char **argv) {
-  extern uint8_t _binary_tests_symbol_friend_bin_start[];
-  extern uint8_t _binary_tests_symbol_friend_bin_size[];
-  size_t binary_tests_symbol_friend_bin_size =
-      reinterpret_cast<size_t>(_binary_tests_symbol_friend_bin_size);
+  extern uint8_t _binary_friend_bin_start[];
+  extern uint8_t _binary_friend_bin_size[];
+  size_t binary_friend_bin_size =
+      reinterpret_cast<size_t>(_binary_friend_bin_size);
 
   Loader16 loader16;
-  ElfLoader elfloader(_binary_tests_symbol_friend_bin_start,
-                      binary_tests_symbol_friend_bin_size);
+  ElfLoader elfloader(_binary_friend_bin_start,
+                      binary_friend_bin_size);
 
   if (check_bootparam() < 0) {
     return 255;
