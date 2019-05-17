@@ -12,10 +12,6 @@ OS package managers(e.g. apt, yum) often try to install older versions. Be caref
 ## Install & Test
 ```
 $ git clone https://github.com/PFLab-OS/Toshokan.git
-$ cd Toshokan/hakase
-$ scons prepare
-$ scons
+$ cd Toshokan
+$ scons -j12
 ```
-
-If self-check tests are passed, The message (`All tests have successfully finished!`) will be shown.
-
