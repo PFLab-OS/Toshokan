@@ -165,7 +165,6 @@ qemu_dir = '/home/hakase/'
 
 depends_for_qemu_container = [
   env.Command(".docker_tmp/friend_loader.ko", "FriendLoader/friend_loader.ko", Copy("$TARGET", "$SOURCE")),
-  env.Command(".docker_tmp/test_library.sh", "tests/test_library.sh", Copy("$TARGET", "$SOURCE")),
 ]
 
 AlwaysBuild(env.Alias('common_test', [build_intermediate_container, 'common/tests/cpputest'], docker_cmd('livadk/toshokan_build_intermediate', './common/tests/cpputest -c -v')))
@@ -189,7 +188,7 @@ for test_bin in test_bins:
     'docker run -d --name toshokan_qemu_{0} --network toshokan_net_{0} --net-alias toshokan_qemu livadk/toshokan_qemu qemu-system-x86_64 -cpu Haswell -s -d cpu_reset -no-reboot -smp 5 -m 4G -D /qemu.log -loadvm snapshot1 -hda /backing.qcow2 -net nic -net user,hostfwd=tcp::2222-:22 -serial telnet::4444,server,nowait -monitor telnet::4445,server,nowait -nographic'.format(random_str)] +
     docker_cmd('--network toshokan_net_{0} livadk/toshokan_ssh'.format(random_str), 'wait-for-rsync toshokan_qemu') +
     docker_cmd('--network toshokan_net_{0} livadk/toshokan_ssh'.format(random_str), 'rsync {0} toshokan_qemu:build/'.format(test_bin_name)) +
-    docker_cmd('--network toshokan_net_{0} livadk/toshokan_ssh'.format(random_str), 'ssh toshokan_qemu sudo ./test_library.sh ' + test_bin_name) +
+    docker_cmd('--network toshokan_net_{0} livadk/toshokan_ssh'.format(random_str), 'ssh toshokan_qemu sudo ' + test_bin_name) +
     ['docker rm -f toshokan_qemu_{0}'.format(random_str)]))
   test_targets.append(test_target)
 
@@ -201,20 +200,20 @@ Default(test)
 
 AlwaysBuild(env.Alias('doc', '', 'find . \( -name \*.cc -or -name \*.c -or -name \*.h -or -name \*.S \) | xargs cat | awk \'/DOC START/,/DOC END/\' | grep -v "DOC START" | grep -v "DOC END" | grep -E --color=always "$|#.*$"'))
 
-AlwaysBuild(env.Alias('push', 'test', [
-  'docker tag livadk/toshokan_qemu livadk/toshokan_qemu:v0.1',
-  'docker tag livadk/toshokan_build_hakase livadk/toshokan_build_hakase:v0.1',
-  'docker tag livadk/toshokan_build_friend livadk/toshokan_build_friend:v0.1',
-  'docker tag livadk/toshokan_ssh livadk/toshokan_ssh:v0.1',
-  'docker push livadk/toshokan_qemu',
-  'docker push livadk/toshokan_build_hakase',
-  'docker push livadk/toshokan_build_friend',
-  'docker push livadk/toshokan_ssh',
-  'docker push livadk/toshokan_qemu:v0.1',
-  'docker push livadk/toshokan_build_hakase:v0.1',
-  'docker push livadk/toshokan_build_friend:v0.1',
-  'docker push livadk/toshokan_ssh:v0.1',
-]))
+def push_container(name):
+  container_name = 'livadk/toshokan_' + name
+  return AlwaysBuild(env.Alias('push_' + name, 'test', [
+    'docker tag {0} {0}:v0.1'.format(container_name),
+    'docker push {0}'.format(container_name),
+    'docker push {0}:v0.1'.format(container_name),
+  ]))
+
+AlwaysBuild(env.Alias('push', [
+    push_container('qemu'),
+    push_container('build_hakase'),
+    push_container('build_friend'),
+    push_container('ssh'),
+  ], []))
 
 # support functions
 AlwaysBuild(env.Alias('monitor', '', 'docker exec -it toshokan_qemu_{0} nc toshokan_qemu 4445'.format(ARGUMENTS.get('SIGNATURE'))))

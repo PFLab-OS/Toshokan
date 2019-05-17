@@ -95,30 +95,30 @@ int friend_region_init() {
   return 0;
 }
 
-int main(int argc, const char **argv) {
+int test_main() {
   Loader16 loader16;
 
   if (check_bootparam() < 0) {
-    return 255;
+    return -1;
   }
 
   assert(friend_mem_start == reinterpret_cast<char *>(DEPLOY_PHYS_ADDR_START));
   assert(friend_mem_end == reinterpret_cast<char *>(DEPLOY_PHYS_ADDR_END));
 
   if (mmap_friend_mem() < 0) {
-    return 255;
+    return -1;
   }
 
   pagetable_init();
 
   if (loader16.Init(DEPLOY_PHYS_ADDR_START) < 0) {
     fprintf(stderr, "error: failed to init friend16 region\n");
-    return 255;
+    return -1;
   }
 
   if (friend_region_init() < 0) {
     fprintf(stderr, "error: failed to init friend region\n");
-    return 255;
+    return -1;
   }
 
   int cpunum = 0;
@@ -134,5 +134,15 @@ int main(int argc, const char **argv) {
 
   sleep(1);
 
-  return (preallocated_mem->sync_flag == cpunum) ? 0 : 255;
+  return (preallocated_mem->sync_flag == cpunum);
+}
+
+int main(int argc, const char **argv) {
+  if (test_main() > 0) {
+    printf("\e[32m%s: PASSED\e[m\n", argv[0]);
+    return 0;
+  } else {
+    printf("\e[31m%s: FAILED\e[m\n", argv[0]);
+    return 255;
+  }
 }

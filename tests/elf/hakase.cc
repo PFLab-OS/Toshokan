@@ -80,7 +80,7 @@ void pagetable_init() {
   }
 }
 
-int main(int argc, const char **argv) {
+int test_main() {
   extern uint8_t _binary_tests_elf_friend_bin_start[];
   extern uint8_t _binary_tests_elf_friend_bin_size[];
   size_t binary_tests_elf_friend_bin_size =
@@ -91,26 +91,26 @@ int main(int argc, const char **argv) {
                       binary_tests_elf_friend_bin_size);
 
   if (check_bootparam() < 0) {
-    return 255;
+    return -1;
   }
 
   assert(friend_mem_start == reinterpret_cast<char *>(DEPLOY_PHYS_ADDR_START));
   assert(friend_mem_end == reinterpret_cast<char *>(DEPLOY_PHYS_ADDR_END));
 
   if (mmap_friend_mem() < 0) {
-    return 255;
+    return -1;
   }
 
   if (elfloader.Deploy().IsError()) {
     std::cerr << "error: failed to deploy elf binary" << std::endl;
-    return 255;
+    return -1;
   }
 
   Elf64_Off entry = elfloader.GetEntry();
   assert(entry < 0xFFFFFFFF);
   if (loader16.Init(entry) < 0) {
     std::cerr << "error: failed to init friend16 region" << std::endl;
-    return 255;
+    return -1;
   }
 
   pagetable_init();
@@ -129,5 +129,15 @@ int main(int argc, const char **argv) {
 
   sleep(1);
 
-  return (preallocated_mem->sync_flag == cpunum) ? 0 : 255;
+  return (preallocated_mem->sync_flag == cpunum);
+}
+
+int main(int argc, const char **argv) {
+  if (test_main() > 0) {
+    printf("\e[32m%s: PASSED\e[m\n", argv[0]);
+    return 0;
+  } else {
+    printf("\e[31m%s: FAILED\e[m\n", argv[0]);
+    return 255;
+  }
 }
