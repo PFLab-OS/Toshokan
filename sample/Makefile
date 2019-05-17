@@ -24,9 +24,9 @@ run: hakase.bin
 	docker rm -f $(TOSHOKAN_CONTAINER) > /dev/null 2>&1 || :
 	docker network rm $(CONTAINER_NETWORK) > /dev/null 2>&1 || :
 	docker network create --driver bridge $(CONTAINER_NETWORK)
-	docker run -d --name $(TOSHOKAN_CONTAINER) --network $(CONTAINER_NETWORK) --net-alias toshokan_qemu livadk/toshokan_qemu qemu-system-x86_64 $(QEMU_OPTION)
-	docker run -it --rm -v $(CURDIR):$(CURDIR) -w $(CURDIR) --network $(CONTAINER_NETWORK) livadk/toshokan_ssh wait-for-rsync toshokan_qemu
-	docker run -it --rm -v $(CURDIR):$(CURDIR) -w $(CURDIR) --network $(CONTAINER_NETWORK) livadk/toshokan_ssh rsync $^ toshokan_qemu:
-	docker run -it --rm -v $(CURDIR):$(CURDIR) -w $(CURDIR) --network $(CONTAINER_NETWORK) livadk/toshokan_ssh ssh toshokan_qemu sudo ./test_library.sh ./$^
+	docker run -d --name $(TOSHOKAN_CONTAINER) --network $(CONTAINER_NETWORK) --net-alias toshokan_qemu livadk/toshokan_qemu:v0.1 qemu-system-x86_64 $(QEMU_OPTION)
+	docker run -it --rm -v $(CURDIR):$(CURDIR) -w $(CURDIR) --network $(CONTAINER_NETWORK) livadk/toshokan_ssh:v0.1 wait-for-rsync toshokan_qemu
+	docker run -it --rm -v $(CURDIR):$(CURDIR) -w $(CURDIR) --network $(CONTAINER_NETWORK) livadk/toshokan_ssh:v0.1 rsync $^ toshokan_qemu:
+	docker run -it --rm -v $(CURDIR):$(CURDIR) -w $(CURDIR) --network $(CONTAINER_NETWORK) livadk/toshokan_ssh:v0.1 ssh toshokan_qemu sudo ./test_library.sh ./$^
 	docker rm -f $(TOSHOKAN_CONTAINER)
 	docker network rm $(CONTAINER_NETWORK)
