@@ -146,6 +146,7 @@ test_bins = []
 test_bins += SConscript(dirs=['tests/boot'])
 test_bins += SConscript(dirs=['tests/elf'])
 test_bins += SConscript(dirs=['tests/symbol'])
+test_bins += SConscript(dirs=['tests/clang'])
 
 AlwaysBuild(env.Command('FriendLoader/friend_loader.ko', [qemu_kernel_container, Glob('FriendLoader/*.h'), Glob('FriendLoader/*.c')], docker_cmd('livadk/toshokan_qemu_kernel', 'sh -c "KERN_VER=4.13.0-45-generic make all"', curdir + '/FriendLoader')))
 

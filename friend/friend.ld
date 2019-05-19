@@ -58,6 +58,7 @@ SECTIONS{
     *(.eh_frame .eh_frame_hdr)
     *(.comment*)
   }
+  friend_binary_end = .;
 
   .debug_info    0 : { *(.debug_info) }
   .debug_abbrev  0 : { *(.debug_abbrev) }
