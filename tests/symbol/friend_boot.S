@@ -38,11 +38,6 @@ entry32:
 	// jump to start
 	ljmpl $0x10, $start
 
-
-stop:	
-	hlt
-	jmp stop
-
 .text
 .code64
 .extern sync_flag
@@ -55,6 +50,9 @@ start:
 	movw %ax, %ds
 	movw %ax, %ss
 	lock addq $1, sync_flag
+
+stop:	
+	hlt
 	jmp stop
 
 	.balign 8
