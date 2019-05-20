@@ -148,7 +148,19 @@ test_bins += SConscript(dirs=['tests/elf'])
 test_bins += SConscript(dirs=['tests/symbol'])
 test_bins += SConscript(dirs=['tests/clang'])
 
+###############################################################################
+# build FriendLoader & qemu container
+###############################################################################
 AlwaysBuild(env.Command('FriendLoader/friend_loader.ko', [qemu_kernel_container, Glob('FriendLoader/*.h'), Glob('FriendLoader/*.c')], docker_cmd('livadk/toshokan_qemu_kernel', 'sh -c "KERN_VER=4.13.0-45-generic make all"', curdir + '/FriendLoader')))
+
+qemu_intermediate_container = env.BuildContainer('qemu_intermediate', 'livadk/toshokan_ssh', [
+  ssh_container,
+  qemu_kernel_image_container,
+  rootfs_container,
+  env.Command(".docker_tmp/friend_loader.ko", "FriendLoader/friend_loader.ko", Copy("$TARGET", "$SOURCE"))
+  ])
+Clean(qemu_intermediate_container, 'build')
+qemu_container = env.BuildContainer('qemu', 'alpine:3.8', [qemu_intermediate_container])
 
 # local circleci
 AlwaysBuild(env.Alias('circleci', [], 
@@ -162,25 +174,17 @@ AlwaysBuild(env.Alias('format', [],
     docker_format_cmd('sh -c "git ls-files . | grep -E \'.*\\.cc$$|.*\\.h$$\' | xargs -n 1 clang-format -i -style=\'{{BasedOnStyle: Google}}\' {0}"'.format('&& git diff && git diff | wc -l | xargs test 0 -eq' if ci else '')) +
     ['echo "Done."']))
 
-qemu_dir = '/home/hakase/'
-
+# common tests
 AlwaysBuild(env.Alias('common_test', [build_intermediate_container, 'common/tests/cpputest'], docker_cmd('livadk/toshokan_build_intermediate', './common/tests/cpputest -c -v')))
-
-qemu_intermediate_container = env.BuildContainer('qemu_intermediate', 'livadk/toshokan_ssh', [
-  ssh_container,
-  qemu_kernel_image_container,
-  rootfs_container,
-  env.Command(".docker_tmp/friend_loader.ko", "FriendLoader/friend_loader.ko", Copy("$TARGET", "$SOURCE"))
-  ])
-Clean(qemu_intermediate_container, 'build')
-qemu_container = env.BuildContainer('qemu', 'alpine:3.8', [qemu_intermediate_container])
 
 cleanup_containers = AlwaysBuild(env.Alias('cleanup_containers', [], [
   'docker ps -a -f name=toshokan_qemu_ -q | xargs -L 1 docker rm -f || :',
   'docker network ls -f name=toshokan_net_ -q | xargs -L 1 docker network rm || :',
 ]))
 
+###############################################################################
 # test pattern
+###############################################################################
 test_targets = []
 for test_bin in test_bins:
   test_bin_name = str(test_bin)
@@ -200,8 +204,10 @@ test = AlwaysBuild(env.Alias('test', [hakase_build_container, friend_build_conta
 Clean(test, '.docker_tmp')
 Default(test)
 
+# generate documents
 AlwaysBuild(env.Alias('doc', '', 'find . \( -name \*.cc -or -name \*.c -or -name \*.h -or -name \*.S \) | xargs cat | awk \'/DOC START/,/DOC END/\' | grep -v "DOC START" | grep -v "DOC END" | grep -E --color=always "$|#.*$"'))
 
+# push containers
 def push_container(name):
   container_name = 'livadk/toshokan_' + name
   return AlwaysBuild(env.Alias('push_' + name, 'test', [
@@ -217,6 +223,8 @@ AlwaysBuild(env.Alias('push', [
     push_container('ssh'),
   ], []))
 
+###############################################################################
 # support functions
+###############################################################################
 AlwaysBuild(env.Alias('monitor', '', 'docker exec -it toshokan_qemu_{0} nc toshokan_qemu 4445'.format(ARGUMENTS.get('SIGNATURE'))))
 AlwaysBuild(env.Alias('ssh', ssh_container, docker_cmd('-t --network toshokan_net_{0} livadk/toshokan_ssh'.format(ARGUMENTS.get('SIGNATURE')), 'ssh toshokan_qemu')))
