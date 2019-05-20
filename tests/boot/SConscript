@@ -13,4 +13,5 @@ friend_obj = friend_env.Command('friend_bin.o', [friend],
 target = hakase_env.Program(target='#build/boot', source=[friend_obj, "hakase.cc", "hakase.ld"], LIBS=['hakase'])
 hakase_env.Depends(target, libs)
 
-Return('target')
+test_binary = hakase_env.GenerateTestAlias('boot', target)
+Return('test_binary')

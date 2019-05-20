@@ -14,4 +14,5 @@ friend_shared_symbols = friend_elf_env.Command('friend.shsym', [friend],
 target = hakase_env.Program(target='#build/symbol', source=[friend_obj, "hakase.cc", "hakase.ld"], LIBS=['hakase'], LINKFLAGS=hakase_env['LINKFLAGS'] + ' -Wl,-R,' + friend_shared_symbols[0].path)
 hakase_env.Depends(target, libs + friend_shared_symbols)
 
-Return('target')
+test_binary = hakase_env.GenerateTestAlias('symbol', target)
+Return('test_binary')

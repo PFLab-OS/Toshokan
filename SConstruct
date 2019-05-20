@@ -126,11 +126,6 @@ libs = hakase_lib
 Export('libs')
 
 SConscript(dirs=['common/tests'])
-test_bins = []
-test_bins += SConscript(dirs=['tests/boot'])
-test_bins += SConscript(dirs=['tests/elf'])
-test_bins += SConscript(dirs=['tests/symbol'])
-test_bins += SConscript(dirs=['tests/clang'])
 
 ###############################################################################
 # build FriendLoader & qemu container
@@ -169,21 +164,42 @@ cleanup_containers = AlwaysBuild(env.Alias('cleanup_containers', [], [
 ###############################################################################
 # test pattern
 ###############################################################################
-test_targets = []
-for test_bin in test_bins:
-  test_bin_name = str(test_bin)
+def generate_test_alias(env, name, depends):
   random_str = ''.join(random.choice(string.ascii_letters) for i in range(10))
-  test_target = AlwaysBuild(env.Alias('test_' + test_bin_name, [cleanup_containers, qemu_container, ssh_container, test_bin], [
+  qemu_option = ' '.join([
+    '-cpu Haswell',
+    '-s',
+    '-d cpu_reset',
+    '-no-reboot',
+    '-smp 5',
+    '-m 4G',
+    '-D /qemu.log',
+    '-loadvm snapshot1',
+    '-hda /backing.qcow2',
+    '-net nic',
+    '-net user,hostfwd=tcp::2222-:22',
+    '-serial telnet::4444,server,nowait',
+    '-monitor telnet::4445,server,nowait',
+    '-nographic',
+  ])
+  return hakase_env.AlwaysBuild(hakase_env.Alias('test_' + name, [cleanup_containers, qemu_container, ssh_container] + depends, [
     'docker network create --driver bridge toshokan_net_{0}'.format(random_str),
-    'docker run -d --name toshokan_qemu_{0} --network toshokan_net_{0} --net-alias toshokan_qemu livadk/toshokan_qemu qemu-system-x86_64 -cpu Haswell -s -d cpu_reset -no-reboot -smp 5 -m 4G -D /qemu.log -loadvm snapshot1 -hda /backing.qcow2 -net nic -net user,hostfwd=tcp::2222-:22 -serial telnet::4444,server,nowait -monitor telnet::4445,server,nowait -nographic'.format(random_str)] +
+    'docker run -d --name toshokan_qemu_{0} --network toshokan_net_{0} --net-alias toshokan_qemu livadk/toshokan_qemu qemu-system-x86_64 {1}'.format(random_str, qemu_option)] +
     docker_cmd('--network toshokan_net_{0} livadk/toshokan_ssh'.format(random_str), 'wait-for-rsync toshokan_qemu') +
-    docker_cmd('--network toshokan_net_{0} livadk/toshokan_ssh'.format(random_str), 'rsync {0} toshokan_qemu:build/'.format(test_bin_name)) +
-    docker_cmd('--network toshokan_net_{0} livadk/toshokan_ssh'.format(random_str), 'ssh toshokan_qemu sudo ' + test_bin_name) +
+    docker_cmd('--network toshokan_net_{0} livadk/toshokan_ssh'.format(random_str), 'rsync build/{0} toshokan_qemu:build/'.format(name)) +
+    docker_cmd('--network toshokan_net_{0} livadk/toshokan_ssh'.format(random_str), 'ssh toshokan_qemu sudo build/' + name) +
     ['docker rm -f toshokan_qemu_{0}'.format(random_str)]))
-  test_targets.append(test_target)
+hakase_env.AddMethod(generate_test_alias, "GenerateTestAlias")
+
+test_targets = list(SConscript(dirs=[
+  'tests/boot',
+  'tests/elf',
+  'tests/symbol',
+  'tests/clang',
+  ]))
 
 # TODO remove build_container
-test = AlwaysBuild(env.Alias('test', [hakase_build_container, friend_build_container, 'bin/objdump', 'common_test'] + test_targets))
+test = AlwaysBuild(env.Alias('test', [hakase_build_container, friend_build_container, 'common_test'] + test_targets))
 
 Clean(test, '.docker_tmp')
 Default(test)
