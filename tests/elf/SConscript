@@ -7,7 +7,6 @@ friend_elf_env.Depends(friend, '#friend/friend.ld')
 
 friend_obj = friend_elf_env.Command('friend_bin.o', [friend],
     'bin/objcopy -I binary -O elf64-x86-64 -B i386:x86-64 $SOURCES $TARGET')
-friend_elf_env.Depends(friend_obj, '#bin/objcopy')
 
 target = hakase_env.Program(target='#build/elf', source=[friend_obj, "hakase.cc", "hakase.ld"], LIBS=['hakase'])
 hakase_env.Depends(target, libs)

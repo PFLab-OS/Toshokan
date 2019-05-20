@@ -73,17 +73,10 @@ FriendLoader_headers = env.Alias('FriendLoader_headers', [
 headers=[hakase_headers, friend_headers, cpputest_headers, FriendLoader_headers]
 
 wrappers = []
-wrappers.append(Command('bin/g++', build_intermediate_container,[
-        create_wrapper,
-        Chmod("$TARGET", '775')]))
-
-wrappers.append(Command('bin/ar', build_intermediate_container,[
-        create_wrapper,
-        Chmod("$TARGET", '775')]))
-
-wrappers.append(Command('bin/ranlib', build_intermediate_container,[
-        create_wrapper,
-        Chmod("$TARGET", '775')]))
+for binary in ['g++', 'ar', 'ranlib', 'objdump', 'objcopy']:
+  wrappers.append(Command('bin/' + binary, build_intermediate_container,[
+    create_wrapper,
+    Chmod("$TARGET", '775')]))
 
 def container_emitter(target, source, env):
   env.Depends(target, [wrappers, headers])
@@ -96,15 +89,6 @@ static_obj.add_emitter('.c', container_emitter)
 static_obj.add_emitter('.S', container_emitter)
 static_obj.add_emitter('.o', container_emitter)
 static_obj.add_emitter('.a', container_emitter)
-
-# add dependency explicitly
-Command('bin/objcopy', build_intermediate_container,[
-        create_wrapper,
-        Chmod("$TARGET", '775')])
-
-Command('bin/objdump', build_intermediate_container,[
-        create_wrapper,
-        Chmod("$TARGET", '775')])
 
 hakase_flag = '-g -O0 -Wall --std=c++14 -static -fno-pie -no-pie'
 friend_flag = '-g -O0 -Wall --std=c++14 -nostdinc -nostdlib -fno-pie -no-pie'
