@@ -164,13 +164,14 @@ AlwaysBuild(env.Alias('format', [],
 
 qemu_dir = '/home/hakase/'
 
-depends_for_qemu_container = [
-  env.Command(".docker_tmp/friend_loader.ko", "FriendLoader/friend_loader.ko", Copy("$TARGET", "$SOURCE")),
-]
-
 AlwaysBuild(env.Alias('common_test', [build_intermediate_container, 'common/tests/cpputest'], docker_cmd('livadk/toshokan_build_intermediate', './common/tests/cpputest -c -v')))
 
-qemu_intermediate_container = env.BuildContainer('qemu_intermediate', 'livadk/toshokan_ssh', [ssh_container, qemu_kernel_image_container, rootfs_container] + depends_for_qemu_container)
+qemu_intermediate_container = env.BuildContainer('qemu_intermediate', 'livadk/toshokan_ssh', [
+  ssh_container,
+  qemu_kernel_image_container,
+  rootfs_container,
+  env.Command(".docker_tmp/friend_loader.ko", "FriendLoader/friend_loader.ko", Copy("$TARGET", "$SOURCE"))
+  ])
 Clean(qemu_intermediate_container, 'build')
 qemu_container = env.BuildContainer('qemu', 'alpine:3.8', [qemu_intermediate_container])
 
