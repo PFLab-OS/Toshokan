@@ -19,8 +19,9 @@ env = DefaultEnvironment().Clone(ENV=os.environ,
                                  CXX='bin/g++',
                                  RANLIB='bin/ranlib')
 
-def docker_cmd(container, arg, workdir=curdir):
-  return ['docker run -i --rm -v {0}:{0} -w {1} {2} {3}'.format(curdir, workdir, container, arg)]
+def gen_docker_cmd(env, container, arg, dir=curdir):
+  return 'docker run -i --rm -v {0}:{0} -w {0} {1} {2}'.format(dir, container, arg)
+env.AddMethod(gen_docker_cmd, "GenerateDockerCommand")
 
 containers = {}
 
@@ -51,7 +52,7 @@ def create_wrapper(target, source, env):
   with open(target, mode='w') as f:
     f.write('#!/bin/sh\n'\
             'args="$@"\n' + 
-            '\n'.join(docker_cmd('livadk/toshokan_build_intermediate', os.path.basename(target) + ' $args')))
+            env.GenerateDockerCommand('livadk/toshokan_build_intermediate', os.path.basename(target) + ' $args', '${PWD}'))
 
 hakase_headers = env.Alias('hakase_headers', [
   Install('.docker_tmp/hakase_include/toshokan/', Glob('common/*.h')),
@@ -72,7 +73,7 @@ headers=[hakase_headers, friend_headers, cpputest_headers, FriendLoader_headers]
 
 wrappers = []
 for binary in ['g++', 'ar', 'ranlib', 'objdump', 'objcopy']:
-  wrappers.append(Command('bin/' + binary, containers["build_intermediate"],[
+  wrappers.append(env.Command('bin/' + binary, containers["build_intermediate"],[
     create_wrapper,
     Chmod("$TARGET", '775')]))
 
@@ -128,7 +129,7 @@ SConscript(dirs=['common/tests'])
 ###############################################################################
 # build FriendLoader & qemu container
 ###############################################################################
-AlwaysBuild(env.Command('FriendLoader/friend_loader.ko', [containers["qemu_kernel"], Glob('FriendLoader/*.h'), Glob('FriendLoader/*.c')], docker_cmd('livadk/toshokan_qemu_kernel', 'sh -c "KERN_VER=4.13.0-45-generic make all"', curdir + '/FriendLoader')))
+AlwaysBuild(env.Command('FriendLoader/friend_loader.ko', [containers["qemu_kernel"], Glob('FriendLoader/*.h'), Glob('FriendLoader/*.c')], env.GenerateDockerCommand('livadk/toshokan_qemu_kernel', 'sh -c "cd FriendLoader; KERN_VER=4.13.0-45-generic make all"')))
 
 env.BuildContainer('qemu_intermediate', 'livadk/toshokan_ssh', [
   containers["ssh"],
@@ -147,16 +148,16 @@ AlwaysBuild(env.Alias('circleci', [],
 
 # format
 def docker_format_cmd(arg, workdir=curdir):
-  return docker_cmd('-v /etc/group:/etc/group:ro -v /etc/passwd:/etc/passwd:ro -u `id -u $USER`:`id -g $USER` livadk/clang-format:9f1d281b0a30b98fbb106840d9504e2307d3ad8f', arg, workdir)
+  return env.GenerateDockerCommand('-v /etc/group:/etc/group:ro -v /etc/passwd:/etc/passwd:ro -u `id -u $USER`:`id -g $USER` livadk/clang-format:9f1d281b0a30b98fbb106840d9504e2307d3ad8f', arg, workdir)
 AlwaysBuild(env.Alias('format', [], 
-    ['echo "Formatting with clang-format. Please wait..."'] +
-    docker_format_cmd('sh -c "git ls-files . | grep -E \'.*\\.cc$$|.*\\.h$$\' | xargs -n 1 clang-format -i -style=\'{{BasedOnStyle: Google}}\' {0}"'.format('&& git diff && git diff | wc -l | xargs test 0 -eq' if ci else '')) +
-    ['echo "Done."']))
+    ['echo "Formatting with clang-format. Please wait..."',
+    docker_format_cmd('sh -c "git ls-files . | grep -E \'.*\\.cc$$|.*\\.h$$\' | xargs -n 1 clang-format -i -style=\'{{BasedOnStyle: Google}}\' {0}"'.format('&& git diff && git diff | wc -l | xargs test 0 -eq' if ci else '')),
+    'echo "Done."']))
 
 # common tests
-AlwaysBuild(env.Alias('common_test', [containers["build_intermediate"], 'common/tests/cpputest'], docker_cmd('livadk/toshokan_build_intermediate', './common/tests/cpputest -c -v')))
+AlwaysBuild(env.Alias('common_test', [containers["build_intermediate"], 'common/tests/cpputest'], env.GenerateDockerCommand('livadk/toshokan_build_intermediate', './common/tests/cpputest -c -v')))
 
-Export('containers docker_cmd')
+Export('containers')
 test = SConscript(dirs=['tests'])
 
 Clean(test, '.docker_tmp')
@@ -185,4 +186,4 @@ AlwaysBuild(env.Alias('push', [
 # support functions
 ###############################################################################
 AlwaysBuild(env.Alias('monitor', '', 'docker exec -it toshokan_qemu_{0} nc toshokan_qemu 4445'.format(ARGUMENTS.get('SIGNATURE'))))
-AlwaysBuild(env.Alias('ssh', containers["ssh"], docker_cmd('-t --network toshokan_net_{0} livadk/toshokan_ssh'.format(ARGUMENTS.get('SIGNATURE')), 'ssh toshokan_qemu')))
+AlwaysBuild(env.Alias('ssh', containers["ssh"], env.GenerateDockerCommand('-t --network toshokan_net_{0} livadk/toshokan_ssh'.format(ARGUMENTS.get('SIGNATURE')), 'ssh toshokan_qemu')))
