@@ -6,8 +6,6 @@ Decider('MD5-timestamp')
 import os
 import errno
 import stat
-import random
-import string
 from functools import reduce
 
 curdir = Dir('.').abspath
@@ -26,9 +24,11 @@ def docker_cmd(container, arg, workdir=curdir):
 def docker_format_cmd(arg, workdir=curdir):
   return docker_cmd('-v /etc/group:/etc/group:ro -v /etc/passwd:/etc/passwd:ro -u `id -u $USER`:`id -g $USER` livadk/clang-format:9f1d281b0a30b98fbb106840d9504e2307d3ad8f', arg, workdir)
 
+containers = {}
+
 def build_container(env, name, base, source):
   script = name + '.sh'
-  return env.Command('.docker_tmp/sha1_' + name, ['docker/' + script] + source, [
+  containers[name] = env.Command('.docker_tmp/sha1_' + name, ['docker/' + script] + source, [
     'docker rm -f $CONTAINER_NAME > /dev/null 2>&1 || :',
     Chmod('docker/' + script, '755'),
     'docker run --name=$CONTAINER_NAME -v {0}/docker:/mnt -v {0}/.docker_tmp:/share -w / {1} mnt/{2}'.format(curdir, base, script),
@@ -38,13 +38,13 @@ def build_container(env, name, base, source):
   ], CONTAINER_NAME='toshokan_containerbuild_' + name, IMG_NAME='livadk/toshokan_' + name)
 env.AddMethod(build_container, "BuildContainer")
 
-build_intermediate_container = env.BuildContainer('build_intermediate', 'alpine:3.8', [])
+env.BuildContainer('build_intermediate', 'alpine:3.8', [])
 
-qemu_kernel_container = env.BuildContainer('qemu_kernel', 'ubuntu:16.04', [])
-gdb_container = env.BuildContainer('gdb', 'alpine:3.8', [])
-ssh_container = env.BuildContainer('ssh', 'alpine:3.8', ['docker/config', 'docker/id_rsa', 'docker/wait-for'])
-qemu_kernel_image_container = env.BuildContainer('qemu_kernel_image', 'ubuntu:16.04', [])
-rootfs_container = env.BuildContainer('rootfs', 'alpine:3.8', [qemu_kernel_image_container])
+env.BuildContainer('qemu_kernel', 'ubuntu:16.04', [])
+env.BuildContainer('gdb', 'alpine:3.8', [])
+env.BuildContainer('ssh', 'alpine:3.8', ['docker/config', 'docker/id_rsa', 'docker/wait-for'])
+env.BuildContainer('qemu_kernel_image', 'ubuntu:16.04', [])
+env.BuildContainer('rootfs', 'alpine:3.8', [containers["qemu_kernel_image"]])
 
 def create_wrapper(target, source, env):
   if type(target) == list:
@@ -74,7 +74,7 @@ headers=[hakase_headers, friend_headers, cpputest_headers, FriendLoader_headers]
 
 wrappers = []
 for binary in ['g++', 'ar', 'ranlib', 'objdump', 'objcopy']:
-  wrappers.append(Command('bin/' + binary, build_intermediate_container,[
+  wrappers.append(Command('bin/' + binary, containers["build_intermediate"],[
     create_wrapper,
     Chmod("$TARGET", '775')]))
 
@@ -114,11 +114,11 @@ Export('common_lib')
 
 hakase_lib = SConscript(dirs=['hakase'])
 hakase_ldscript = Command('.docker_tmp/$SOURCE', 'hakase/hakase.ld', Copy("$TARGET", "$SOURCE"))
-hakase_build_container = env.BuildContainer('build_hakase', 'livadk/toshokan_build_intermediate', [build_intermediate_container, hakase_headers, hakase_lib, hakase_ldscript])
+env.BuildContainer('build_hakase', 'livadk/toshokan_build_intermediate', [containers["build_intermediate"], hakase_headers, hakase_lib, hakase_ldscript])
 
 friend_lib = SConscript(dirs=['friend'])
 friend_ldscript = Command('.docker_tmp/$SOURCE', 'friend/friend.ld', Copy("$TARGET", "$SOURCE"))
-friend_build_container = env.BuildContainer('build_friend', 'livadk/toshokan_build_intermediate', [build_intermediate_container, friend_headers, friend_lib, friend_ldscript])
+env.BuildContainer('build_friend', 'livadk/toshokan_build_intermediate', [containers["build_intermediate"], friend_headers, friend_lib, friend_ldscript])
 
 #TODO: refactoring
 # if we prepare build container, we won't need this.
@@ -130,16 +130,16 @@ SConscript(dirs=['common/tests'])
 ###############################################################################
 # build FriendLoader & qemu container
 ###############################################################################
-AlwaysBuild(env.Command('FriendLoader/friend_loader.ko', [qemu_kernel_container, Glob('FriendLoader/*.h'), Glob('FriendLoader/*.c')], docker_cmd('livadk/toshokan_qemu_kernel', 'sh -c "KERN_VER=4.13.0-45-generic make all"', curdir + '/FriendLoader')))
+AlwaysBuild(env.Command('FriendLoader/friend_loader.ko', [containers["qemu_kernel"], Glob('FriendLoader/*.h'), Glob('FriendLoader/*.c')], docker_cmd('livadk/toshokan_qemu_kernel', 'sh -c "KERN_VER=4.13.0-45-generic make all"', curdir + '/FriendLoader')))
 
-qemu_intermediate_container = env.BuildContainer('qemu_intermediate', 'livadk/toshokan_ssh', [
-  ssh_container,
-  qemu_kernel_image_container,
-  rootfs_container,
+env.BuildContainer('qemu_intermediate', 'livadk/toshokan_ssh', [
+  containers["ssh"],
+  containers["qemu_kernel_image"],
+  containers["rootfs"],
   env.Command(".docker_tmp/friend_loader.ko", "FriendLoader/friend_loader.ko", Copy("$TARGET", "$SOURCE"))
   ])
-Clean(qemu_intermediate_container, 'build')
-qemu_container = env.BuildContainer('qemu', 'alpine:3.8', [qemu_intermediate_container])
+Clean(containers["qemu_intermediate"], 'build')
+env.BuildContainer('qemu', 'alpine:3.8', [containers["qemu_intermediate"]])
 
 # local circleci
 AlwaysBuild(env.Alias('circleci', [], 
@@ -154,52 +154,10 @@ AlwaysBuild(env.Alias('format', [],
     ['echo "Done."']))
 
 # common tests
-AlwaysBuild(env.Alias('common_test', [build_intermediate_container, 'common/tests/cpputest'], docker_cmd('livadk/toshokan_build_intermediate', './common/tests/cpputest -c -v')))
+AlwaysBuild(env.Alias('common_test', [containers["build_intermediate"], 'common/tests/cpputest'], docker_cmd('livadk/toshokan_build_intermediate', './common/tests/cpputest -c -v')))
 
-cleanup_containers = AlwaysBuild(env.Alias('cleanup_containers', [], [
-  'docker ps -a -f name=toshokan_qemu_ -q | xargs -L 1 docker rm -f || :',
-  'docker network ls -f name=toshokan_net_ -q | xargs -L 1 docker network rm || :',
-]))
-
-###############################################################################
-# test pattern
-###############################################################################
-def generate_test_alias(env, name, depends):
-  random_str = ''.join(random.choice(string.ascii_letters) for i in range(10))
-  qemu_option = ' '.join([
-    '-cpu Haswell',
-    '-s',
-    '-d cpu_reset',
-    '-no-reboot',
-    '-smp 5',
-    '-m 4G',
-    '-D /qemu.log',
-    '-loadvm snapshot1',
-    '-hda /backing.qcow2',
-    '-net nic',
-    '-net user,hostfwd=tcp::2222-:22',
-    '-serial telnet::4444,server,nowait',
-    '-monitor telnet::4445,server,nowait',
-    '-nographic',
-  ])
-  return hakase_env.AlwaysBuild(hakase_env.Alias('test_' + name, [cleanup_containers, qemu_container, ssh_container] + depends, [
-    'docker network create --driver bridge toshokan_net_{0}'.format(random_str),
-    'docker run -d --name toshokan_qemu_{0} --network toshokan_net_{0} --net-alias toshokan_qemu livadk/toshokan_qemu qemu-system-x86_64 {1}'.format(random_str, qemu_option)] +
-    docker_cmd('--network toshokan_net_{0} livadk/toshokan_ssh'.format(random_str), 'wait-for-rsync toshokan_qemu') +
-    docker_cmd('--network toshokan_net_{0} livadk/toshokan_ssh'.format(random_str), 'rsync build/{0} toshokan_qemu:build/'.format(name)) +
-    docker_cmd('--network toshokan_net_{0} livadk/toshokan_ssh'.format(random_str), 'ssh toshokan_qemu sudo build/' + name) +
-    ['docker rm -f toshokan_qemu_{0}'.format(random_str)]))
-hakase_env.AddMethod(generate_test_alias, "GenerateTestAlias")
-
-test_targets = list(SConscript(dirs=[
-  'tests/boot',
-  'tests/elf',
-  'tests/symbol',
-  'tests/clang',
-  ]))
-
-# TODO remove build_container
-test = AlwaysBuild(env.Alias('test', [hakase_build_container, friend_build_container, 'common_test'] + test_targets))
+Export('containers docker_cmd')
+test = SConscript(dirs=['tests'])
 
 Clean(test, '.docker_tmp')
 Default(test)
@@ -227,4 +185,4 @@ AlwaysBuild(env.Alias('push', [
 # support functions
 ###############################################################################
 AlwaysBuild(env.Alias('monitor', '', 'docker exec -it toshokan_qemu_{0} nc toshokan_qemu 4445'.format(ARGUMENTS.get('SIGNATURE'))))
-AlwaysBuild(env.Alias('ssh', ssh_container, docker_cmd('-t --network toshokan_net_{0} livadk/toshokan_ssh'.format(ARGUMENTS.get('SIGNATURE')), 'ssh toshokan_qemu')))
+AlwaysBuild(env.Alias('ssh', containers["ssh"], docker_cmd('-t --network toshokan_net_{0} livadk/toshokan_ssh'.format(ARGUMENTS.get('SIGNATURE')), 'ssh toshokan_qemu')))
