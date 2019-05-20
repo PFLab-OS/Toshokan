@@ -1,5 +1,3 @@
 #!/bin/sh
-ARGS="$*"
-PROJECT_ROOT=$(cd "${PROJECT_ROOT:=${PWD}}" && pwd)
-CMD="docker run -it --rm -v ${PROJECT_ROOT}:${PROJECT_ROOT} -w ${PROJECT_ROOT} livadk/toshokan_build_hakase:v0.1 objcopy ${ARGS}"
+CMD="$(dirname "$0")/base hakase $(basename "$0") $*"
 ${CMD}

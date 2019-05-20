@@ -1,5 +1,3 @@
 #!/bin/sh
-ARGS="$*"
-PROJECT_ROOT=$(cd "${PROJECT_ROOT:=${PWD}}" && pwd)
-CMD="docker run -it --rm -v ${PROJECT_ROOT}:${PROJECT_ROOT} -w ${PROJECT_ROOT} livadk/toshokan_build_friend:v0.1 g++ ${ARGS}"
+CMD="$(dirname "$0")/base friend g++ $*"
 ${CMD}

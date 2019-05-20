@@ -68,7 +68,6 @@ Thumbs.db
 *.bin
 *.elf
 *.shsym
-bin/
 build/
 .docker/
 .circleci/

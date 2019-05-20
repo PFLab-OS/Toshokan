@@ -19,8 +19,8 @@ env = DefaultEnvironment().Clone(ENV=os.environ,
                                  CXX='bin/g++',
                                  RANLIB='bin/ranlib')
 
-def gen_docker_cmd(env, container, arg, dir=curdir):
-  return 'docker run -i --rm -v {0}:{0} -w {0} {1} {2}'.format(dir, container, arg)
+def gen_docker_cmd(env, container, arg):
+  return 'docker run -i --rm -v {0}:{0} -w {0} {1} {2}'.format(curdir, container, arg)
 env.AddMethod(gen_docker_cmd, "GenerateDockerCommand")
 
 containers = {}
@@ -45,15 +45,6 @@ env.BuildContainer('ssh', 'alpine:3.8', ['docker/config', 'docker/id_rsa', 'dock
 env.BuildContainer('qemu_kernel_image', 'ubuntu:16.04', [])
 env.BuildContainer('rootfs', 'alpine:3.8', [containers["qemu_kernel_image"]])
 
-def create_wrapper(target, source, env):
-  if type(target) == list:
-    target = target[0]
-  target = str(target)
-  with open(target, mode='w') as f:
-    f.write('#!/bin/sh\n'\
-            'args="$@"\n' + 
-            env.GenerateDockerCommand('livadk/toshokan_build_intermediate', os.path.basename(target) + ' $args', '${PWD}'))
-
 hakase_headers = env.Alias('hakase_headers', [
   Install('.docker_tmp/hakase_include/toshokan/', Glob('common/*.h')),
   Install('.docker_tmp/hakase_include/toshokan/', Glob('common/arch/hakase/*.h')),
@@ -71,14 +62,8 @@ FriendLoader_headers = env.Alias('FriendLoader_headers', [
   Install('.docker_tmp/FriendLoader_include/toshokan/', Glob('common/*.h'))])
 headers=[hakase_headers, friend_headers, cpputest_headers, FriendLoader_headers]
 
-wrappers = []
-for binary in ['g++', 'ar', 'ranlib', 'objdump', 'objcopy']:
-  wrappers.append(env.Command('bin/' + binary, containers["build_intermediate"],[
-    create_wrapper,
-    Chmod("$TARGET", '775')]))
-
 def container_emitter(target, source, env):
-  env.Depends(target, [wrappers, headers])
+  env.Depends(target, [containers["build_intermediate"], headers])
   return (target, source)
 
 from SCons.Tool import createObjBuilders
@@ -147,8 +132,8 @@ AlwaysBuild(env.Alias('circleci', [],
     'circleci build --job build_python3']))
 
 # format
-def docker_format_cmd(arg, workdir=curdir):
-  return env.GenerateDockerCommand('-v /etc/group:/etc/group:ro -v /etc/passwd:/etc/passwd:ro -u `id -u $USER`:`id -g $USER` livadk/clang-format:9f1d281b0a30b98fbb106840d9504e2307d3ad8f', arg, workdir)
+def docker_format_cmd(arg):
+  return env.GenerateDockerCommand('-v /etc/group:/etc/group:ro -v /etc/passwd:/etc/passwd:ro -u `id -u $USER`:`id -g $USER` livadk/clang-format:9f1d281b0a30b98fbb106840d9504e2307d3ad8f', arg)
 AlwaysBuild(env.Alias('format', [], 
     ['echo "Formatting with clang-format. Please wait..."',
     docker_format_cmd('sh -c "git ls-files . | grep -E \'.*\\.cc$$|.*\\.h$$\' | xargs -n 1 clang-format -i -style=\'{{BasedOnStyle: Google}}\' {0}"'.format('&& git diff && git diff | wc -l | xargs test 0 -eq' if ci else '')),
