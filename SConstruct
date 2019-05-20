@@ -21,8 +21,6 @@ env = DefaultEnvironment().Clone(ENV=os.environ,
 
 def docker_cmd(container, arg, workdir=curdir):
   return ['docker run -i --rm -v {0}:{0} -w {1} {2} {3}'.format(curdir, workdir, container, arg)]
-def docker_format_cmd(arg, workdir=curdir):
-  return docker_cmd('-v /etc/group:/etc/group:ro -v /etc/passwd:/etc/passwd:ro -u `id -u $USER`:`id -g $USER` livadk/clang-format:9f1d281b0a30b98fbb106840d9504e2307d3ad8f', arg, workdir)
 
 containers = {}
 
@@ -148,6 +146,8 @@ AlwaysBuild(env.Alias('circleci', [],
     'circleci build --job build_python3']))
 
 # format
+def docker_format_cmd(arg, workdir=curdir):
+  return docker_cmd('-v /etc/group:/etc/group:ro -v /etc/passwd:/etc/passwd:ro -u `id -u $USER`:`id -g $USER` livadk/clang-format:9f1d281b0a30b98fbb106840d9504e2307d3ad8f', arg, workdir)
 AlwaysBuild(env.Alias('format', [], 
     ['echo "Formatting with clang-format. Please wait..."'] +
     docker_format_cmd('sh -c "git ls-files . | grep -E \'.*\\.cc$$|.*\\.h$$\' | xargs -n 1 clang-format -i -style=\'{{BasedOnStyle: Google}}\' {0}"'.format('&& git diff && git diff | wc -l | xargs test 0 -eq' if ci else '')) +
