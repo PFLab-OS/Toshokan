@@ -1,9 +1,42 @@
 #!python
 import random
 import string
-Import('hakase_env friend_elf_env libs containers')
+Import('base_env containers')
 
-cleanup_containers = AlwaysBuild(hakase_env.Alias('cleanup_containers', [], [
+hakase_flag = '-g -O0 -Wall --std=c++14 -static -fno-pie -no-pie'
+friend_flag = '-g -O0 -Wall --std=c++14 -nostdinc -nostdlib -fno-pie -no-pie'
+friend_elf_flag = friend_flag + ' -T /usr/local/etc/friend.ld'
+
+hakase_include_path = []
+friend_include_path = ['/usr/local/include']
+
+def container_emitter(target, source, env):
+  env.Depends(target, [containers["build_hakase"], containers["build_friend"]])
+  return (target, source)
+
+from SCons.Tool import createObjBuilders
+static_obj, shared_obj = createObjBuilders(base_env)
+static_obj.add_emitter('.cc', container_emitter)
+static_obj.add_emitter('.c', container_emitter)
+static_obj.add_emitter('.S', container_emitter)
+static_obj.add_emitter('.o', container_emitter)
+static_obj.add_emitter('.a', container_emitter)
+
+hakase_test_env = base_env.Clone(AR='tests/bin/ar',
+                            AS='tests/bin/hakase-g++',
+                            CC='tests/bin/hakase-g++',
+                            CXX='tests/bin/hakase-g++',
+                            RANLIB='tests/bin/ranlib',
+                            ASFLAGS=hakase_flag, CXXFLAGS=hakase_flag, LINKFLAGS=hakase_flag + ' /usr/local/etc/hakase.ld', CPPPATH=hakase_include_path)
+friend_test_env = base_env.Clone(AR='tests/bin/ar',
+                            AS='tests/bin/friend-g++',
+                            CC='tests/bin/friend-g++',
+                            CXX='tests/bin/friend-g++',
+                            RANLIB='tests/bin/ranlib',
+                            ASFLAGS=friend_flag, CXXFLAGS=friend_flag, LINKFLAGS=friend_flag, CPPPATH=friend_include_path, LIBPATH='/usr/local/lib64')
+friend_test_elf_env = friend_test_env.Clone(ASFLAGS=friend_elf_flag, CXXFLAGS=friend_elf_flag, LINKFLAGS=friend_elf_flag)
+
+cleanup_containers = AlwaysBuild(hakase_test_env.Alias('cleanup_containers', [], [
   'docker ps -a -f name=toshokan_qemu_ -q | xargs -L 1 docker rm -f || :',
   'docker network ls -f name=toshokan_net_ -q | xargs -L 1 docker network rm || :',
 ]))
@@ -26,15 +59,31 @@ def generate_test_alias(env, name, depends):
     '-monitor telnet::4445,server,nowait',
     '-nographic',
   ])
-  return hakase_env.AlwaysBuild(hakase_env.Alias('test_' + name, [cleanup_containers, containers["qemu"], containers["ssh"]] + depends, [
+  return hakase_test_env.AlwaysBuild(hakase_test_env.Alias('test_' + name, [cleanup_containers, containers["qemu"], containers["ssh"]] + depends, [
     'docker network create --driver bridge toshokan_net_{0}'.format(random_str),
     'docker run -d --name toshokan_qemu_{0} --network toshokan_net_{0} --net-alias toshokan_qemu livadk/toshokan_qemu qemu-system-x86_64 {1}'.format(random_str, qemu_option),
     env.GenerateDockerCommand('--network toshokan_net_{0} livadk/toshokan_ssh'.format(random_str), 'wait-for-rsync toshokan_qemu'),
     env.GenerateDockerCommand('--network toshokan_net_{0} livadk/toshokan_ssh'.format(random_str), 'rsync build/{0} toshokan_qemu:build/'.format(name)),
     env.GenerateDockerCommand('--network toshokan_net_{0} livadk/toshokan_ssh'.format(random_str), 'ssh toshokan_qemu sudo build/' + name),
     'docker rm -f toshokan_qemu_{0}'.format(random_str)]))
-hakase_env.AddMethod(generate_test_alias, "GenerateTestAlias")
+hakase_test_env.AddMethod(generate_test_alias, "GenerateTestAlias")
 
+def generate_test_program(env, name, hakase_source, friend_source):
+  friend = friend_test_elf_env.Program(target='friend.bin', source=friend_source, LIBS=['friend'])
+  friend_obj = friend_test_elf_env.Command('friend_bin.o', [friend],
+      'bin/objcopy -I binary -O elf64-x86-64 -B i386:x86-64 $SOURCES $TARGET')
+  friend_shared_symbols = friend_test_elf_env.Command('friend.shsym', [friend],
+      'bin/objcopy -j .shsym $SOURCES $TARGET')
+
+  target = env.Program(target='#build/' + name, source=[friend_obj] + hakase_source, LIBS=['hakase'], LINKFLAGS=env['LINKFLAGS'] + ' -Wl,-R,' + friend_shared_symbols[0].path)
+  env.Depends(target, friend_shared_symbols)
+
+  test_binary = env.GenerateTestAlias(name, target)
+  return test_binary
+
+hakase_test_env.AddMethod(generate_test_program, "TestProgram")
+
+Export('hakase_test_env friend_test_env')
 test_targets = list(SConscript(dirs=[
   'boot',
   'elf',
@@ -42,6 +91,5 @@ test_targets = list(SConscript(dirs=[
   'clang',
   ]))
 
-# TODO remove build_container
-test = AlwaysBuild(hakase_env.Alias('test', [containers["build_hakase"], containers["build_friend"], 'common_test'] + test_targets))
+test = AlwaysBuild(hakase_test_env.Alias('test', ['common_test'] + test_targets))
 Return('test')

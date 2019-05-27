@@ -8,20 +8,22 @@ import errno
 import stat
 from functools import reduce
 
+base_env = DefaultEnvironment().Clone()
+
+def gen_docker_cmd(env, container, arg):
+  return 'docker run -i --rm -v {0}:{0} -w {0} {1} {2}'.format(curdir, container, arg)
+base_env.AddMethod(gen_docker_cmd, "GenerateDockerCommand")
+
 curdir = Dir('.').abspath
 ci = True if int(ARGUMENTS.get('CI', 0)) == 1 else False
 
 os.environ["PATH"] += os.pathsep + curdir
-env = DefaultEnvironment().Clone(ENV=os.environ,
-                                 AR='bin/ar',
-                                 AS='bin/g++',
-                                 CC='bin/g++',
-                                 CXX='bin/g++',
-                                 RANLIB='bin/ranlib')
-
-def gen_docker_cmd(env, container, arg):
-  return 'docker run -i --rm -v {0}:{0} -w {0} {1} {2}'.format(curdir, container, arg)
-env.AddMethod(gen_docker_cmd, "GenerateDockerCommand")
+env = base_env.Clone(ENV=os.environ,
+                     AR='bin/ar',
+                     AS='bin/g++',
+                     CC='bin/g++',
+                     CXX='bin/g++',
+                     RANLIB='bin/ranlib')
 
 containers = {}
 
@@ -91,7 +93,7 @@ friend_env = env.Clone(ASFLAGS=friend_flag, CXXFLAGS=friend_flag, LINKFLAGS=frie
 friend_elf_env = env.Clone(ASFLAGS=friend_elf_flag, CXXFLAGS=friend_elf_flag, LINKFLAGS=friend_elf_flag, CPPPATH=friend_include_path, LIBPATH='#.docker_tmp/lib/')
 cpputest_env = env.Clone(ASFLAGS=cpputest_flag, CXXFLAGS=cpputest_flag, LINKFLAGS=cpputest_flag, CPPPATH=cpputest_include_path)
 
-Export('hakase_env friend_env friend_elf_env cpputest_env')
+Export('base_env hakase_env friend_env friend_elf_env cpputest_env')
 
 common_lib = SConscript(dirs=['common'])
 Export('common_lib')
@@ -103,11 +105,6 @@ env.BuildContainer('build_hakase', 'livadk/toshokan_build_intermediate', [contai
 friend_lib = SConscript(dirs=['friend'])
 friend_ldscript = Command('.docker_tmp/$SOURCE', 'friend/friend.ld', Copy("$TARGET", "$SOURCE"))
 env.BuildContainer('build_friend', 'livadk/toshokan_build_intermediate', [containers["build_intermediate"], friend_headers, friend_lib, friend_ldscript])
-
-#TODO: refactoring
-# if we prepare build container, we won't need this.
-libs = hakase_lib
-Export('libs')
 
 SConscript(dirs=['common/tests'])
 

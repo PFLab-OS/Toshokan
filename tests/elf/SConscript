@@ -1,15 +1,7 @@
 #!python
 # extract an elf file
-Import('hakase_env friend_elf_env libs')
+Import('hakase_test_env')
 
-friend = friend_elf_env.Program(target='friend.bin', source=['friend_boot.S'])
-friend_elf_env.Depends(friend, '#friend/friend.ld')
+test_binary = hakase_test_env.TestProgram('elf', ["hakase.cc"], ['friend_boot.S'])
 
-friend_obj = friend_elf_env.Command('friend_bin.o', [friend],
-    'bin/objcopy -I binary -O elf64-x86-64 -B i386:x86-64 $SOURCES $TARGET')
-
-target = hakase_env.Program(target='#build/elf', source=[friend_obj, "hakase.cc", "hakase.ld"], LIBS=['hakase'])
-hakase_env.Depends(target, libs)
-
-test_binary = hakase_env.GenerateTestAlias('elf', target)
 Return('test_binary')

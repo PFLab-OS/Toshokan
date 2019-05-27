@@ -1,17 +1,16 @@
 #!python
 # a simple boot up test
 # This also tests memory mapping.
-Import('hakase_env friend_env libs')
+Import('hakase_test_env friend_test_env')
 
-friend_linkflags = friend_env['LINKFLAGS'] + ' -T {0}/friend.ld'.format(Dir('.').abspath)
-friend = friend_env.Program(target='friend.bin', source=['friend_boot.S'], LINKFLAGS=friend_linkflags)
-friend_env.Depends(friend, 'friend.ld')
+friend_linkflags = friend_test_env['LINKFLAGS'] + ' -T {0}/friend.ld'.format(Dir('.').abspath)
+friend = friend_test_env.Program(target='friend.bin', source=['friend_boot.S'], LINKFLAGS=friend_linkflags, LIBS=['friend'])
+friend_test_env.Depends(friend, 'friend.ld')
 
-friend_obj = friend_env.Command('friend_bin.o', [friend],
+friend_obj = friend_test_env.Command('friend_bin.o', [friend],
     'bin/objcopy -I binary -O elf64-x86-64 -B i386:x86-64 $SOURCES $TARGET')
 
-target = hakase_env.Program(target='#build/boot', source=[friend_obj, "hakase.cc", "hakase.ld"], LIBS=['hakase'])
-hakase_env.Depends(target, libs)
+target = hakase_test_env.Program(target='#build/boot', source=[friend_obj, "hakase.cc"], LIBS=['hakase'])
 
-test_binary = hakase_env.GenerateTestAlias('boot', target)
+test_binary = hakase_test_env.GenerateTestAlias('boot', target)
 Return('test_binary')
