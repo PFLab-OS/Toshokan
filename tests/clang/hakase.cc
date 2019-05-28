@@ -64,9 +64,11 @@ void pagetable_init() {
   static const size_t k2MB = 2UL * 1024 * 1024;
 
   SHARED_SYMBOL(pml4t).entry[(DEPLOY_PHYS_ADDR_START % k256TB) / k512GB] =
-      reinterpret_cast<size_t>(&SHARED_SYMBOL(pdpt)) | (1 << 0) | (1 << 1) | (1 << 2);
+      reinterpret_cast<size_t>(&SHARED_SYMBOL(pdpt)) | (1 << 0) | (1 << 1) |
+      (1 << 2);
   SHARED_SYMBOL(pdpt).entry[(DEPLOY_PHYS_ADDR_START % k512GB) / k1GB] =
-      reinterpret_cast<size_t>(&SHARED_SYMBOL(pd)) | (1 << 0) | (1 << 1) | (1 << 2);
+      reinterpret_cast<size_t>(&SHARED_SYMBOL(pd)) | (1 << 0) | (1 << 1) |
+      (1 << 2);
 
   static_assert((DEPLOY_PHYS_ADDR_START % k1GB) == 0, "");
   static_assert(DEPLOY_PHYS_MEM_SIZE <= k1GB, "");

@@ -5,4 +5,6 @@ Page SHARED_SYMBOL(pml4t);
 Page SHARED_SYMBOL(pdpt);
 Page SHARED_SYMBOL(pd);
 
-extern "C" void friend_main() { __sync_fetch_and_add(&SHARED_SYMBOL(sync_flag), 1); }
+extern "C" void friend_main() {
+  __sync_fetch_and_add(&SHARED_SYMBOL(sync_flag), 1);
+}
