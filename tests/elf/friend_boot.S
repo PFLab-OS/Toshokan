@@ -1,12 +1,13 @@
 #define ASM_FILE
-#include "preallocated.h"
+#include <toshokan/symbol.h>
 
 	.section ".text.boot"
 	.code32
 	.globl entry32
+	.extern SHARED_SYMBOL(pml4t)
 entry32:
 	// load cr3
-	movl $PML4T_ADDR, %edi
+	movl $SHARED_SYMBOL(pml4t), %edi
 	movl %edi, %cr3
 	
 	// set PAE&PGE&PSE bit
@@ -40,6 +41,7 @@ entry32:
 
 .text
 .code64
+	.extern SHARED_SYMBOL(sync_flag)
 start:
 	// Now we use gdt_desc (64bit segmentation)
 	// physical address: (phys_addr) + %rip
@@ -48,7 +50,7 @@ start:
 	movw $0x18, %ax
 	movw %ax, %ds
 	movw %ax, %ss
-	lock addq $1, (SYNCFLAG_ADDR)
+	lock addq $1, SHARED_SYMBOL(sync_flag)
 
 stop:	
 	hlt

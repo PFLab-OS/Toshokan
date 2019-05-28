@@ -9,7 +9,7 @@ struct Page {
 } __attribute__((aligned(4096)));
 
 // initialized by hakase.cc (before friend app is executed)
-extern SHARED_SYMBOL(int64_t sync_flag);
-extern SHARED_SYMBOL(Page pml4t);
-extern SHARED_SYMBOL(Page pdpt);
-extern SHARED_SYMBOL(Page pd);
+extern int64_t SHARED_SYMBOL(sync_flag);
+extern Page SHARED_SYMBOL(pml4t);
+extern Page SHARED_SYMBOL(pdpt);
+extern Page SHARED_SYMBOL(pd);

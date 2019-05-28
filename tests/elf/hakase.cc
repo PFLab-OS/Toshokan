@@ -9,7 +9,7 @@
 #include <toshokan/result.h>
 #include <unistd.h>
 #include <iostream>
-#include "preallocated.h"
+#include "shared.h"
 
 extern char friend_mem_start[];
 extern char friend_mem_end[];
@@ -62,20 +62,17 @@ void pagetable_init() {
   static const size_t k512GB = 512UL * 1024 * 1024 * 1024;
   static const size_t k1GB = 1024UL * 1024 * 1024;
   static const size_t k2MB = 2UL * 1024 * 1024;
-  Page *pml4t = &preallocated_mem->pml4t;
-  Page *pdpt = &preallocated_mem->pdpt;
-  Page *pd = &preallocated_mem->pd;
 
-  pml4t->entry[(DEPLOY_PHYS_ADDR_START % k256TB) / k512GB] =
-      reinterpret_cast<size_t>(pdpt) | (1 << 0) | (1 << 1) | (1 << 2);
-  pdpt->entry[(DEPLOY_PHYS_ADDR_START % k512GB) / k1GB] =
-      reinterpret_cast<size_t>(pd) | (1 << 0) | (1 << 1) | (1 << 2);
+  SHARED_SYMBOL(pml4t).entry[(DEPLOY_PHYS_ADDR_START % k256TB) / k512GB] =
+      reinterpret_cast<size_t>(&SHARED_SYMBOL(pdpt)) | (1 << 0) | (1 << 1) | (1 << 2);
+  SHARED_SYMBOL(pdpt).entry[(DEPLOY_PHYS_ADDR_START % k512GB) / k1GB] =
+      reinterpret_cast<size_t>(&SHARED_SYMBOL(pd)) | (1 << 0) | (1 << 1) | (1 << 2);
 
   static_assert((DEPLOY_PHYS_ADDR_START % k1GB) == 0, "");
   static_assert(DEPLOY_PHYS_MEM_SIZE <= k1GB, "");
   for (size_t addr = DEPLOY_PHYS_ADDR_START; addr < DEPLOY_PHYS_ADDR_END;
        addr += k2MB) {
-    pd->entry[(addr % k1GB) / k2MB] =
+    SHARED_SYMBOL(pd).entry[(addr % k1GB) / k2MB] =
         addr | (1 << 0) | (1 << 1) | (1 << 2) | (1 << 7);
   }
 }
@@ -112,7 +109,7 @@ int test_main() {
   }
 
   pagetable_init();
-  preallocated_mem->sync_flag = 0;
+  SHARED_SYMBOL(sync_flag) = 0;
 
   int cpunum = 0;
 
@@ -127,7 +124,7 @@ int test_main() {
 
   sleep(1);
 
-  return (preallocated_mem->sync_flag == cpunum);
+  return (SHARED_SYMBOL(sync_flag) == cpunum);
 }
 
 int main(int argc, const char **argv) {

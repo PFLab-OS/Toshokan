@@ -1,13 +1,14 @@
 #define ASM_FILE
+#include <toshokan/symbol.h>
 #define STACK_SIZE 0x1000
 
 	.section ".text.boot"
 	.code32
 	.globl entry32
-	.extern pml4t
+	.extern SHARED_SYMBOL(pml4t)
 entry32:
 	// load cr3
-	movl $pml4t, %edi
+	movl $SHARED_SYMBOL(pml4t), %edi
 	movl %edi, %cr3
 	
 	// set PAE&PGE&PSE bit

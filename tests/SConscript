@@ -72,11 +72,11 @@ def generate_test_program(env, name, hakase_source, friend_source):
   friend = friend_test_elf_env.Program(target='friend.bin', source=friend_source, LIBS=['friend'])
   friend_obj = friend_test_elf_env.Command('friend_bin.o', [friend],
       'bin/objcopy -I binary -O elf64-x86-64 -B i386:x86-64 --rename-section .data=friend_bin $SOURCES $TARGET')
-  friend_shared_symbols = friend_test_elf_env.Command('friend.shsym', [friend],
-      'bin/objcopy -j .shsym $SOURCES $TARGET')
+  friend_symbols = friend_test_elf_env.Command('friend.sym', [friend],
+      'bin/objcopy --prefix-symbols=friendsymbol_ $SOURCES $TARGET')
 
-  target = env.Program(target='#build/' + name, source=[friend_obj] + hakase_source, LIBS=['hakase'], LINKFLAGS=env['LINKFLAGS'] + ' -Wl,-R,' + friend_shared_symbols[0].path)
-  env.Depends(target, friend_shared_symbols)
+  target = env.Program(target='#build/' + name, source=[friend_obj] + hakase_source, LIBS=['hakase'], LINKFLAGS=env['LINKFLAGS'] + ' -Wl,-R,' + friend_symbols[0].path)
+  env.Depends(target, friend_symbols)
 
   test_binary = env.GenerateTestAlias(name, target)
   return test_binary
@@ -87,7 +87,6 @@ Export('hakase_test_env friend_test_env')
 test_targets = list(SConscript(dirs=[
   'boot',
   'elf',
-  'symbol',
   'clang',
   ]))
 
