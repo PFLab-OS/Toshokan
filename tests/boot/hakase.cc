@@ -77,20 +77,18 @@ void pagetable_init() {
 }
 
 int friend_region_init() {
-  extern uint8_t _binary_tests_boot_friend_bin_start[];
-  extern uint8_t _binary_tests_boot_friend_bin_size[];
-  size_t binary_tests_boot_friend_bin_size =
-      reinterpret_cast<size_t>(_binary_tests_boot_friend_bin_size);
+  extern uint8_t __start_friend_bin, __stop_friend_bin;
+  size_t friend_bin_size =
+      static_cast<size_t>(&__stop_friend_bin - &__start_friend_bin);
 
   assert(reinterpret_cast<size_t>(&preallocated_mem->pml4t) == PML4T_ADDR);
   assert(reinterpret_cast<size_t>(&preallocated_mem->sync_flag) ==
          SYNCFLAG_ADDR);
   assert(reinterpret_cast<size_t>(preallocated_mem) >=
-         DEPLOY_PHYS_ADDR_START + binary_tests_boot_friend_bin_size);
+         DEPLOY_PHYS_ADDR_START + friend_bin_size);
 
   // copy friend binary
-  memcpy(mem, _binary_tests_boot_friend_bin_start,
-         binary_tests_boot_friend_bin_size);
+  memcpy(mem, &__start_friend_bin, friend_bin_size);
 
   return 0;
 }

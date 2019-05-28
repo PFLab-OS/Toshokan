@@ -71,7 +71,7 @@ hakase_test_env.AddMethod(generate_test_alias, "GenerateTestAlias")
 def generate_test_program(env, name, hakase_source, friend_source):
   friend = friend_test_elf_env.Program(target='friend.bin', source=friend_source, LIBS=['friend'])
   friend_obj = friend_test_elf_env.Command('friend_bin.o', [friend],
-      'bin/objcopy -I binary -O elf64-x86-64 -B i386:x86-64 $SOURCES $TARGET')
+      'bin/objcopy -I binary -O elf64-x86-64 -B i386:x86-64 --rename-section .data=friend_bin $SOURCES $TARGET')
   friend_shared_symbols = friend_test_elf_env.Command('friend.shsym', [friend],
       'bin/objcopy -j .shsym $SOURCES $TARGET')
 

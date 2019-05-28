@@ -12,7 +12,7 @@ friend.bin: friend_boot.S friend.cc
 	bin/friend-g++ -g -O0 -Wall --std=c++14 -nostdinc -nostdlib -I/usr/local/include -L/usr/local/lib64  -fno-pie -no-pie -T /usr/local/etc/friend.ld -o $@ $^ -lfriend
 
 friend_bin.o: friend.bin
-	bin/objcopy -I binary -O elf64-x86-64 -B i386:x86-64 $^ $@
+	bin/objcopy -I binary -O elf64-x86-64 -B i386:x86-64 --rename-section .data=friend_bin $^ $@
 
 friend.shsym: friend.bin
 	bin/objcopy -j .shsym $^ $@
