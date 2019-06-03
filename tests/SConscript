@@ -3,8 +3,8 @@ import random
 import string
 Import('base_env containers')
 
-hakase_flag = '-g -O0 -Wall --std=c++14 -static -fno-pie -no-pie'
-friend_flag = '-g -O0 -Wall --std=c++14 -nostdinc -nostdlib -fno-pie -no-pie'
+hakase_flag = '-g -O0 -Wall --std=c++14 -static -fno-pie -no-pie -D__HAKASE__'
+friend_flag = '-g -O0 -Wall --std=c++14 -nostdinc -nostdlib -fno-pie -no-pie -D__FRIEND__'
 friend_elf_flag = friend_flag + ' -T /usr/local/etc/friend.ld'
 
 hakase_include_path = []
@@ -88,6 +88,7 @@ test_targets = list(SConscript(dirs=[
   'boot',
   'elf',
   'clang',
+  'symbol',
   ]))
 
 test = AlwaysBuild(hakase_test_env.Alias('test', ['common_test'] + test_targets))
