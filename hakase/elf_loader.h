@@ -20,7 +20,8 @@ class ElfLoader {
   uint8_t *const _addr;
   size_t _len;
 
-  __attribute__((warn_unused_result)) bool CheckMemoryRegion(uint64_t vaddr, size_t size) {
+  __attribute__((warn_unused_result)) bool CheckMemoryRegion(uint64_t vaddr,
+                                                             size_t size) {
     if (vaddr < DEPLOY_PHYS_ADDR_START || vaddr + size > DEPLOY_PHYS_ADDR_END) {
       // TODO show error
       return false;
