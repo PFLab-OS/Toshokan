@@ -76,8 +76,8 @@ static_obj.add_emitter('.S', container_emitter)
 static_obj.add_emitter('.o', container_emitter)
 static_obj.add_emitter('.a', container_emitter)
 
-hakase_flag = '-g -O0 -Wall --std=c++14 -static -fno-pie -no-pie'
-friend_flag = '-g -O0 -Wall --std=c++14 -nostdinc -nostdlib -fno-pie -no-pie'
+hakase_flag = '-g -O0 -Wall -Werror=unused-result --std=c++14 -static -fno-pie -no-pie'
+friend_flag = '-g -O0 -Wall -Werror=unused-result --std=c++14 -nostdinc -nostdlib -fno-pie -no-pie'
 friend_elf_flag = friend_flag + ' -T {0}/friend/friend.ld'.format(curdir)
 cpputest_flag = '--std=c++14 --coverage -pthread'
 

@@ -6,7 +6,6 @@
 #include <toshokan/hakase/elf_loader.h>
 #include <toshokan/hakase/loader16.h>
 #include <toshokan/memory.h>
-#include <toshokan/result.h>
 #include <unistd.h>
 #include <iostream>
 #include "shared.h"
@@ -98,7 +97,7 @@ int test_main() {
     return -1;
   }
 
-  if (elfloader.Deploy().IsError()) {
+  if (!elfloader.Deploy()) {
     std::cerr << "error: failed to deploy elf binary" << std::endl;
     return -1;
   }

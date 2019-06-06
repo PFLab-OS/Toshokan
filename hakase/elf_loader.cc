@@ -1,14 +1,14 @@
 #include <toshokan/hakase/elf_loader.h>
 
-Result<bool> ElfLoader::Deploy() {
+bool ElfLoader::Deploy() {
   Ehdr ehdr(_addr);
   if (!ehdr.IsElf() || !ehdr.IsElf64() ||
       (!ehdr.IsOsabiSysv() && !ehdr.IsOsabiGnu())) {
-    return Result<bool>();
+    return false;
   }
 
   if (!ehdr.IsExecutable()) {
-    return Result<bool>();
+    return false;
   }
 
   // clear .bss section
@@ -19,8 +19,8 @@ Result<bool> ElfLoader::Deploy() {
     }
     auto info = shdr->GetInfoIfBss();
     if (info) {
-      if (CheckMemoryRegion(info->vaddr, info->size).IsError()) {
-        return Result<bool>();
+      if (!CheckMemoryRegion(info->vaddr, info->size)) {
+        return false;
       }
       memset(reinterpret_cast<void *>(info->vaddr), 0, info->size);
     }
@@ -34,13 +34,13 @@ Result<bool> ElfLoader::Deploy() {
     }
     auto info = phdr->GetInfoIfLoad();
     if (info) {
-      if (CheckMemoryRegion(info->vaddr, info->size).IsError()) {
-        return Result<bool>();
+      if (!CheckMemoryRegion(info->vaddr, info->size)) {
+        return false;
       }
       memcpy(reinterpret_cast<void *>(info->vaddr), _addr + info->file_offset,
              info->size);
     }
   }
 
-  return Result<bool>(true);
+  return true;
 }

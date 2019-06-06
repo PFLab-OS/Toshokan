@@ -3,7 +3,6 @@
 #include <stdint.h>
 #include <toshokan/elfhead.h>
 #include <toshokan/memory.h>
-#include <toshokan/result.h>
 #include <memory>
 
 // PIE is not supported
@@ -11,7 +10,7 @@ class ElfLoader {
  public:
   ElfLoader() = delete;
   ElfLoader(uint8_t *const addr, size_t len) : _addr(addr), _len(len) {}
-  Result<bool> Deploy();
+  __attribute__((warn_unused_result)) bool Deploy();
   Elf64_Off GetEntry() {
     Ehdr ehdr(_addr);
     return ehdr.GetEntry();
@@ -21,12 +20,12 @@ class ElfLoader {
   uint8_t *const _addr;
   size_t _len;
 
-  Result<bool> CheckMemoryRegion(uint64_t vaddr, size_t size) {
+  __attribute__((warn_unused_result)) bool CheckMemoryRegion(uint64_t vaddr, size_t size) {
     if (vaddr < DEPLOY_PHYS_ADDR_START || vaddr + size > DEPLOY_PHYS_ADDR_END) {
       // TODO show error
-      return Result<bool>();
+      return false;
     } else {
-      return Result<bool>(true);
+      return true;
     }
   }
 
