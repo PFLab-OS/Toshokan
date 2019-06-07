@@ -10,6 +10,21 @@ friend_elf_flag = friend_flag + ' -T /usr/local/etc/friend.ld'
 hakase_include_path = []
 friend_include_path = ['/usr/local/include']
 
+def add_file_to_emitter(env, emitter_name, file):
+  try:
+    original_emitter = env[emitter_name]
+    if type(original_emitter) == list:
+      original_emitter = original_emitter[0]
+  except KeyError:
+    original_emitter = None
+  def emitter(target, source, env):
+    if original_emitter:
+      target, source = original_emitter(target, source, env)
+    env.Depends(target, file)
+    return target, source
+  env[emitter_name] = emitter
+add_file_to_emitter(base_env, 'PROGEMITTER', [containers["build_hakase"], containers["build_friend"]])
+
 def container_emitter(target, source, env):
   env.Depends(target, [containers["build_hakase"], containers["build_friend"]])
   return (target, source)
