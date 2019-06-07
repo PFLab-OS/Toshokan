@@ -1,6 +1,6 @@
 #!python
-Import('friend_env common_lib')
+Import('friend_env')
 
-lib = friend_env.StaticLibrary('#.docker_tmp/lib/friend', ['dummy.cc', common_lib])
+lib = friend_env.StaticLibrary('#.docker_tmp/lib/friend', ['dummy.cc'])
 
 Return('lib')

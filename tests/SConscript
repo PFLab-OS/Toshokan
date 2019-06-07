@@ -84,13 +84,13 @@ def generate_test_alias(env, name, depends):
 hakase_test_env.AddMethod(generate_test_alias, "GenerateTestAlias")
 
 def generate_test_program(env, name, hakase_source, friend_source):
-  friend = friend_test_elf_env.Program(target='friend.bin', source=friend_source, LIBS=['friend'])
+  friend = friend_test_elf_env.Program(target='friend.bin', source=friend_source, LIBS=['friend', 'common'])
   friend_obj = friend_test_elf_env.Command('friend_bin.o', [friend],
       'bin/objcopy -I binary -O elf64-x86-64 -B i386:x86-64 --rename-section .data=friend_bin $SOURCES $TARGET')
   friend_symbols = friend_test_elf_env.Command('friend.sym', [friend],
       'bin/objcopy --prefix-symbols=friendsymbol_ $SOURCES $TARGET')
 
-  target = env.Program(target='#build/' + name, source=[friend_obj] + hakase_source, LIBS=['hakase'], LINKFLAGS=env['LINKFLAGS'] + ' -Wl,-R,' + friend_symbols[0].path)
+  target = env.Program(target='#build/' + name, source=[friend_obj] + hakase_source, LIBS=['hakase', 'common'], LINKFLAGS=env['LINKFLAGS'] + ' -Wl,-R,' + friend_symbols[0].path)
   env.Depends(target, friend_symbols)
 
   test_binary = env.GenerateTestAlias(name, target)
@@ -104,6 +104,7 @@ test_targets = list(SConscript(dirs=[
   'elf',
   'clang',
   'symbol',
+  'offload',
   ]))
 
 test = AlwaysBuild(hakase_test_env.Alias('test', ['common_test'] + test_targets))

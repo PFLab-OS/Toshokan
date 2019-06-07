@@ -1,10 +1,10 @@
 #!python
-Import('hakase_env friend_env common_lib')
+Import('hakase_env friend_env')
 
 friend16 = friend_env.Program(target='friend16.bin', source=['friend_boot16.S'], LINKFLAGS=friend_env['LINKFLAGS'] + ' -T {0}/friend16.ld'.format(Dir('.').abspath))
 friend_env.Depends(friend16, 'friend16.ld')
 friend_obj16 = friend_env.Command('friend16_bin.o', [friend16], 'bin/objcopy -I binary -O elf64-x86-64 -B i386:x86-64 $SOURCES $TARGET')
 
-lib = hakase_env.StaticLibrary('#.docker_tmp/lib/hakase', ['loader16.cc', 'elf_loader.cc', friend_obj16, common_lib])
+lib = hakase_env.StaticLibrary('#.docker_tmp/lib/hakase', ['loader16.cc', 'elf_loader.cc', friend_obj16])
 
 Return('lib')

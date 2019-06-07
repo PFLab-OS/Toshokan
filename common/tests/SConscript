@@ -1,3 +1,3 @@
 Import('cpputest_env common_lib')
 cpputest_env.Program(target='cpputest', source=['main.cc', 'align.cc', 'offload.cc'], LIBS=['CppUTest', 'CppUTestExt', 'common'])
-cpputest_env.Depends('cpputest', [common_lib])
+cpputest_env.Depends('cpputest', common_lib)
