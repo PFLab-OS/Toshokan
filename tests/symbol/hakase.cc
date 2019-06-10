@@ -36,7 +36,7 @@ int check_bootparam() {
 }
 
 int mmap_friend_mem() {
-  int mem_fd = open("/sys/module/friend_loader/call/mem", O_RDWR);
+  int mem_fd = open("/dev/friend_mem", O_RDWR);
   if (mem_fd < 0) {
     perror("Open call failed");
     return -1;

@@ -36,14 +36,15 @@ int check_bootparam() {
 }
 
 int mmap_friend_mem() {
-  int mem_fd = open("/sys/module/friend_loader/call/mem", O_RDWR);
+  int mem_fd = open("/dev/friend_mem", O_RDWR);
   if (mem_fd < 0) {
     perror("Open call failed");
     return -1;
   }
 
-  void *mmapped_addr = mmap(mem, DEPLOY_PHYS_MEM_SIZE, PROT_READ | PROT_WRITE,
-                            MAP_SHARED | MAP_FIXED, mem_fd, 0);
+  void *mmapped_addr =
+      mmap(mem, DEPLOY_PHYS_MEM_SIZE, PROT_READ | PROT_WRITE | PROT_EXEC,
+           MAP_SHARED | MAP_FIXED, mem_fd, 0);
   if (mmapped_addr == MAP_FAILED) {
     perror("mmap operation failed...");
     return -1;
@@ -119,11 +120,10 @@ int test_main() {
     return -1;
   }
 
-  while(SHARED_SYMBOL(sync_flag) == 0) {
+  while (SHARED_SYMBOL(sync_flag) == 0) {
     SHARED_SYMBOL(offloader).TryReceive();
-    asm volatile("":::"memory");
+    asm volatile("" ::: "memory");
   }
-  printf("%d\n", SHARED_SYMBOL(state));
   return (SHARED_SYMBOL(state) == 1);
 }
 

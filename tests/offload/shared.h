@@ -1,7 +1,7 @@
 #pragma once
 
-#include <toshokan/symbol.h>
 #include <toshokan/offload.h>
+#include <toshokan/symbol.h>
 
 #include <stddef.h>
 #include <stdint.h>

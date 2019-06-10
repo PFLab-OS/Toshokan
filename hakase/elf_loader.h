@@ -23,7 +23,6 @@ class ElfLoader {
   __attribute__((warn_unused_result)) bool CheckMemoryRegion(uint64_t vaddr,
                                                              size_t size) {
     if (vaddr < DEPLOY_PHYS_ADDR_START || vaddr + size > DEPLOY_PHYS_ADDR_END) {
-      // TODO show error
       return false;
     } else {
       return true;
@@ -41,6 +40,16 @@ class ElfLoader {
     };
     std::unique_ptr<SectionInfo> GetInfoIfBss() {
       if (_raw->sh_type == SHT_NOBITS && (_raw->sh_flags & SHF_ALLOC) != 0) {
+        auto info = std::unique_ptr<SectionInfo>(new SectionInfo);
+        info->vaddr = _raw->sh_addr;
+        info->size = _raw->sh_size;
+        return info;
+      }
+      return std::unique_ptr<SectionInfo>();
+    }
+
+    std::unique_ptr<SectionInfo> GetInfoIfExec() {
+      if ((_raw->sh_flags & SHF_EXECINSTR) != 0) {
         auto info = std::unique_ptr<SectionInfo>(new SectionInfo);
         info->vaddr = _raw->sh_addr;
         info->size = _raw->sh_size;

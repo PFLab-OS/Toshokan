@@ -15,7 +15,7 @@ static int __init friend_loader_init(void) {
 
   pr_info("friend_loader_init: init\n");
 
-  if (call_interface_init() < 0) {
+  if (memdevice_init() < 0) {
     pr_err("friend_loader_init: failed to init call interface\n");
     return -EIO;
   }
@@ -29,9 +29,8 @@ static int __init friend_loader_init(void) {
 }
 
 static void __exit friend_loader_exit(void) {
-  call_interface_exit();
-
   cpudevice_exit();
+  memdevice_exit();
 
   pr_info("friend_loader_exit: exit\n");
 }

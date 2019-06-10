@@ -18,8 +18,7 @@ int Loader16::Init(uint32_t entry) {
     return -1;
   }
 
-  int bootmem_fd =
-      open("/sys/module/friend_loader/call/" TRAMPOLINE_ADDR_STR, O_RDWR);
+  int bootmem_fd = open("/dev/friend_bootmem" TRAMPOLINE_ADDR_STR, O_RDWR);
   if (bootmem_fd < 0) {
     perror("Open call failed");
     return -1;

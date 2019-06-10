@@ -2,5 +2,5 @@
 
 #include <linux/module.h>
 
-int __init call_interface_init(void);
-void __exit call_interface_exit(void);
+int __init memdevice_init(void);
+void __exit memdevice_exit(void);

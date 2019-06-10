@@ -37,15 +37,15 @@ class Offloader {
  private:
 };
 
-#define OFFLOAD(c, code)                  \
-  do {                                    \
+#define OFFLOAD(c, code)                   \
+  do {                                     \
     if (toshokan_setjmp((c)._buf1) == 0) { \
-      (c)._state1 = 1;			   \
-      while ((c)._state2 == 0) {	   \
-        asm volatile("" ::: "memory");   \
-      }                                  \
-      (c)._state2 = 0;			 \
-    } else {                             \
-      code toshokan_longjmp((c)._buf2, 1);	\
-    }                                    \
+      (c)._state1 = 1;                     \
+      while ((c)._state2 == 0) {           \
+        asm volatile("" ::: "memory");     \
+      }                                    \
+      (c)._state2 = 0;                     \
+    } else {                               \
+      code toshokan_longjmp((c)._buf2, 1); \
+    }                                      \
   } while (0);

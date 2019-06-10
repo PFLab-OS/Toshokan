@@ -1,3 +1,4 @@
+#include <sys/mman.h>
 #include <toshokan/hakase/elf_loader.h>
 
 bool ElfLoader::Deploy() {
@@ -9,21 +10,6 @@ bool ElfLoader::Deploy() {
 
   if (!ehdr.IsExecutable()) {
     return false;
-  }
-
-  // clear .bss section
-  for (int i = 0;; i++) {
-    auto shdr = CreateShdr(ehdr.GetShdrOffset(i));
-    if (!shdr) {
-      break;
-    }
-    auto info = shdr->GetInfoIfBss();
-    if (info) {
-      if (!CheckMemoryRegion(info->vaddr, info->size)) {
-        return false;
-      }
-      memset(reinterpret_cast<void *>(info->vaddr), 0, info->size);
-    }
   }
 
   // load from file to memory
@@ -40,6 +26,32 @@ bool ElfLoader::Deploy() {
       memcpy(reinterpret_cast<void *>(info->vaddr), _addr + info->file_offset,
              info->size);
     }
+  }
+
+  for (int i = 0;; i++) {
+    auto shdr = CreateShdr(ehdr.GetShdrOffset(i));
+    if (!shdr) {
+      break;
+    }
+    auto info = shdr->GetInfoIfBss();
+    if (info) {
+      // clear .bss section
+      if (!CheckMemoryRegion(info->vaddr, info->size)) {
+        return false;
+      }
+      memset(reinterpret_cast<void *>(info->vaddr), 0, info->size);
+    }
+    // info = shdr->GetInfoIfExec();
+    // if (info) {
+    //   // add EXEC flag
+    //   uint64_t addr = (info->vaddr / 4096) * 4096;
+    //   uint64_t size = ((info->size + 4096 - 1) / 4096) * 4096;
+    //   if (mprotect(reinterpret_cast<void *>(addr), size, PROT_READ) < 0) {
+    // 	printf("%lx %lx", addr, size);
+    // 	perror("Failed to mprotect()");
+    // 	return false;
+    //   }
+    // }
   }
 
   return true;

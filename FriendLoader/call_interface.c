@@ -1,46 +1,19 @@
 #include <linux/kernel.h>
 #include <linux/mm.h>
-#include <linux/sysfs.h>
+#include <linux/cdev.h>
 
 #include <toshokan/memory.h>
 #include "call_interface.h"
 
-static struct kobject *call_sysfs_kobj;
+#define DRIVER_NAME "FriendLoader"
 
-static int call_mem_mmap(struct file *filep, struct kobject *kobj,
-                         struct bin_attribute *attr,
-                         struct vm_area_struct *vma);
+static struct cdev memdevice_cdev;
+static dev_t memdevice_dev;
 
-static int call_bootmem_mmap(struct file *filep, struct kobject *kobj,
-                         struct bin_attribute *attr,
-                         struct vm_area_struct *vma);
+static struct cdev bootmemdevice_cdev;
+static dev_t bootmemdevice_dev;
 
-static struct bin_attribute call_mem_attr = {
-    .attr =
-        {
-            .name = "mem", .mode = S_IWUSR | S_IRUGO,
-        },
-    .size = DEPLOY_PHYS_MEM_SIZE,
-    .mmap = call_mem_mmap,
-};
-
-static struct bin_attribute call_bootmem_attr = {
-    .attr =
-        {
-            .name = TRAMPOLINE_ADDR_STR, .mode = S_IWUSR | S_IRUGO,
-        },
-    .size = PAGE_SIZE,
-    .mmap = call_bootmem_mmap,
-};
-
-static struct bin_attribute *call_sysfs_attrs[] = {
-  &call_mem_attr, &call_bootmem_attr, NULL,
-};
-static struct attribute_group call_sysfs_attr_group = {
-    .bin_attrs = call_sysfs_attrs,
-};
-
-void mmap_open(struct vm_area_struct *vma) {}
+static void mmap_open(struct vm_area_struct *vma) {}
 
 static int mmap_fault(struct vm_fault *vmf) {
   pr_err("frined_loader:mmap_fault\n");
@@ -51,32 +24,17 @@ struct vm_operations_struct mmap_vm_ops = {
     .open = mmap_open, .fault = mmap_fault,
 };
 
-int __init call_interface_init(void) {
-  int ret;
-
-  /* sysfs for call binary */
-  call_sysfs_kobj = kobject_create_and_add("call", &THIS_MODULE->mkobj.kobj);
-  if (!call_sysfs_kobj) {
-    pr_warn("friend_loader_init: kobject_create_and_add failed");
-    return -1;
-  }
-
-  ret = sysfs_create_group(call_sysfs_kobj, &call_sysfs_attr_group);
-  if (ret != 0) {
-    kobject_put(call_sysfs_kobj);
-    pr_warn("friend_loader_init: sysfs_create_group failed: %d\n", ret);
-    return -1;
-  }
-
+static int memdevice_open(struct inode *inode, struct file *file)
+{
   return 0;
 }
 
-void __exit call_interface_exit(void) { kobject_put(call_sysfs_kobj); }
+static int memdevice_close(struct inode *inode, struct file *file)
+{
+  return 0;
+}
 
-// from drivers/char/mem.c
-static int call_mem_mmap(struct file *filep, struct kobject *kobj,
-                         struct bin_attribute *attr,
-                         struct vm_area_struct *vma) {
+static int memdevice_mmap(struct file *file, struct vm_area_struct *vma) {
   size_t size = vma->vm_end - vma->vm_start;
   phys_addr_t phys_start = (phys_addr_t)vma->vm_pgoff << PAGE_SHIFT;
   phys_addr_t phys_end = phys_start + (phys_addr_t)size;
@@ -108,9 +66,7 @@ static int call_mem_mmap(struct file *filep, struct kobject *kobj,
   return 0;
 }
 
-static int call_bootmem_mmap(struct file *filep, struct kobject *kobj,
-                         struct bin_attribute *attr,
-                         struct vm_area_struct *vma) {
+static int bootmemdevice_mmap(struct file *file, struct vm_area_struct *vma) {
   if (vma->vm_pgoff > 0) {
     return -EINVAL;
   }
@@ -126,3 +82,87 @@ static int call_bootmem_mmap(struct file *filep, struct kobject *kobj,
   return 0;
 }
 
+struct file_operations s_memdevice_fops = {
+  .open    = memdevice_open,
+  .mmap    = memdevice_mmap,
+  .release = memdevice_close,
+};
+
+struct file_operations s_bootmemdevice_fops = {
+  .open    = memdevice_open,
+  .mmap    = bootmemdevice_mmap,
+  .release = memdevice_close,
+};
+
+static struct class *memdevice_class = NULL;
+static struct class *bootmemdevice_class = NULL;
+
+int __init memdevice_init(void) {
+  // for mem
+  if (alloc_chrdev_region(&memdevice_dev, 0, 1, DRIVER_NAME) != 0) {
+    pr_err("friend_loader_init: failed to alloc_chrdev_regionn");
+    return -ENXIO;
+  }
+  memdevice_class = class_create(THIS_MODULE, "friend_mem");
+  if (IS_ERR(memdevice_class)) {
+    pr_err("friend_loader_init: failed to class_create\n");
+    unregister_chrdev_region(memdevice_dev, 1);
+    return -ENXIO;
+  }
+  
+  if (device_create(memdevice_class, NULL, memdevice_dev, NULL, "friend_mem") == NULL) {
+    class_destroy(memdevice_class);
+    unregister_chrdev_region(memdevice_dev, 1);
+    return -ENXIO;
+  }
+  
+  cdev_init(&memdevice_cdev, &s_memdevice_fops);
+  if (cdev_add(&memdevice_cdev, memdevice_dev, 1) != 0) {
+    device_destroy(memdevice_class, memdevice_dev);
+    class_destroy(memdevice_class);
+    unregister_chrdev_region(memdevice_dev, 1);
+    return -ENXIO;
+  }
+
+  // for bootmem
+  if (alloc_chrdev_region(&bootmemdevice_dev, 0, 1, DRIVER_NAME) != 0) {
+    pr_err("friend_loader_init: failed to alloc_chrdev_regionn");
+    return -ENXIO;
+  }
+  bootmemdevice_class = class_create(THIS_MODULE, "friend_bootmem");
+  if (IS_ERR(bootmemdevice_class)) {
+    pr_err("friend_loader_init: failed to class_create\n");
+    unregister_chrdev_region(bootmemdevice_dev, 1);
+    return -ENXIO;
+  }
+  
+  if (device_create(bootmemdevice_class, NULL, bootmemdevice_dev, NULL, "friend_bootmem"TRAMPOLINE_ADDR_STR) == NULL) {
+    class_destroy(bootmemdevice_class);
+    unregister_chrdev_region(bootmemdevice_dev, 1);
+    return -ENXIO;
+  }
+  
+  cdev_init(&bootmemdevice_cdev, &s_bootmemdevice_fops);
+  if (cdev_add(&bootmemdevice_cdev, bootmemdevice_dev, 1) != 0) {
+    device_destroy(bootmemdevice_class, bootmemdevice_dev);
+    class_destroy(bootmemdevice_class);
+    unregister_chrdev_region(bootmemdevice_dev, 1);
+    return -ENXIO;
+  }
+
+  return 0;
+}
+
+void __exit memdevice_exit(void) {
+  // for mem
+  cdev_del(&memdevice_cdev);
+  device_destroy(memdevice_class, memdevice_dev);
+  class_destroy(memdevice_class);
+  unregister_chrdev_region(memdevice_dev, 1);
+
+  // for bootmem
+  cdev_del(&bootmemdevice_cdev);
+  device_destroy(bootmemdevice_class, bootmemdevice_dev);
+  class_destroy(bootmemdevice_class);
+  unregister_chrdev_region(bootmemdevice_dev, 1);
+}

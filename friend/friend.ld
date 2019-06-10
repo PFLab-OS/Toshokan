@@ -35,7 +35,7 @@ SECTIONS{
     *(.gnu.linkonce.t*)
   }
 
-  .rodata : {
+  .rodata : ALIGN(0x1000) {
     *(.rodata*)
     *(.gnu.linkonce.r*)
   }
@@ -58,6 +58,7 @@ SECTIONS{
     *(.eh_frame .eh_frame_hdr)
     *(.comment*)
   }
+  . = ALIGN(0x1000);
   friend_binary_end = .;
 
   .debug_info    0 : { *(.debug_info) }
