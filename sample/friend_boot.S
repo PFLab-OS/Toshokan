@@ -1,12 +1,14 @@
 #define ASM_FILE
+#include <toshokan/symbol.h>
+#define STACK_SIZE 0x1000
 
 	.section ".text.boot"
 	.code32
 	.globl entry32
-	.extern pml4t
+	.extern SHARED_SYMBOL(pml4t)
 entry32:
 	// load cr3
-	movl $pml4t, %edi
+	movl $SHARED_SYMBOL(pml4t), %edi
 	movl %edi, %cr3
 	
 	// set PAE&PGE&PSE bit
@@ -38,14 +40,10 @@ entry32:
 	// jump to start
 	ljmpl $0x10, $start
 
-
-stop:	
-	hlt
-	jmp stop
-
 .text
 .code64
-.extern sync_flag
+.extern friend_main
+.extern friend_binary_end
 start:
 	// Now we use gdt_desc (64bit segmentation)
 	// physical address: (phys_addr) + %rip
@@ -54,7 +52,30 @@ start:
 	movw $0x18, %ax
 	movw %ax, %ds
 	movw %ax, %ss
-	lock addq $1, sync_flag
+
+	// align friend_binary_end to 4096
+	//
+	//  extern char *friend_binary_end;
+	//  rbx = (((uint64_t)friend_binary_end) / 4096) * 4096;
+	movq $friend_binary_end, %rbx
+	sarq $12, %rbx
+        salq $12, %rbx
+
+	// calculate stack address atomically
+	//
+	//  eax = __sync_fetch_and_add(&cnt_flag, STACK_SIZE);
+	//  rax = (uint64_t)eax;
+	//  rax += rbx;
+	//  rsp = rax;
+	movl $STACK_SIZE, %eax
+	lock xaddl %eax, cnt_flag
+	cltq
+	addq %rbx, %rax
+	movq %rax, %rsp
+	call friend_main
+	
+stop:	
+	hlt
 	jmp stop
 
 	.balign 8
@@ -70,3 +91,7 @@ gdt_desc:
 gdtr:
 	.word 8*6 - 1
 	.quad gdt_desc
+
+cnt_flag:
+	.long 0x2000
+	
