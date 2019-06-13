@@ -1,0 +1,7 @@
+#!python
+# remote function call
+Import('hakase_test_env')
+
+test_binary = hakase_test_env.TestProgram('rfunc', ["hakase.cc"], ['friend_boot.S', 'friend.cc'])
+
+Return('test_binary')
