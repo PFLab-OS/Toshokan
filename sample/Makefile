@@ -12,7 +12,7 @@ HAKASE_CXXFLAGS := -g -O0 -Wall -Werror=unused-result --std=c++14 -static -fno-p
 DEFAULT: run
 
 friend.bin: shared.h friend_boot.S friend.cc
-	bin/friend-g++ $(FRIEND_CXXFLAGS) -o $@ friend_boot.S friend.cc
+	bin/friend-g++ friend_boot.S friend.cc $(FRIEND_CXXFLAGS) -o $@
 
 friend_bin.o: friend.bin
 	bin/objcopy -I binary -O elf64-x86-64 -B i386:x86-64 --rename-section .data=friend_bin $^ $@
@@ -21,7 +21,7 @@ friend.sym: friend.bin
 	bin/objcopy --prefix-symbols=friendsymbol_ $^ $@
 
 hakase.bin: shared.h hakase.cc friend_bin.o friend.sym
-	bin/hakase-g++ $(HAKASE_CXXFLAGS) -o $@ -Wl,-R,friend.sym friend_bin.o hakase.cc
+	bin/hakase-g++ friend_bin.o hakase.cc $(HAKASE_CXXFLAGS) -o $@ -Wl,-R,friend.sym
 
 run: hakase.bin
 	docker rm -f $(TOSHOKAN_CONTAINER) > /dev/null 2>&1 || :
