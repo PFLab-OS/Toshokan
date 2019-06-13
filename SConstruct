@@ -152,9 +152,9 @@ AlwaysBuild(env.Alias('doc', '', 'find . \( -name \*.cc -or -name \*.c -or -name
 def push_container(name):
   container_name = 'livadk/toshokan_' + name
   return AlwaysBuild(env.Alias('push_' + name, 'test', [
-    'docker tag {0} {0}:v0.1'.format(container_name),
+    'docker tag {0} {0}:v0.01'.format(container_name),
     'docker push {0}'.format(container_name),
-    'docker push {0}:v0.1'.format(container_name),
+    'docker push {0}:v0.01'.format(container_name),
   ]))
 
 AlwaysBuild(env.Alias('push', [
