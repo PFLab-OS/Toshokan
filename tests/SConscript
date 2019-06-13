@@ -3,7 +3,7 @@ import random
 import string
 Import('base_env containers')
 
-hakase_flag = '-g -O0 -Wall -Werror=unused-result --std=c++14 -static -fno-pie -no-pie -D__HAKASE__'
+hakase_flag = '-g -O0 -Wall -Werror=unused-result --std=c++14 -static -fno-pie -no-pie -D__HAKASE__ -T /usr/local/etc/hakase.ld'
 friend_flag = '-g -O0 -Wall -Werror=unused-result --std=c++14 -nostdinc -nostdlib -fno-pie -no-pie -D__FRIEND__'
 friend_elf_flag = friend_flag + ' -T /usr/local/etc/friend.ld'
 
@@ -42,7 +42,7 @@ hakase_test_env = base_env.Clone(AR='tests/bin/ar',
                             CC='tests/bin/hakase-g++',
                             CXX='tests/bin/hakase-g++',
                             RANLIB='tests/bin/ranlib',
-                            ASFLAGS=hakase_flag, CXXFLAGS=hakase_flag, LINKFLAGS=hakase_flag + ' /usr/local/etc/hakase.ld', CPPPATH=hakase_include_path)
+                            ASFLAGS=hakase_flag, CXXFLAGS=hakase_flag, LINKFLAGS=hakase_flag, CPPPATH=hakase_include_path)
 friend_test_env = base_env.Clone(AR='tests/bin/ar',
                             AS='tests/bin/friend-g++',
                             CC='tests/bin/friend-g++',
