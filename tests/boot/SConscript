@@ -10,7 +10,7 @@ friend_test_env.Depends(friend, 'friend.ld')
 friend_obj = friend_test_env.Command('friend_bin.o', [friend],
     'bin/objcopy -I binary -O elf64-x86-64 -B i386:x86-64 --rename-section .data=friend_bin $SOURCES $TARGET')
 
-target = hakase_test_env.Program(target='#build/boot', source=[friend_obj, "hakase.cc"], LIBS=['hakase', 'common'])
+target = hakase_test_env.Program(target='#build/boot', source=[friend_obj, "../main.o", "hakase.cc"], LIBS=['hakase', 'common'])
 
 test_binary = hakase_test_env.GenerateTestAlias('boot', target)
 Return('test_binary')

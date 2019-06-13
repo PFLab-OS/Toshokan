@@ -97,6 +97,7 @@ def generate_test_program(env, name, hakase_source, friend_source):
   return test_binary
 
 hakase_test_env.AddMethod(generate_test_program, "TestProgram")
+hakase_test_env.Object('main.o', 'main.cc')
 
 Export('hakase_test_env friend_test_env')
 test_targets = list(SConscript(dirs=[
