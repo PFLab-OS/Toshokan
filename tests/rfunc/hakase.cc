@@ -93,10 +93,7 @@ int state;
 
 void func(int i, int j) { state = i - j; }
 
-void (*EXPORTED_SYMBOL(func))(int i, int j);
-ExportSymbolContainer export_symbol_func
-    __attribute__((section("export_symbol"))) = {
-        (void **)&EXPORTED_SYMBOL(func), (void *)&func};
+EXPORT_SYMBOL(func);
 
 int test_main() {
   extern uint8_t __start_friend_bin, __stop_friend_bin;
