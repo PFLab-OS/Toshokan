@@ -1,5 +1,5 @@
-#include <toshokan/offload.h>
 #include <toshokan/export.h>
+#include <toshokan/offload.h>
 #include "shared.h"
 
 int64_t SHARED_SYMBOL(sync_flag);

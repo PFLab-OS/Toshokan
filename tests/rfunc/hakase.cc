@@ -3,11 +3,11 @@
 #include <stdio.h>
 #include <string.h>
 #include <sys/mman.h>
+#include <toshokan/export.h>
 #include <toshokan/hakase/elf_loader.h>
 #include <toshokan/hakase/loader16.h>
 #include <toshokan/memory.h>
 #include <toshokan/offload.h>
-#include <toshokan/export.h>
 #include <unistd.h>
 #include <iostream>
 #include "shared.h"
@@ -91,12 +91,12 @@ void export_init() {
 
 int state;
 
-void func(int i, int j) {
-  state = i - j;
-}
+void func(int i, int j) { state = i - j; }
 
 void (*EXPORTED_SYMBOL(func))(int i, int j);
-ExportSymbolContainer export_symbol_func __attribute__((section("export_symbol"))) = {(void **)&EXPORTED_SYMBOL(func), (void *)&func};
+ExportSymbolContainer export_symbol_func
+    __attribute__((section("export_symbol"))) = {
+        (void **)&EXPORTED_SYMBOL(func), (void *)&func};
 
 int test_main() {
   extern uint8_t __start_friend_bin, __stop_friend_bin;
