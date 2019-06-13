@@ -13,8 +13,8 @@ HAKASE_CXXFLAGS := -g -O0 -Wall -Werror=unused-result --std=c++14 -static -fno-p
 
 DEFAULT: run
 
-friend.bin: shared.h friend_boot.S friend.cc
-	bin/friend-g++ friend_boot.S friend.cc $(FRIEND_CXXFLAGS) -o $@
+friend.bin: shared.h friend.cc
+	bin/friend-g++ friend.cc $(FRIEND_CXXFLAGS) -o $@
 
 friend_bin.o: friend.bin
 	bin/objcopy -I binary -O elf64-x86-64 -B i386:x86-64 --rename-section .data=friend_bin $^ $@

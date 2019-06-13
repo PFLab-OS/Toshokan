@@ -2,6 +2,6 @@
 # symbol resolution which enables friend to refer hakase symbols
 Import('hakase_test_env')
 
-test_binary = hakase_test_env.TestProgram('symbol', ["hakase.cc"], ['friend_boot.S', 'friend.cc'])
+test_binary = hakase_test_env.TestProgram('symbol', ["hakase.cc"], ['friend.cc'])
 
 Return('test_binary')

@@ -1,7 +1,21 @@
 #!python
 # extract an elf file
-Import('hakase_test_env')
+#test_binary = hakase_test_env.TestProgram('elf', ["hakase.cc"], ['friend_boot.S', 'friend.cc'])
+#
+#Return('test_binary')
 
-test_binary = hakase_test_env.TestProgram('elf', ["hakase.cc"], ['friend_boot.S', 'friend.cc'])
 
+Import('hakase_test_env friend_test_env')
+
+friend_linkflags = friend_test_env['LINKFLAGS'] + ' -T /usr/local/etc/friend.ld'
+friend = friend_test_env.Program(target='friend.bin', source=['friend_boot.S', 'friend.cc'], LINKFLAGS=friend_linkflags, LIBS=['friend'])
+
+friend_symbols = friend_test_env.Command('friend.sym', [friend], 'bin/objcopy --prefix-symbols=friendsymbol_ $SOURCES $TARGET')
+
+friend_obj = friend_test_env.Command('friend_bin.o', [friend],
+    'bin/objcopy -I binary -O elf64-x86-64 -B i386:x86-64 --rename-section .data=friend_bin $SOURCES $TARGET')
+
+target = hakase_test_env.Program(target='#build/elf', source=[friend_obj, "hakase.cc"], LIBS=['hakase', 'common'], LINKFLAGS=hakase_test_env['LINKFLAGS'] + ' -Wl,-R,' + friend_symbols[0].path)
+
+test_binary = hakase_test_env.GenerateTestAlias('elf', target)
 Return('test_binary')
