@@ -41,17 +41,6 @@ bool ElfLoader::Deploy() {
       }
       memset(reinterpret_cast<void *>(info->vaddr), 0, info->size);
     }
-    // info = shdr->GetInfoIfExec();
-    // if (info) {
-    //   // add EXEC flag
-    //   uint64_t addr = (info->vaddr / 4096) * 4096;
-    //   uint64_t size = ((info->size + 4096 - 1) / 4096) * 4096;
-    //   if (mprotect(reinterpret_cast<void *>(addr), size, PROT_READ) < 0) {
-    // 	printf("%lx %lx", addr, size);
-    // 	perror("Failed to mprotect()");
-    // 	return false;
-    //   }
-    // }
   }
 
   return true;
