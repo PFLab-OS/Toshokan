@@ -1,6 +1,6 @@
 #!python
 Import('friend_env')
 
-lib = friend_env.StaticLibrary('#.docker_tmp/lib/friend', ['friend_boot.S'])
+lib = friend_env.StaticLibrary('#.docker_tmp/lib/friend', ['boot.S'])
 
 Return('lib')
