@@ -21,7 +21,7 @@ int test_main() {
     offloader_tryreceive();
     asm volatile("pause" ::: "memory");
   }
-  return 0;
+  return 1;
 }
 
 int main(int argc, const char **argv) {

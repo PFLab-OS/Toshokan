@@ -33,19 +33,25 @@ class Offloader {
 
   int _state1 = 0;
   int _state2 = 0;
+  int _lock = 0;
 
  private:
 };
 
-#define OFFLOAD(c, code)                    \
-  do {                                      \
-    if (toshokan_setjmp((c)._buf1) == 0) {  \
-      (c)._state1 = 1;                      \
-      while ((c)._state2 == 0) {            \
-        asm volatile("pause" ::: "memory"); \
-      }                                     \
-      (c)._state2 = 0;                      \
-    } else {                                \
-      code toshokan_longjmp((c)._buf2, 1);  \
-    }                                       \
+#define OFFLOAD(c, code)                                      \
+  do {                                                        \
+    while ((c)._lock != 0 ||                                  \
+           !__sync_bool_compare_and_swap(&(c)._lock, 0, 1)) { \
+      asm volatile("pause" ::: "memory");                     \
+    }                                                         \
+    if (toshokan_setjmp((c)._buf1) == 0) {                    \
+      (c)._state1 = 1;                                        \
+      while ((c)._state2 == 0) {                              \
+        asm volatile("pause" ::: "memory");                   \
+      }                                                       \
+      (c)._state2 = 0;                                        \
+    } else {                                                  \
+      code toshokan_longjmp((c)._buf2, 1);                    \
+    }                                                         \
+    (c)._lock = 0;                                            \
   } while (0);
