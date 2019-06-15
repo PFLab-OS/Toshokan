@@ -42,7 +42,7 @@ class Offloader {
     if (toshokan_setjmp((c)._buf1) == 0) { \
       (c)._state1 = 1;                     \
       while ((c)._state2 == 0) {           \
-        asm volatile("" ::: "memory");     \
+        asm volatile("pause" ::: "memory");     \
       }                                    \
       (c)._state2 = 0;                     \
     } else {                               \

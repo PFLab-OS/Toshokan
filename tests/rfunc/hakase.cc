@@ -22,7 +22,7 @@ int test_main() {
 
   while (SHARED_SYMBOL(sync_flag) == 0) {
     offloader_tryreceive();
-    asm volatile("" ::: "memory");
+    asm volatile("pause" ::: "memory");
   }
 
   return (state == 1);

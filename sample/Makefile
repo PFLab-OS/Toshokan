@@ -4,7 +4,7 @@ endif
 
 CONTAINER_NETWORK := toshokan_net$(SIGNATURE)
 TOSHOKAN_CONTAINER := toshokan_qemu$(SIGNATURE)
-TAG_VERSION := v0.01
+TAG_VERSION := v0.02
 
 QEMU_OPTION := -cpu Haswell -s -d cpu_reset -no-reboot -smp 5 -m 4G -D /qemu.log -loadvm snapshot1 -hda /backing.qcow2 -net nic -net user,hostfwd=tcp::2222-:22 -serial telnet::4444,server,nowait -monitor telnet::4445,server,nowait -nographic
 

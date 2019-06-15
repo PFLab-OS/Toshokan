@@ -1,8 +1,15 @@
+#include <toshokan/friend/export.h>
+#include <toshokan/friend/offload.h>
 #include "shared.h"
 
+int (*EXPORTED_SYMBOL(printf))(const char *format, ...);
 int64_t SHARED_SYMBOL(sync_flag);
-Page SHARED_SYMBOL(pml4t);
-Page SHARED_SYMBOL(pdpt);
-Page SHARED_SYMBOL(pd);
 
-void friend_main() { __sync_fetch_and_add(&SHARED_SYMBOL(sync_flag), 1); }
+int cnt = 0;
+
+void friend_main() {
+  OFFLOAD_FUNC(printf, "<%d>\n", __sync_fetch_and_add(&cnt, 1));
+  OFFLOAD_FUNC(printf, "[%d]\n", __sync_fetch_and_add(&cnt, 1));
+
+  __sync_fetch_and_add(&SHARED_SYMBOL(sync_flag), 1);
+}

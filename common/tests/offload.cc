@@ -32,7 +32,7 @@ TEST_GROUP(Offload) {
     Container *c = reinterpret_cast<Container *>(arg);
     while (!c->stop) {
       c->offloader.TryReceive();
-      asm volatile("" ::: "memory");
+      asm volatile("pause" ::: "memory");
     }
     return NULL;
   }
