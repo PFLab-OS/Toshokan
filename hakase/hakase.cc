@@ -1,18 +1,18 @@
 #include <assert.h>
 #include <fcntl.h>
+#include <stddef.h>
+#include <stdint.h>
 #include <string.h>
 #include <sys/mman.h>
 #include <toshokan/export.h>
 #include <toshokan/hakase/elf_loader.h>
+#include <toshokan/hakase/hakase.h>
 #include <toshokan/hakase/loader16.h>
 #include <toshokan/memory.h>
 #include <toshokan/offload.h>
-#include <toshokan/hakase/hakase.h>
 #include <toshokan/symbol.h>
 #include <unistd.h>
 #include <iostream>
-#include <stddef.h>
-#include <stdint.h>
 
 struct Page {
   uint64_t entry[512];
@@ -139,7 +139,7 @@ int setup() {
 // max : maximum number of cores which will boot
 //       if it is 0 or < 0, no limits.
 int boot(int max) {
-  for (int i = 1; ; i++) {
+  for (int i = 1;; i++) {
     char buf[20];
     sprintf(buf, "/dev/friend_cpu%d", i);
     if (open(buf, O_RDONLY) < 0) {

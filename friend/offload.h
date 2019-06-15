@@ -3,5 +3,7 @@
 #include <toshokan/symbol.h>
 
 extern Offloader SHARED_SYMBOL(__toshokan_offloader);
-#define OFFLOAD_FUNC(func, ...) \
-  OFFLOAD(SHARED_SYMBOL(__toshokan_offloader), { EXPORTED_SYMBOL(func)(__VA_ARGS__); })
+#define OFFLOAD_FUNC(func, ...)                  \
+  OFFLOAD(SHARED_SYMBOL(__toshokan_offloader), { \
+    EXPORTED_SYMBOL(func)(__VA_ARGS__);          \
+  })
