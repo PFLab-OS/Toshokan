@@ -152,6 +152,6 @@ int boot(int max) {
 }
 
 void offloader_tryreceive() {
-  while(SHARED_SYMBOL(__toshokan_offloader).TryReceive()) {
+  while (SHARED_SYMBOL(__toshokan_offloader).TryReceive()) {
   }
 }

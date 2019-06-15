@@ -12,4 +12,3 @@ void friend_main() {
   OFFLOAD_FUNC(printf, "<%d>\n", i);
   __sync_fetch_and_add(&SHARED_SYMBOL(sync_flag), 1);
 }
-

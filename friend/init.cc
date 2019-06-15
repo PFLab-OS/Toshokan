@@ -4,8 +4,8 @@ void friend_main();
 
 extern void (*__init_array_start[])(void);
 extern void (*__init_array_end[])(void);
-//extern void (*__fini_array_start[])(void);
-//extern void (*__fini_array_end[])(void);
+// extern void (*__fini_array_start[])(void);
+// extern void (*__fini_array_end[])(void);
 
 Offloader SHARED_SYMBOL(__toshokan_offloader);
 
@@ -21,7 +21,8 @@ int init_count = 0;
 
 extern "C" void friend_init() {
   if (__sync_fetch_and_add(&init_count, 1) == 0) {
-    for (void (**ctor)() = __init_array_start; ctor < __init_array_end; ++ctor) {
+    for (void (**ctor)() = __init_array_start; ctor < __init_array_end;
+         ++ctor) {
       (**ctor)();
     }
   }
