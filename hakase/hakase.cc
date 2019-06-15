@@ -4,8 +4,8 @@
 #include <stdint.h>
 #include <string.h>
 #include <sys/mman.h>
-#include <toshokan/hakase/export.h>
 #include <toshokan/hakase/elf_loader.h>
+#include <toshokan/hakase/export.h>
 #include <toshokan/hakase/hakase.h>
 #include <toshokan/hakase/loader16.h>
 #include <toshokan/memory.h>
