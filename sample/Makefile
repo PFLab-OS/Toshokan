@@ -38,3 +38,6 @@ run: hakase.bin
 
 clean:
 	-rm -rf friend.bin friend_bin.o friend.sym hakase.bin
+
+monitor:
+	docker exec -it $(TOSHOKAN_CONTAINER) nc localhost 4445

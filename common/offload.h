@@ -18,9 +18,9 @@ int toshokan_longjmp(toshokan_jmp_buf env, int val);
 
 class Offloader {
  public:
-  void TryReceive() {
+  bool TryReceive() {
     if (_buf1[8] == 0) {
-      return;
+      return false;
     }
     _buf1[8] = 0;
     if (toshokan_setjmp(_buf2) == 0) {
@@ -28,6 +28,7 @@ class Offloader {
     } else {
       _buf1[9] = 1;
     }
+    return true;
   }
 
   toshokan_jmp_buf _buf1, _buf2;

@@ -15,11 +15,15 @@ int test_main() {
 
   SHARED_SYMBOL(sync_flag) = 0;
 
+  printf("starting up friend cores...");
+  fflush(stdout);
   int cpunum = boot(0);
+  printf("done\n");
+  fflush(stdout);
 
   while (SHARED_SYMBOL(sync_flag) != cpunum) {
     offloader_tryreceive();
-    asm volatile("pause" ::: "memory");
+    usleep(1000);
   }
   return 1;
 }
