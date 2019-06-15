@@ -4,15 +4,20 @@ from jinja2 import Environment, FileSystemLoader
 import yaml
 import subprocess
 env = Environment(loader=FileSystemLoader('./', encoding='utf8'))
-tpl = env.get_template('README.md.tpl')
-
-with open('settings.yml', encoding='utf_8') as stream:
-    data = yaml.load(stream, Loader=yaml.FullLoader)
-
-output = tpl.render(data)
 
 subprocess.call('rm -rf docs', shell=True)
-subprocess.call('mkdir -p docs', shell=True)
+subprocess.call('mkdir -p docs docs/paging', shell=True)
 
-with open('./docs/README.md', 'w', encoding='utf_8') as stream:
-    stream.write(output)
+def generate(ifile, ofile):
+    tpl = env.get_template(ifile)
+
+    with open('settings.yml', encoding='utf_8') as stream:
+        data = yaml.load(stream, Loader=yaml.FullLoader)
+
+    output = tpl.render(data)
+
+    with open(ofile, 'w', encoding='utf_8') as stream:
+        stream.write(output)
+
+generate('README.md.tpl', './docs/README.md')
+generate('paging/README.md.tpl', './docs/paging/README.md')

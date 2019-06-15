@@ -2,5 +2,8 @@
 base version: {{ version }}
 
 1. [Toshokanの使い方](./toshokan/)
-2. [ページング](./paging/)
-3. WIP
+1. [ページング](./paging/)
+1. WIP
+
+### 直近の更新
+6/15: トップページ作成
