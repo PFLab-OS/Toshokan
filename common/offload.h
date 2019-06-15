@@ -6,9 +6,10 @@
 extern "C" {
 #endif /* __cplusplus */
 
-typedef size_t toshokan_jmp_buf[8];
+typedef size_t toshokan_jmp_buf[10];
 
 int toshokan_setjmp(toshokan_jmp_buf env);
+int toshokan_setjmp_with_wait(toshokan_jmp_buf env);
 int toshokan_longjmp(toshokan_jmp_buf env, int val);
 
 #ifdef __cplusplus
@@ -18,14 +19,14 @@ int toshokan_longjmp(toshokan_jmp_buf env, int val);
 class Offloader {
  public:
   void TryReceive() {
-    if (_state1 == 0) {
+    if (_buf1[8] == 0) {
       return;
     }
-    _state1 = 0;
+    _buf1[8] = 0;
     if (toshokan_setjmp(_buf2) == 0) {
       toshokan_longjmp(_buf1, 1);
     } else {
-      _state2 = 1;
+      _buf1[9] = 1;
     }
   }
 
@@ -44,13 +45,7 @@ class Offloader {
            !__sync_bool_compare_and_swap(&(c)._lock, 0, 1)) { \
       asm volatile("pause" ::: "memory");                     \
     }                                                         \
-    if (toshokan_setjmp((c)._buf1) == 0) {                    \
-      (c)._state1 = 1;                                        \
-      while ((c)._state2 == 0) {                              \
-        asm volatile("pause" ::: "memory");                   \
-      }                                                       \
-      (c)._state2 = 0;                                        \
-    } else {                                                  \
+    if (toshokan_setjmp_with_wait((c)._buf1) != 0) {          \
       code toshokan_longjmp((c)._buf2, 1);                    \
     }                                                         \
     (c)._lock = 0;                                            \

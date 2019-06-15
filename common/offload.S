@@ -11,6 +11,7 @@
   
   .global toshokan_setjmp
   .global toshokan_longjmp
+  .global toshokan_setjmp_with_wait
   
 toshokan_setjmp: 
   movq    %rbx,  0 (%rdi)
@@ -23,6 +24,25 @@ toshokan_setjmp:
   movq    %rax, 48 (%rdi)
   movq    (%rsp), %rax
   movq    %rax, 56 (%rdi)
+  movq    $0, %rax
+  ret
+
+toshokan_setjmp_with_wait: 
+  movq    %rbx,  0 (%rdi)
+  movq    %rbp,  8 (%rdi)
+  movq    %r12, 16 (%rdi)
+  movq    %r13, 24 (%rdi)
+  movq    %r14, 32 (%rdi)
+  movq    %r15, 40 (%rdi)
+  leaq    8 (%rsp), %rax
+  movq    %rax, 48 (%rdi)
+  movq    (%rsp), %rax
+  movq    %rax, 56 (%rdi)
+  movq    $1,   64(%rdi)	
+1:
+  cmpq    $0,   72(%rdi)
+  je      1b
+  movq    $0,   72(%rdi)
   movq    $0, %rax
   ret
 
