@@ -137,6 +137,14 @@ SECTIONS
     KEEP (*(SORT(.dtors.*)))
     KEEP (*(.dtors))
   }
+
+  export_symbol :
+  {
+    PROVIDE_HIDDEN (__export_symbol_start = .);
+    KEEP (*(export_symbol))
+    PROVIDE_HIDDEN (__export_symbol_end = .);
+  }
+
   .jcr            : { KEEP (*(.jcr)) }
   .data.rel.ro : { *(.data.rel.ro.local* .gnu.linkonce.d.rel.ro.local.*) *(.data.rel.ro .data.rel.ro.* .gnu.linkonce.d.rel.ro.*) }
   .dynamic        : { *(.dynamic) }

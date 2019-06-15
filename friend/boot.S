@@ -42,7 +42,7 @@ entry32:
 
 .text
 .code64
-.extern friend_main
+.extern friend_init
 .extern friend_binary_end
 start:
 	// Now we use gdt_desc (64bit segmentation)
@@ -72,7 +72,7 @@ start:
 	cltq
 	addq %rbx, %rax
 	movq %rax, %rsp
-	call friend_main
+	call friend_init
 	
 stop:	
 	hlt

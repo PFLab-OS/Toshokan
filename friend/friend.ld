@@ -34,8 +34,20 @@ SECTIONS{
     *(.text*)
     *(.gnu.linkonce.t*)
   }
+  
+  .init_array : {
+    __init_array_start = .;
+    KEEP (*(.ctors))
+    __init_array_end = .;
+  }
 
-  .rodata : ALIGN(0x1000) {
+  .fini_array : {
+    __fini_array_start = .;
+    KEEP (*(.dtors))
+    __fini_array_end = .;
+  }
+
+  .rodata : {
     *(.rodata*)
     *(.gnu.linkonce.r*)
   }

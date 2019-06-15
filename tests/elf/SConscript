@@ -8,7 +8,7 @@
 Import('hakase_test_env friend_test_env')
 
 friend_linkflags = friend_test_env['LINKFLAGS'] + ' -T /usr/local/etc/friend.ld'
-friend = friend_test_env.Program(target='friend.bin', source=['friend_boot.S', 'friend.cc'], LINKFLAGS=friend_linkflags, LIBS=['friend'])
+friend = friend_test_env.Program(target='friend.bin', source=['friend_boot.S', 'friend.cc'], LINKFLAGS=friend_linkflags)
 
 friend_symbols = friend_test_env.Command('friend.sym', [friend], 'bin/objcopy --prefix-symbols=friendsymbol_ $SOURCES $TARGET')
 

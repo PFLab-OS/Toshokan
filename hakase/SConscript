@@ -5,6 +5,6 @@ friend16 = friend_env.Program(target='friend16.bin', source=['friend_boot16.S'],
 friend_env.Depends(friend16, 'friend16.ld')
 friend_obj16 = friend_env.Command('friend16_bin.o', [friend16], 'bin/objcopy -I binary -O elf64-x86-64 -B i386:x86-64 $SOURCES $TARGET')
 
-lib = hakase_env.StaticLibrary('#.docker_tmp/lib/hakase', ['loader16.cc', 'elf_loader.cc', friend_obj16])
+lib = hakase_env.StaticLibrary('#.docker_tmp/lib/hakase', ['hakase.cc', 'loader16.cc', 'elf_loader.cc', friend_obj16])
 
 Return('lib')
