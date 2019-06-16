@@ -1,14 +1,24 @@
 #! /usr/bin/env python3
 # -*- coding: utf-8 -*-
+
+# INFO: You can preview the documents by running 'grip' inside of 'docs' directory.
+
 from jinja2 import Environment, FileSystemLoader
 import yaml
 import subprocess
 env = Environment(loader=FileSystemLoader('./', encoding='utf8'))
 
 subprocess.call('rm -rf docs', shell=True)
-subprocess.call('mkdir -p docs docs/toshokan docs/paging', shell=True)
+subprocess.call('mkdir -p docs docs/toshokan docs/paging docs/toshokan/architecture docs/toshokan/symbol_resolution docs/toshokan/function_offloading', shell=True)
 
-def generate(ifile, ofile):
+def copy_code(dirname):
+    subprocess.call('cp -r code_template/* docs/{0}/'.format(dirname), shell=True)
+    subprocess.call('cp -r {0}/*.{{cc,h}}  docs/{0}/'.format(dirname), shell=True)
+
+copy_code('toshokan/symbol_resolution')
+copy_code('toshokan/function_offloading')
+
+def generate_sub(ifile, ofile):
     tpl = env.get_template(ifile)
 
     with open('settings.yml', encoding='utf_8') as stream:
@@ -19,6 +29,12 @@ def generate(ifile, ofile):
     with open(ofile, 'w', encoding='utf_8') as stream:
         stream.write(output)
 
-generate('README.md.tpl', './docs/README.md')
-generate('paging/README.md.tpl', './docs/paging/README.md')
-generate('toshokan/README.md.tpl', './docs/toshokan/README.md')
+def generate(dirname):
+    generate_sub('{0}/README.md.tpl'.format(dirname), './docs/{0}/README.md'.format(dirname))
+
+generate('.')
+generate('paging')
+generate('toshokan')
+generate('toshokan/architecture')
+generate('toshokan/symbol_resolution')
+generate('toshokan/function_offloading')
