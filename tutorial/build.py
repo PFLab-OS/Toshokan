@@ -6,7 +6,7 @@ import subprocess
 env = Environment(loader=FileSystemLoader('./', encoding='utf8'))
 
 subprocess.call('rm -rf docs', shell=True)
-subprocess.call('mkdir -p docs docs/paging', shell=True)
+subprocess.call('mkdir -p docs docs/toshokan docs/paging', shell=True)
 
 def generate(ifile, ofile):
     tpl = env.get_template(ifile)
@@ -21,3 +21,4 @@ def generate(ifile, ofile):
 
 generate('README.md.tpl', './docs/README.md')
 generate('paging/README.md.tpl', './docs/paging/README.md')
+generate('toshokan/README.md.tpl', './docs/toshokan/README.md')
