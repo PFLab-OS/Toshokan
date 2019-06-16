@@ -1,0 +1,9 @@
+Host toshokan_qemu
+  User hakase
+  Port 2222
+  IdentityFile ~/.ssh/id_rsa
+  ConnectTimeout 3
+  LogLevel quiet
+  StrictHostKeyChecking no
+  GlobalKnownHostsFile /dev/null
+  UserKnownHostsFile /dev/null

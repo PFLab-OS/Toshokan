@@ -63,18 +63,19 @@ Thumbs.db
 # Office specific
 ~$*
 *.tmp
-# Vagrant specific
-.vagrant/
 
 # Project files
 *.bin
 *.elf
-bin/
+*.sym
 build/
 .docker/
 .circleci/
 .sconsign.dblite
 hakase/tests/simple_loader/raw
+common/tests/cpputest
+FriendLoader/friend_loader.ko
+.docker_tmp/
 
 # Kernel Module Compile Results
 *.mod*

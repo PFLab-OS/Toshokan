@@ -1,0 +1,4 @@
+#!/bin/sh
+while ! sh -c "rsync --list-only $1: > /dev/null 2>&1" ; do
+    sleep 1;
+done

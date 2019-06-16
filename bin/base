@@ -1,0 +1,5 @@
+#!/bin/sh
+BINNAME=$1
+shift
+CMD="docker run -i --rm -v ${PWD}:${PWD} -w ${PWD} livadk/toshokan_build_intermediate ${BINNAME} $*"
+${CMD}

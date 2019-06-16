@@ -1,0 +1,7 @@
+#!python
+# symbol resolution which enables friend to refer hakase symbols
+Import('hakase_test_env')
+
+test_binary = hakase_test_env.TestProgram('symbol', ["../main.o", "hakase.cc"], ['friend.cc'])
+
+Return('test_binary')

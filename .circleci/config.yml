@@ -1,18 +1,48 @@
 version: 2
+workflows:
+  version: 2
+  build_and_test:
+    jobs:
+      - build_python2
+      - build_python3
+  nightly_workflow:
+    triggers:
+      - schedule:
+          cron: "0 1 * * *" # UTC
+          filters:
+            branches:
+              only:
+                - master
+    jobs:
+      - build_python2
+      - build_python3
 jobs:
-  build:
-    docker:
-      - image: docker:18.03.0-ce-git
+  build_python2:
+    machine: true
     steps:
       - checkout
-      - setup_remote_docker
       - run:
           command: |
-            apk --update add python py-pip make bash
+            sudo apt install -y python python-pip make bash
             pip install scons
       - run:
           command: |
             scons CI=1 format
       - run:
           command: |
-            scons CI=1 test
+            scons test -j3
+  build_python3:
+    machine: true
+    steps:
+      - checkout
+      - run:
+          command: |
+            sudo apt install -y python3 python3-pip make bash
+            pip install scons
+      - run:
+          command: |
+            scons CI=1 format
+      - run:
+          command: |
+            scons test -j3
+#TODO: should be refactored using YAML anchor & alias

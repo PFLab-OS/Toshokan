@@ -1,0 +1,7 @@
+#!python
+# c code
+Import('hakase_test_env')
+
+test_binary = hakase_test_env.TestProgram('clang', ["../main.o", "hakase.cc"], ['friend.cc'])
+
+Return('test_binary')

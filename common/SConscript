@@ -1,0 +1,6 @@
+#!python
+Import('friend_env')
+
+common = friend_env.StaticLibrary('#.docker_tmp/lib/common', ['offload.S'])
+
+Return('common')

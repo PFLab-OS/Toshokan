@@ -1,0 +1,6 @@
+#!python
+Import('friend_env')
+
+lib = friend_env.StaticLibrary('#.docker_tmp/lib/friend', ['boot.S', 'init.cc'])
+
+Return('lib')
