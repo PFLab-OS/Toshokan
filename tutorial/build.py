@@ -13,7 +13,7 @@ subprocess.call('mkdir -p docs docs/toshokan docs/paging docs/toshokan/architect
 
 def copy_code(dirname):
     subprocess.call('rsync -av code_template/* docs/{0}/'.format(dirname), shell=True)
-    subprocess.call('rsync -av {0}/*.{{cc,h}}  docs/{0}/'.format(dirname), shell=True)
+    subprocess.call('rsync -av {0}/*.{{cc,h}}  docs/{0}/'.format(dirname), shell=True, executable='/bin/bash')
 
 copy_code('toshokan/symbol_resolution')
 copy_code('toshokan/function_offloading')
