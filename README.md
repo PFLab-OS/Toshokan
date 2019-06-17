@@ -15,3 +15,6 @@ $ git clone https://github.com/PFLab-OS/Toshokan.git
 $ cd Toshokan
 $ scons -j12
 ```
+
+## How To Use (in Japanese)
+[here](tutorial/docs/toshokan/)
