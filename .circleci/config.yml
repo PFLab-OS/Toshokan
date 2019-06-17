@@ -5,6 +5,7 @@ workflows:
     jobs:
       - build_python2
       - build_python3
+      - doccheck
   nightly_workflow:
     triggers:
       - schedule:
@@ -16,6 +17,7 @@ workflows:
     jobs:
       - build_python2
       - build_python3
+      - doccheck
 jobs:
   build_python2:
     machine: true
@@ -45,4 +47,15 @@ jobs:
       - run:
           command: |
             scons test -j3
+  doccheck:
+    machine: true
+    steps:
+      - checkout
+      - run:
+          command: |
+            sudo apt install -y python3 python3-pip make bash rsync git
+            pip install scons jinja2 pyyaml
+      - run:
+          command: |
+            scons doccheck
 #TODO: should be refactored using YAML anchor & alias
