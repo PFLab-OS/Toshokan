@@ -1,5 +1,5 @@
 void friend_main() {
-  while(true) {
+  while (true) {
     asm volatile("hlt;");
   }
 }

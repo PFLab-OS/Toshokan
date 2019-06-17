@@ -16,7 +16,7 @@ int test_main() {
 
   while (SHARED_SYMBOL(variable) != 2) {
     usleep(1000);
-    asm volatile ("":::"memory");
+    asm volatile("" ::: "memory");
   }
   return 1;
 }
