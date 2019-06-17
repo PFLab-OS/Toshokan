@@ -13,7 +13,7 @@ int test_main() {
     return r;
   }
 
-  int cpunum = boot(1);
+  boot(1);
 
   while (SHARED_SYMBOL(sync_flag) != 1) {
     offloader_tryreceive();

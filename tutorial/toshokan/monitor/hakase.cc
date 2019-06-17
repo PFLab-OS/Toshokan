@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <toshokan/hakase/hakase.h>
 #include <unistd.h>
-#include "shared.h"
 
 int test_main() {
   int r;
@@ -10,13 +9,10 @@ int test_main() {
     return r;
   }
 
-  SHARED_SYMBOL(variable) = 1;
+  boot(0);
 
-  boot(1);
-
-  while (SHARED_SYMBOL(variable) != 2) {
-    usleep(1000);
-    asm volatile ("":::"memory");
+  while (true) {
+    usleep(1000 * 1000);
   }
   return 1;
 }
