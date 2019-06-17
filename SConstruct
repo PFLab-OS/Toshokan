@@ -136,6 +136,10 @@ AlwaysBuild(env.Alias('format', [],
     docker_format_cmd('sh -c "git ls-files . | grep -E \'.*\\.cc$$|.*\\.h$$\' | xargs -n 1 clang-format -i -style=\'{{BasedOnStyle: Google}}\' {0}"'.format('&& git diff && git diff | wc -l | xargs test 0 -eq' if ci else '')),
     'echo "Done."']))
 
+AlwaysBuild(env.Alias('doccheck', [], 
+    ['cd tutorial; ./build.py',
+     'git diff && git diff | wc -l | xargs test 0 -eq']))
+
 # common tests
 AlwaysBuild(env.Alias('common_test', [containers["build_intermediate"], 'common/tests/cpputest'], env.GenerateDockerCommand('livadk/toshokan_build_intermediate', './common/tests/cpputest -c -v')))
 
