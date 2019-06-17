@@ -25,7 +25,9 @@ jobs:
       - checkout
       - run:
           command: |
-            sudo apt install -y python python-pip make bash
+            sudo apt install -y make bash
+            pyenv install -s 2.7.12
+            pyenv global 2.7.12
             pip install scons
       - run:
           command: |
@@ -39,7 +41,9 @@ jobs:
       - checkout
       - run:
           command: |
-            sudo apt install -y python3 python3-pip make bash
+            sudo apt install -y make bash
+            pyenv install -s 3.5.2
+            pyenv global 3.5.2
             pip install scons
       - run:
           command: |
@@ -53,7 +57,9 @@ jobs:
       - checkout
       - run:
           command: |
-            sudo apt install -y python3 python3-pip make bash rsync git
+            sudo apt install -y make bash rsync git
+            pyenv install -s 3.5.2
+            pyenv global 3.5.2
             pip install scons jinja2 pyyaml
       - run:
           command: |

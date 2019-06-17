@@ -126,7 +126,8 @@ env.BuildContainer('qemu', 'alpine:3.8', [containers["qemu_intermediate"]])
 AlwaysBuild(env.Alias('circleci', [], 
     ['circleci config validate',
     'circleci build --job build_python2',
-    'circleci build --job build_python3']))
+    'circleci build --job build_python3',
+    'circleci build --job doccheck']))
 
 # format
 def docker_format_cmd(arg):
