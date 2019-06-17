@@ -14,5 +14,5 @@ base version: v0.02
 Work in progress...
 
 ### 直近の更新
-6/16: Toshokanの使い方の章を作成
-6/15: トップページ作成
+- 6/16: Toshokanの使い方の章を作成
+- 6/15: トップページ作成
