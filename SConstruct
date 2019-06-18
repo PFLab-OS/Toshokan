@@ -44,7 +44,7 @@ env.BuildContainer('build_intermediate', 'alpine:3.8', [])
 env.BuildContainer('qemu_kernel', 'ubuntu:16.04', [])
 env.BuildContainer('gdb', 'alpine:3.8', [])
 env.BuildContainer('ssh_intermediate', 'alpine:3.8', ['docker/config', 'docker/id_rsa'])
-env.BuildContainer('ssh', 'livadk/toshokan_ssh_intermediate', ['docker/wait-for', 'docker/wait-for-rsync'])
+env.BuildContainer('ssh', 'livadk/toshokan_ssh_intermediate', [containers["ssh_intermediate"], 'docker/wait-for', 'docker/wait-for-rsync'])
 env.BuildContainer('qemu_kernel_image', 'ubuntu:16.04', [])
 env.BuildContainer('rootfs', 'alpine:3.8', [containers["qemu_kernel_image"]])
 
