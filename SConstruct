@@ -114,11 +114,14 @@ SConscript(dirs=['common/tests'])
 ###############################################################################
 AlwaysBuild(env.Command('FriendLoader/friend_loader.ko', [containers["qemu_kernel"], Glob('FriendLoader/*.h'), Glob('FriendLoader/*.c'), FriendLoader_headers], env.GenerateDockerCommand('livadk/toshokan_qemu_kernel', 'sh -c "cd FriendLoader; KERN_VER=4.13.0-45-generic make all"')))
 
-AlwaysBuild(env.Command('FriendLoader_local/friend_loader.ko', [Glob('FriendLoader/*.h'), Glob('FriendLoader/*.c'), FriendLoader_headers], [
+local_friendLoader = AlwaysBuild(env.Command('FriendLoader_local/friend_loader.ko', [Glob('FriendLoader/*.h'), Glob('FriendLoader/*.c'), FriendLoader_headers], [
   'rm -rf FriendLoader_local',
   'cp -r FriendLoader FriendLoader_local',
   'sh -c "cd FriendLoader_local; make all"',
 ]))
+
+AlwaysBuild(env.Alias('insmod', [local_friendLoader], 
+    ['sudo insmod FriendLoader_local/friend_loader.ko']))
 
 env.BuildContainer('qemu_intermediate', 'livadk/toshokan_ssh', [
   containers["ssh_intermediate"],
