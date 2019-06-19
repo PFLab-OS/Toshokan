@@ -4,7 +4,7 @@ endif
 
 CONTAINER_NETWORK := toshokan_net$(SIGNATURE)
 TOSHOKAN_CONTAINER := toshokan_qemu$(SIGNATURE)
-TAG_VERSION := v0.02
+TAG_VERSION := v0.03a
 
 # if HOST is not defined, run on docker container
 ifndef HOST

@@ -3,8 +3,8 @@
 #include <linux/sysfs.h>
 
 #include "version.h"
+#include <toshokan/version.h>
 
-static const char version_string[] = "v0.03";
 static struct kobject *call_sysfs_kobj;
 
 static ssize_t call_read(struct file *fp, struct kobject *kobj, struct bin_attribute *bin_attr, char *buf, loff_t off, size_t count) {

@@ -11,6 +11,7 @@
 #include <toshokan/memory.h>
 #include <toshokan/offload.h>
 #include <toshokan/symbol.h>
+#include <toshokan/version.h>
 #include <unistd.h>
 #include <iostream>
 
@@ -38,6 +39,24 @@ static int check_bootparam() {
   }
 
   fclose(cmdline_fp);
+
+  return 0;
+}
+
+static int check_version() {
+  FILE *version_fp = fopen("/sys/module/friend_loader/info/version", "r");
+  if (!version_fp) {
+    perror("failed to open `version`");
+    return -1;
+  }
+
+  char buf[256];
+  buf[fread(buf, 1, 255, version_fp)] = '\0';
+  if (!strstr(buf, version_string)) {
+    std::cerr << "error: version mismatched" << std::endl;
+    return -1;
+  }
+  fclose(version_fp);
 
   return 0;
 }
@@ -100,6 +119,7 @@ static void export_init() {
   }
 }
 
+// @return: if success, return 0. if not, return minus value.
 int setup() {
   extern uint8_t __start_friend_bin, __stop_friend_bin;
   size_t friend_bin_size =
@@ -107,6 +127,10 @@ int setup() {
 
   Loader16 loader16;
   ElfLoader elfloader(&__start_friend_bin, friend_bin_size);
+
+  if (check_version() < 0) {
+    return -1;
+  }
 
   if (check_bootparam() < 0) {
     return -1;

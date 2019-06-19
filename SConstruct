@@ -14,6 +14,8 @@ def gen_docker_cmd(env, container, arg):
   return 'docker run -i --rm -v {0}:{0} -w {0} {1} {2}'.format(curdir, container, arg)
 base_env.AddMethod(gen_docker_cmd, "GenerateDockerCommand")
 
+tag_version = "v0.03a"
+
 curdir = Dir('.').abspath
 ci = True if int(ARGUMENTS.get('CI', 0)) == 1 else False
 
@@ -170,14 +172,14 @@ AlwaysBuild(env.Alias('doc', '', 'find . \( -name \*.cc -or -name \*.c -or -name
 def tag_container(name):
   container_name = 'livadk/toshokan_' + name
   return AlwaysBuild(env.Alias('tag_' + name, ['test', containers[name]], [
-    'docker tag {0} {0}:v0.02'.format(container_name),
+    'docker tag {0} {0}:{1}'.format(container_name, tag_version),
   ]))
 
 def push_container(name):
   container_name = 'livadk/toshokan_' + name
   return AlwaysBuild(env.Alias('push_' + name, ['test', 'tag_' + name], [
     'docker push {0}'.format(container_name),
-    'docker push {0}:v0.02'.format(container_name),
+    'docker push {0}:{1}'.format(container_name, tag_version),
   ]))
 
 output_containers = ['qemu', 'build_hakase', 'build_friend', 'ssh']
