@@ -123,6 +123,9 @@ local_friendLoader = AlwaysBuild(env.Command('FriendLoader_local/friend_loader.k
 AlwaysBuild(env.Alias('insmod', [local_friendLoader], 
     ['sudo insmod FriendLoader_local/friend_loader.ko']))
 
+AlwaysBuild(env.Alias('rmmod', [local_friendLoader], 
+    ['sudo rmmod friend_loader.ko']))
+
 env.BuildContainer('qemu_intermediate', 'livadk/toshokan_ssh', [
   containers["ssh_intermediate"],
   containers["qemu_kernel_image"],
