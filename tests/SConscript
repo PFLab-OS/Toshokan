@@ -101,6 +101,7 @@ hakase_test_env.Object('main.o', 'main.cc')
 
 Export('hakase_test_env friend_test_env')
 test_targets = list(SConscript(dirs=[
+  'version',
   'elf',
   'clang',
   'symbol',

@@ -1,0 +1,16 @@
+#!python
+# extract an elf file
+
+Import('hakase_test_env friend_test_env')
+
+# we need empty binary
+friend = friend_test_env.Command('friend.bin', [], [
+    'echo hoge > $TARGET'])
+
+friend_obj = friend_test_env.Command('friend_bin.o', [friend], [
+    'bin/objcopy -I binary -O elf64-x86-64 -B i386:x86-64 --rename-section .data=friend_bin $SOURCES $TARGET'])
+
+target = hakase_test_env.Program(target='#build/version', source=[friend_obj, "../main.o", "hakase.cc"], LIBS=['hakase', 'common'])
+
+test_binary = hakase_test_env.GenerateTestAlias('version', target)
+Return('test_binary')
