@@ -12,8 +12,8 @@ subprocess.call('rm -rf docs', shell=True)
 subprocess.call('mkdir -p docs docs/toshokan docs/paging docs/toshokan/architecture docs/toshokan/symbol_resolution docs/toshokan/function_offloading docs/toshokan/makefile docs/toshokan/monitor docs/toshokan/q_and_a', shell=True)
 
 def copy_code(dirname):
-    subprocess.call('rsync -av code_template/* docs/{0}/'.format(dirname), shell=True)
-    subprocess.call('rsync -av {0}/*.{{cc,h}}  docs/{0}/'.format(dirname), shell=True)
+    subprocess.call('rsync -avq code_template/* docs/{0}/'.format(dirname), shell=True)
+    subprocess.call('rsync -avq {0}/*.{{cc,h}}  docs/{0}/'.format(dirname), shell=True, executable='/bin/bash')
 
 copy_code('toshokan/symbol_resolution')
 copy_code('toshokan/function_offloading')
@@ -30,7 +30,7 @@ def generate(dirname):
     with open('./docs/{0}/README.md'.format(dirname), 'w', encoding='utf_8') as stream:
         stream.write(output)
     
-    subprocess.call('ls {0}/*.svg >/dev/null 2>&1; if [ $? -eq 0 ]; then rsync -av {0}/*.svg docs/{0}/; fi'.format(dirname), shell=True)
+    subprocess.call('ls {0}/*.svg >/dev/null 2>&1; if [ $? -eq 0 ]; then rsync -avq {0}/*.svg docs/{0}/; fi'.format(dirname), shell=True)
 
 generate('.')
 generate('paging')

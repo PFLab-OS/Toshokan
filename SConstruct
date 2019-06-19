@@ -43,7 +43,8 @@ env.BuildContainer('build_intermediate', 'alpine:3.8', [])
 
 env.BuildContainer('qemu_kernel', 'ubuntu:16.04', [])
 env.BuildContainer('gdb', 'alpine:3.8', [])
-env.BuildContainer('ssh', 'alpine:3.8', ['docker/config', 'docker/id_rsa', 'docker/wait-for'])
+env.BuildContainer('ssh_intermediate', 'alpine:3.8', ['docker/config', 'docker/id_rsa'])
+env.BuildContainer('ssh', 'livadk/toshokan_ssh_intermediate', [containers["ssh_intermediate"], 'docker/wait-for', 'docker/wait-for-rsync'])
 env.BuildContainer('qemu_kernel_image', 'ubuntu:16.04', [])
 env.BuildContainer('rootfs', 'alpine:3.8', [containers["qemu_kernel_image"]])
 
@@ -114,7 +115,7 @@ SConscript(dirs=['common/tests'])
 AlwaysBuild(env.Command('FriendLoader/friend_loader.ko', [containers["qemu_kernel"], Glob('FriendLoader/*.h'), Glob('FriendLoader/*.c')], env.GenerateDockerCommand('livadk/toshokan_qemu_kernel', 'sh -c "cd FriendLoader; KERN_VER=4.13.0-45-generic make all"')))
 
 env.BuildContainer('qemu_intermediate', 'livadk/toshokan_ssh', [
-  containers["ssh"],
+  containers["ssh_intermediate"],
   containers["qemu_kernel_image"],
   containers["rootfs"],
   env.Command(".docker_tmp/friend_loader.ko", "FriendLoader/friend_loader.ko", Copy("$TARGET", "$SOURCE"))
@@ -126,7 +127,8 @@ env.BuildContainer('qemu', 'alpine:3.8', [containers["qemu_intermediate"]])
 AlwaysBuild(env.Alias('circleci', [], 
     ['circleci config validate',
     'circleci build --job build_python2',
-    'circleci build --job build_python3']))
+    'circleci build --job build_python3',
+    'circleci build --job doccheck']))
 
 # format
 def docker_format_cmd(arg):
@@ -135,6 +137,10 @@ AlwaysBuild(env.Alias('format', [],
     ['echo "Formatting with clang-format. Please wait..."',
     docker_format_cmd('sh -c "git ls-files . | grep -E \'.*\\.cc$$|.*\\.h$$\' | xargs -n 1 clang-format -i -style=\'{{BasedOnStyle: Google}}\' {0}"'.format('&& git diff && git diff | wc -l | xargs test 0 -eq' if ci else '')),
     'echo "Done."']))
+
+AlwaysBuild(env.Alias('doccheck', [], 
+    ['cd tutorial; ./build.py',
+     'git diff && git diff | wc -l | xargs test 0 -eq']))
 
 # common tests
 AlwaysBuild(env.Alias('common_test', [containers["build_intermediate"], 'common/tests/cpputest'], env.GenerateDockerCommand('livadk/toshokan_build_intermediate', './common/tests/cpputest -c -v')))
@@ -149,20 +155,24 @@ Default(test)
 AlwaysBuild(env.Alias('doc', '', 'find . \( -name \*.cc -or -name \*.c -or -name \*.h -or -name \*.S \) | xargs cat | awk \'/DOC START/,/DOC END/\' | grep -v "DOC START" | grep -v "DOC END" | grep -E --color=always "$|#.*$"'))
 
 # push containers
+def tag_container(name):
+  container_name = 'livadk/toshokan_' + name
+  return AlwaysBuild(env.Alias('tag_' + name, ['test', containers[name]], [
+    'docker tag {0} {0}:v0.02'.format(container_name),
+  ]))
+
 def push_container(name):
   container_name = 'livadk/toshokan_' + name
-  return AlwaysBuild(env.Alias('push_' + name, 'test', [
-    'docker tag {0} {0}:v0.02'.format(container_name),
+  return AlwaysBuild(env.Alias('push_' + name, ['test', 'tag_' + name], [
     'docker push {0}'.format(container_name),
     'docker push {0}:v0.02'.format(container_name),
   ]))
 
-AlwaysBuild(env.Alias('push', [
-    push_container('qemu'),
-    push_container('build_hakase'),
-    push_container('build_friend'),
-    push_container('ssh'),
-  ], []))
+output_containers = ['qemu', 'build_hakase', 'build_friend', 'ssh']
+
+AlwaysBuild(env.Alias('tag', list(map(tag_container, output_containers)), []))
+
+AlwaysBuild(env.Alias('push', list(map(push_container, output_containers)), []))
 
 ###############################################################################
 # support functions
