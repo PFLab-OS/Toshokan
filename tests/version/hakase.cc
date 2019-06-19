@@ -1,5 +1,5 @@
-#include <stdio.h>
 #include <fcntl.h>
+#include <stdio.h>
 #include <string.h>
 #include <iostream>
 
@@ -13,8 +13,7 @@ int test_main() {
   char buf[256];
   buf[fread(buf, 1, 255, version_fp)] = '\0';
   if (!strstr(buf, "v0.03")) {
-    std::cerr << "error: version mismatched"
-              << std::endl;
+    std::cerr << "error: version mismatched" << std::endl;
     return 0;
   }
   fclose(version_fp);
