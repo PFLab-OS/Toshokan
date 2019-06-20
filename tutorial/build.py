@@ -8,8 +8,10 @@ import yaml
 import subprocess
 env = Environment(loader=FileSystemLoader('./', encoding='utf8'))
 
+dirs = ['.', 'paging', 'toshokan', 'toshokan/architecture', 'toshokan/symbol_resolution', 'toshokan/function_offloading', 'toshokan/makefile', 'toshokan/monitor', 'toshokan/physical_machine', 'toshokan/q_and_a']
+
 subprocess.call('rm -rf docs', shell=True)
-subprocess.call('mkdir -p docs docs/toshokan docs/paging docs/toshokan/architecture docs/toshokan/symbol_resolution docs/toshokan/function_offloading docs/toshokan/makefile docs/toshokan/monitor docs/toshokan/q_and_a', shell=True)
+subprocess.call('mkdir -p ' + ' '.join(list(map(lambda s: "docs/" + s, dirs))), shell=True)
 
 def copy_code(dirname):
     subprocess.call('rsync -avq code_template/* docs/{0}/'.format(dirname), shell=True)
@@ -32,12 +34,5 @@ def generate(dirname):
     
     subprocess.call('ls {0}/*.svg >/dev/null 2>&1; if [ $? -eq 0 ]; then rsync -avq {0}/*.svg docs/{0}/; fi'.format(dirname), shell=True)
 
-generate('.')
-generate('paging')
-generate('toshokan')
-generate('toshokan/architecture')
-generate('toshokan/symbol_resolution')
-generate('toshokan/function_offloading')
-generate('toshokan/makefile')
-generate('toshokan/monitor')
-generate('toshokan/q_and_a')
+for d in dirs:
+    generate(d)
