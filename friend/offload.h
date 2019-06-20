@@ -1,4 +1,5 @@
 #pragma once
+#include <toshokan/friend/export.h>
 #include <toshokan/offload.h>
 #include <toshokan/symbol.h>
 
