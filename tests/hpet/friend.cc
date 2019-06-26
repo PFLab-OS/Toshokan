@@ -6,8 +6,7 @@ int64_t SHARED_SYMBOL(sync_flag);
 void (*EXPORTED_SYMBOL(func))(int i, int j);
 int (*EXPORTED_SYMBOL(printf))(const char *format, ...);
 
-void friend_main()
-{
+void friend_main() {
   OFFLOAD_FUNC(func, 11, 10);
   uint64_t xxx = *((uint64_t *)0xfed00000);
   OFFLOAD_FUNC(printf, "<%lx>\n", xxx);
