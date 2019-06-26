@@ -1,6 +1,7 @@
 #!python
 import random
 import string
+import os
 Import('base_env containers')
 
 hakase_flag = '-g -O0 -Wall -Werror=unused-result --std=c++14 -static -fno-pie -no-pie -D__HAKASE__ -T /usr/local/etc/hakase.ld'
@@ -83,7 +84,8 @@ def generate_test_alias(env, name, depends):
     'docker rm -f toshokan_qemu_{0}'.format(random_str)]))
 hakase_test_env.AddMethod(generate_test_alias, "GenerateTestAlias")
 
-def generate_test_program(env, name, hakase_source, friend_source):
+def generate_test_program(env, hakase_source, friend_source):
+  name = os.path.basename(env.Dir('.').abspath)
   friend = friend_test_elf_env.Program(target='friend.bin', source=friend_source, LIBS=['friend', 'common'])
   friend_obj = friend_test_elf_env.Command('friend_bin.o', [friend],
       'bin/objcopy -I binary -O elf64-x86-64 -B i386:x86-64 --rename-section .data=friend_bin $SOURCES $TARGET')
