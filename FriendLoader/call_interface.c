@@ -48,11 +48,6 @@ static int memdevice_mmap(struct file *file, struct vm_area_struct *vma) {
     return -EINVAL;
   }
 
-#ifdef ARCH_HAS_VALID_PHYS_ADDR_RANGE
-  if (!valid_mmap_phys_addr_range(vma->vm_pgoff, size))
-    return -EINVAL;
-#endif
-  
   vma->vm_ops = &mmap_vm_ops;
 
   /* Remap-pfn-range will mark the range VM_IO */
