@@ -65,13 +65,13 @@ void friend_main() {
   OFFLOAD_FUNC(printf, "timer %d will be used.\n", i);
 
   uint64_t *main_counter_value_reg = (uint64_t *)(0xfed00000UL + 0xf0);
-  uint64_t limit = *main_counter_value_reg + counter_clk_num_per_ms;
+  uint64_t limit =
+      *main_counter_value_reg + counter_clk_num_per_ms;  // 1msec later
 
   *((uint64_t *)(0xfed00000UL + 0x108 + i * 0x20)) = limit;  // counter value
   *((uint64_t *)(0xfed00000UL + 0x110 + i * 0x20)) =
-      vector | ((0xfee00000UL /* reserved */ | (1 << 12) /* destination */)
+      vector | ((0xfee00000UL /* always needed */ | (1 << 12) /* destination */)
                 << 32);  // fsb data & address
-  asm volatile("sti");
   *((uint64_t *)(0xfed00000UL + 0x100 + i * 0x20)) =
       (1 << 14) | (1 << 2);  // Tn_FSB_EN_CNF | Tn_INT_ENB_CNF
 
