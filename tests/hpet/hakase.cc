@@ -6,8 +6,7 @@
 
 EXPORT_SYMBOL(printf);
 
-struct Page
-{
+struct Page {
   uint64_t entry[512];
 } __attribute__((aligned(4096)));
 
@@ -15,12 +14,10 @@ extern Page SHARED_SYMBOL(pml4t);
 extern Page SHARED_SYMBOL(pdpt);
 extern Page SHARED_SYMBOL(pd);
 
-int test_main()
-{
+int test_main() {
   int r;
   r = setup();
-  if (r != 0)
-  {
+  if (r != 0) {
     return r;
   }
 
@@ -33,11 +30,9 @@ int test_main()
 
   boot(1);
 
-  while (SHARED_SYMBOL(sync_flag) == 0)
-  {
+  while (SHARED_SYMBOL(sync_flag) == 0) {
     offloader_tryreceive();
-    asm volatile("pause" ::
-                     : "memory");
+    asm volatile("pause" ::: "memory");
   }
 
   return SHARED_SYMBOL(rval);
