@@ -1,4 +1,3 @@
-#include <toshokan/friend/export.h>
 #include "shared.h"
 
 int64_t SHARED_SYMBOL(sync_flag);

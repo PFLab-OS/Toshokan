@@ -9,6 +9,9 @@ int cnt = 0;
 
 void friend_main() {
   int i = __sync_fetch_and_add(&cnt, 1);
-  OFFLOAD_FUNC(printf, "<%d>\n", i);
+  OFFLOAD({
+    EXPORTED_SYMBOL(printf)
+    ("<%d>\n", i);
+  });
   __sync_fetch_and_add(&SHARED_SYMBOL(sync_flag), 1);
 }

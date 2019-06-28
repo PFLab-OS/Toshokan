@@ -44,7 +44,7 @@ TEST(Offload, MultipleExecution) {
   int var = 0;
   int n = rand() % 20 + 10;
   for (int i = 0; i < n; i++) {
-    OFFLOAD(c.offloader, { var++; });
+    _OFFLOAD(c.offloader, { var++; });
   }
   CHECK_EQUAL(n, var);
 }
@@ -61,7 +61,7 @@ TEST(Offload, ComplexMultipleExecution) {
     } else {
       o--;
     }
-    OFFLOAD(c.offloader, if (r) { m++; } else { m--; });
+    _OFFLOAD(c.offloader, if (r) { m++; } else { m--; });
   }
   CHECK_EQUAL(o, m);
 }
@@ -70,7 +70,7 @@ TEST(Offload, MultipleExecutionWithFunctionCall) {
   int var = 0;
   int n = rand() % 20 + 10;
   for (int i = 0; i < n; i++) {
-    OFFLOAD(c.offloader, { test_func(&var); });
+    _OFFLOAD(c.offloader, { test_func(&var); });
   }
   CHECK_EQUAL(n, var);
 }
@@ -86,7 +86,7 @@ void *MultipleThreadSubFunc(void *arg) {
   TestContainer *tc = (TestContainer *)arg;
   int n = rand() % 20 + 10;
   for (int i = 0; i < n; i++) {
-    OFFLOAD(tc->c->offloader, { test_func(&tc->i); });
+    _OFFLOAD(tc->c->offloader, { test_func(&tc->i); });
   }
   tc->i -= n;
   return NULL;
