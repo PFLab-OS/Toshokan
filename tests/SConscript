@@ -74,6 +74,7 @@ def generate_test_alias(env, name, depends):
     '-serial telnet::4444,server,nowait',
     '-monitor telnet::4445,server,nowait',
     '-nographic',
+    '-global hpet.msi=true',
   ])
   return hakase_test_env.AlwaysBuild(hakase_test_env.Alias('test_' + name, [cleanup_containers, containers["qemu"], containers["ssh"]] + depends, [
     'docker network create --driver bridge toshokan_net_{0}'.format(random_str),

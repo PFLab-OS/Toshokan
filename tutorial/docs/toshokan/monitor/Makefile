@@ -4,13 +4,13 @@ endif
 
 CONTAINER_NETWORK := toshokan_net$(SIGNATURE)
 TOSHOKAN_CONTAINER := toshokan_qemu$(SIGNATURE)
-TAG_VERSION := v0.03a
+TAG_VERSION := v0.04a
 
 # if HOST is not defined, run on docker container
 ifndef HOST
 HOST := toshokan_qemu
 CALL_REMOTE := docker run -it --rm -v $(CURDIR):$(CURDIR) -w $(CURDIR) --network $(CONTAINER_NETWORK) livadk/toshokan_ssh:$(TAG_VERSION)
-QEMU_OPTION := -cpu Haswell -s -d cpu_reset -no-reboot -smp 5 -m 4G -D /qemu.log -loadvm snapshot1 -hda /backing.qcow2 -net nic -net user,hostfwd=tcp::2222-:22 -serial telnet::4444,server,nowait -monitor telnet::4445,server,nowait -nographic
+QEMU_OPTION := -cpu Haswell -s -d cpu_reset -no-reboot -smp 5 -m 4G -D /qemu.log -loadvm snapshot1 -hda /backing.qcow2 -net nic -net user,hostfwd=tcp::2222-:22 -serial telnet::4444,server,nowait -monitor telnet::4445,server,nowait -nographic -global hpet.msi=true
 define PREPARE_REMOTE
 	docker rm -f $(TOSHOKAN_CONTAINER) > /dev/null 2>&1 || :
 	docker network rm $(CONTAINER_NETWORK) > /dev/null 2>&1 || :

@@ -14,7 +14,7 @@ def gen_docker_cmd(env, container, arg):
   return 'docker run -i --rm -v {0}:{0} -w {0} {1} {2}'.format(curdir, container, arg)
 base_env.AddMethod(gen_docker_cmd, "GenerateDockerCommand")
 
-tag_version = "v0.03a"
+tag_version = "v0.04a"
 
 curdir = Dir('.').abspath
 ci = True if int(ARGUMENTS.get('CI', 0)) == 1 else False
