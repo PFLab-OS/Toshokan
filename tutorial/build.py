@@ -8,7 +8,7 @@ import yaml
 import subprocess
 env = Environment(loader=FileSystemLoader('./', encoding='utf8'))
 
-dirs = ['.', 'paging', 'toshokan', 'toshokan/architecture', 'toshokan/symbol_resolution', 'toshokan/function_offloading', 'toshokan/makefile', 'toshokan/monitor', 'toshokan/physical_machine', 'toshokan/q_and_a']
+dirs = ['.', 'paging', 'toshokan', 'toshokan/architecture', 'toshokan/symbol_resolution', 'toshokan/offloading', 'toshokan/makefile', 'toshokan/monitor', 'toshokan/physical_machine', 'toshokan/q_and_a']
 
 subprocess.call('rm -rf docs', shell=True)
 subprocess.call('mkdir -p ' + ' '.join(list(map(lambda s: "docs/" + s, dirs))), shell=True)
@@ -18,7 +18,7 @@ def copy_code(dirname):
     subprocess.call('rsync -avq {0}/*.{{cc,h}}  docs/{0}/'.format(dirname), shell=True, executable='/bin/bash')
 
 copy_code('toshokan/symbol_resolution')
-copy_code('toshokan/function_offloading')
+copy_code('toshokan/offloading')
 copy_code('toshokan/monitor')
 
 def generate(dirname):

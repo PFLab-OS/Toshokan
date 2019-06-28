@@ -25,9 +25,9 @@
 
     Toshokanプログラミングにおいて、hakaseとfriendの双方から同じ変数にアクセスしなければいけない事があるでしょう。friend側で特定の様式と共に定義した変数は、hakase側から参照する事ができます。そのやり方を確認しましょう。
 
-1. [friendからhakaseへのfunction offloading](./function_offloading/)
+1. [friendからhakaseへのコードのoffloading](./offloading/)
 
-   標準ライブラリ関数等、hakaseでしか実行できない関数を呼び出す際は、function offloadingが便利です。function offloadingのやり方と、メモリ管理時の注意点を解説します。
+   標準ライブラリ関数等、hakaseでしか実行できない関数を呼び出す際は、offloadingが便利です。そのやり方と、メモリ管理時の注意点を解説します。
 
 1. [Makefileの解説/ビルドとQEMU実行のプロセス](./makefile/)
 
