@@ -2,33 +2,36 @@
 #include <linux/mm.h>
 #include <linux/sysfs.h>
 
-#include "version.h"
 #include <toshokan/version.h>
+#include "version.h"
 
 static struct kobject *call_sysfs_kobj;
 
-static ssize_t call_read(struct file *fp, struct kobject *kobj, struct bin_attribute *bin_attr, char *buf, loff_t off, size_t count) {
-  memcpy(buf, version_string + off, count);
+static ssize_t call_read(struct file *fp, struct kobject *kobj,
+                         struct bin_attribute *bin_attr, char *buf, loff_t off,
+                         size_t count) {
+  memcpy(buf, kmod_version_string + off, count);
   return count;
 }
 
 static struct bin_attribute call_version_attr = {
     .attr =
         {
-            .name = "version", .mode = S_IRUGO,
+            .name = "version",
+            .mode = S_IRUGO,
         },
-    .size = sizeof(version_string),
+    .size = sizeof(kmod_version_string),
     .read = call_read,
 };
 
 static struct bin_attribute *call_sysfs_attrs[] = {
-  &call_version_attr, NULL,
+    &call_version_attr,
+    NULL,
 };
 
 static struct attribute_group call_sysfs_attr_group = {
     .bin_attrs = call_sysfs_attrs,
 };
-
 
 int __init version_interface_init(void) {
   int ret;
