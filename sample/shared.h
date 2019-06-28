@@ -1,6 +1,7 @@
 #pragma once
 
 #include <stdint.h>
+#include <toshokan/export.h>
 #include <toshokan/symbol.h>
 
 // initialized by hakase.cc (before friend app is executed)

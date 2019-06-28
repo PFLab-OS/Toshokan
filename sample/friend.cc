@@ -1,4 +1,3 @@
-#include <toshokan/friend/export.h>
 #include <toshokan/friend/offload.h>
 #include "shared.h"
 
