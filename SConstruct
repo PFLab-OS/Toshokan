@@ -189,6 +189,64 @@ AlwaysBuild(env.Alias('tag', list(map(tag_container, output_containers)), []))
 AlwaysBuild(env.Alias('push', list(map(push_container, output_containers)), []))
 
 ###############################################################################
+# automatic generation
+###############################################################################
+def build_binscript(env, name, target_env, binname = "$$(basename \"$$0\")"):
+  return env.Command(name, [], [
+    "echo '#!/bin/sh' > $FNAME",
+    "echo 'CMD=\"$$(dirname \"$$0\")/base $TARGET_ENV $BIN_NAME $$*\"' >> $FNAME",
+    "echo '$${CMD}' >> $FNAME",
+    "chmod +x $FNAME",
+  ], FNAME=name, TARGET_ENV=target_env, BIN_NAME=binname)
+def build_basescript(env, name, test):
+  if not test:
+    version = ':v0.04a'
+    docker_flag = '-it'
+  else:
+    version = ''
+    docker_flag = '-i'
+  return env.Command(name, [], [
+    "echo '#!/bin/sh' > $FNAME",
+    "echo 'CONTAINER_TYPE=$$1' >> $FNAME",
+    "echo 'BINNAME=$$2' >> $FNAME",
+    "echo 'shift 2' >> $FNAME",
+    "echo 'PROJECT_ROOT=$$(cd \"$${PROJECT_ROOT:=$${PWD}}\" && pwd)' >> $FNAME",
+    "echo 'CMD=\"docker run $DOCKER_FLAG --rm -v $${PROJECT_ROOT}:$${PROJECT_ROOT} -w $${PROJECT_ROOT} livadk/toshokan_build_$${CONTAINER_TYPE}$VERSION $${BINNAME} $$*\"' >> $FNAME",
+    "echo '$${CMD}' >> $FNAME",
+    "chmod +x $FNAME",
+  ], FNAME=name, DOCKER_FLAG=docker_flag, VERSION=version)
+env.AddMethod(build_binscript, "BuildBinScript")
+env.AddMethod(build_basescript, "BuildBaseScript")
+
+AlwaysBuild(env.Alias('generate', [
+  Command('tutorial/code_template/Makefile', 'sample/Makefile', Copy("$TARGET", "$SOURCE")),
+  env.BuildBaseScript('bin/base', True),
+  env.BuildBinScript('bin/ar', 'intermediate'),
+  env.BuildBinScript('bin/g++', 'intermediate'),
+  env.BuildBinScript('bin/objcopy', 'intermediate'),
+  env.BuildBinScript('bin/objdump', 'intermediate'),
+  env.BuildBinScript('bin/ranlib', 'intermediate'),
+  env.BuildBaseScript('tests/bin/base', True),
+  env.BuildBinScript('tests/bin/addr2line', 'hakase'),
+  env.BuildBinScript('tests/bin/objcopy', 'hakase'),
+  env.BuildBinScript('tests/bin/objdump', 'hakase'),
+  env.BuildBinScript('tests/bin/hakase-g++', 'hakase', 'g++'),
+  env.BuildBinScript('tests/bin/friend-g++', 'friend', 'g++'),
+  env.BuildBaseScript('sample/bin/base', False),
+  env.BuildBinScript('sample/bin/addr2line', 'hakase'),
+  env.BuildBinScript('sample/bin/objcopy', 'hakase'),
+  env.BuildBinScript('sample/bin/objdump', 'hakase'),
+  env.BuildBinScript('sample/bin/hakase-g++', 'hakase', 'g++'),
+  env.BuildBinScript('sample/bin/friend-g++', 'friend', 'g++'),
+  env.BuildBaseScript('tutorial/code_template/bin/base', False),
+  env.BuildBinScript('tutorial/code_template/bin/addr2line', 'hakase'),
+  env.BuildBinScript('tutorial/code_template/bin/objcopy', 'hakase'),
+  env.BuildBinScript('tutorial/code_template/bin/objdump', 'hakase'),
+  env.BuildBinScript('tutorial/code_template/bin/hakase-g++', 'hakase', 'g++'),
+  env.BuildBinScript('tutorial/code_template/bin/friend-g++', 'friend', 'g++'),
+], []))
+
+###############################################################################
 # support functions
 ###############################################################################
 AlwaysBuild(env.Alias('monitor', '', 'docker exec -it toshokan_qemu_{0} nc toshokan_qemu 4445'.format(ARGUMENTS.get('SIGNATURE'))))

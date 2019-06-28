@@ -1,5 +1,7 @@
 #!/bin/sh
-BINNAME=$1
-shift
-CMD="docker run -i --rm -v ${PWD}:${PWD} -w ${PWD} livadk/toshokan_build_intermediate ${BINNAME} $*"
+CONTAINER_TYPE=$1
+BINNAME=$2
+shift 2
+PROJECT_ROOT=$(cd "${PROJECT_ROOT:=${PWD}}" && pwd)
+CMD="docker run -i --rm -v ${PROJECT_ROOT}:${PROJECT_ROOT} -w ${PROJECT_ROOT} livadk/toshokan_build_${CONTAINER_TYPE} ${BINNAME} $*"
 ${CMD}
