@@ -52,7 +52,7 @@ static int check_version() {
 
   char buf[256];
   buf[fread(buf, 1, 255, version_fp)] = '\0';
-  if (!strstr(buf, version_string)) {
+  if (!strstr(buf, kmod_version_string)) {
     std::cerr << "error: version mismatched" << std::endl;
     return -1;
   }

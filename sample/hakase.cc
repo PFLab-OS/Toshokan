@@ -1,5 +1,4 @@
 #include <stdio.h>
-#include <toshokan/hakase/export.h>
 #include <toshokan/hakase/hakase.h>
 #include <unistd.h>
 #include "shared.h"

@@ -40,14 +40,16 @@ class Offloader {
  private:
 };
 
-#define OFFLOAD(c, code)                                      \
+#define _OFFLOAD(c, code)                                     \
   do {                                                        \
     while ((c)._lock != 0 ||                                  \
            !__sync_bool_compare_and_swap(&(c)._lock, 0, 1)) { \
       asm volatile("pause" ::: "memory");                     \
     }                                                         \
     if (toshokan_setjmp_with_wait((c)._buf1) != 0) {          \
-      code toshokan_longjmp((c)._buf2, 1);                    \
+      asm volatile("" ::: "memory");                          \
+      code asm volatile("" ::: "memory");                     \
+      toshokan_longjmp((c)._buf2, 1);                         \
     }                                                         \
     (c)._lock = 0;                                            \
   } while (0);

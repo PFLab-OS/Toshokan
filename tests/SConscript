@@ -108,7 +108,6 @@ test_targets = list(SConscript(dirs=[
   'clang',
   'symbol',
   'offload',
-  'rfunc',
   ]))
 
 test = AlwaysBuild(hakase_test_env.Alias('test', ['common_test'] + test_targets))

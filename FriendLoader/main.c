@@ -10,7 +10,6 @@ MODULE_DESCRIPTION("Friend Loader");
 MODULE_LICENSE("GPL v2");
 MODULE_AUTHOR("Shinichi Awamoto<sap.pcmail@gmail.com>");
 
-
 static int __init friend_loader_init(void) {
   int n;
 
