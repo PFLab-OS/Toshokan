@@ -19,9 +19,11 @@ struct Page {
   uint64_t entry[512];
 } __attribute__((aligned(4096)));
 
-extern Page SHARED_SYMBOL(pml4t);
-extern Page SHARED_SYMBOL(pdpt);
-extern Page SHARED_SYMBOL(pd);
+extern Page SHARED_SYMBOL(__toshokan_pml4t);
+extern Page SHARED_SYMBOL(__toshokan_pdpt);
+extern Page SHARED_SYMBOL(__toshokan_pd);
+
+extern int SHARED_SYMBOL(__toshokan_sync_hakase_and_friend);
 
 static int check_bootparam() {
   FILE *cmdline_fp = fopen("/proc/cmdline", "r");
@@ -94,18 +96,18 @@ static void pagetable_init() {
   static const size_t k1GB = 1024UL * 1024 * 1024;
   static const size_t k2MB = 2UL * 1024 * 1024;
 
-  SHARED_SYMBOL(pml4t).entry[(DEPLOY_PHYS_ADDR_START % k256TB) / k512GB] =
-      reinterpret_cast<size_t>(&SHARED_SYMBOL(pdpt)) | (1 << 0) | (1 << 1) |
+  SHARED_SYMBOL(__toshokan_pml4t).entry[(DEPLOY_PHYS_ADDR_START % k256TB) / k512GB] =
+      reinterpret_cast<size_t>(&SHARED_SYMBOL(__toshokan_pdpt)) | (1 << 0) | (1 << 1) |
       (1 << 2);
-  SHARED_SYMBOL(pdpt).entry[(DEPLOY_PHYS_ADDR_START % k512GB) / k1GB] =
-      reinterpret_cast<size_t>(&SHARED_SYMBOL(pd)) | (1 << 0) | (1 << 1) |
+  SHARED_SYMBOL(__toshokan_pdpt).entry[(DEPLOY_PHYS_ADDR_START % k512GB) / k1GB] =
+      reinterpret_cast<size_t>(&SHARED_SYMBOL(__toshokan_pd)) | (1 << 0) | (1 << 1) |
       (1 << 2);
 
   static_assert((DEPLOY_PHYS_ADDR_START % k1GB) == 0, "");
   static_assert(DEPLOY_PHYS_MEM_SIZE <= k1GB, "");
   for (size_t addr = DEPLOY_PHYS_ADDR_START; addr < DEPLOY_PHYS_ADDR_END;
        addr += k2MB) {
-    SHARED_SYMBOL(pd).entry[(addr % k1GB) / k2MB] =
+    SHARED_SYMBOL(__toshokan_pd).entry[(addr % k1GB) / k2MB] =
         addr | (1 << 0) | (1 << 1) | (1 << 2) | (1 << 7);
   }
 }
@@ -177,5 +179,10 @@ int boot(int max) {
 
 void offloader_tryreceive() {
   while (SHARED_SYMBOL(__toshokan_offloader).TryReceive()) {
+    asm volatile("pause":::"memory");
   }
+}
+
+bool is_friend_stopped() {
+  return (SHARED_SYMBOL(__toshokan_sync_hakase_and_friend) == 1);
 }

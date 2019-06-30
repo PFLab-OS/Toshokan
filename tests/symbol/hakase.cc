@@ -12,12 +12,11 @@ int test_main() {
     return r;
   }
 
-  SHARED_SYMBOL(sync_flag) = 0;
+  boot(0);
 
-  int cpunum = boot(0);
+  while(!is_friend_stopped()) {
+    asm volatile("pause":::"memory");
+  }
 
-  sleep(1);
-
-  return (SHARED_SYMBOL(sync_flag) == cpunum) &&
-         (SHARED_SYMBOL(notify) == &hakase_var);
+  return (SHARED_SYMBOL(notify) == &hakase_var);
 }

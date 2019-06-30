@@ -4,10 +4,10 @@
 	.section ".text.boot"
 	.code32
 	.globl entry32
-	.extern SHARED_SYMBOL(pml4t)
+	.extern SHARED_SYMBOL(__toshokan_pml4t)
 entry32:
 	// load cr3
-	movl $SHARED_SYMBOL(pml4t), %edi
+	movl $SHARED_SYMBOL(__toshokan_pml4t), %edi
 	movl %edi, %cr3
 	
 	// set PAE&PGE&PSE bit

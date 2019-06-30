@@ -15,11 +15,11 @@ int test_main() {
 
   boot(1);
 
-  while (SHARED_SYMBOL(sync_flag) != 1) {
+  while (!is_friend_stopped()) {
     offloader_tryreceive();
     usleep(1000);
   }
-  return 1;
+  return (SHARED_SYMBOL(value) != 0);
 }
 
 int main(int argc, const char **argv) {

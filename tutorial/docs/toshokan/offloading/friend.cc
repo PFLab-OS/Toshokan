@@ -2,7 +2,7 @@
 #include "shared.h"
 
 int (*EXPORTED_SYMBOL(printf))(const char *format, ...);
-int SHARED_SYMBOL(sync_flag) = 0;
+int SHARED_SYMBOL(value) = 0;
 
 void friend_main() {
   int x = 0;
@@ -11,5 +11,5 @@ void friend_main() {
     EXPORTED_SYMBOL(printf)
     ("%s\n", "Hello World!");
   });
-  SHARED_SYMBOL(sync_flag) = x;
+  SHARED_SYMBOL(value) = x;
 }
