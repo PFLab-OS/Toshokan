@@ -8,20 +8,13 @@ import yaml
 import subprocess
 env = Environment(loader=FileSystemLoader('./', encoding='utf8'))
 
-dirs = ['.', 'paging', 'toshokan', 'toshokan/architecture', 'toshokan/symbol_resolution', 'toshokan/offloading', 'toshokan/makefile', 'toshokan/monitor', 'toshokan/physical_machine', 'toshokan/q_and_a']
+with open('pages.yml', encoding='utf_8') as stream:
+    pstruct = yaml.load(stream, Loader=yaml.FullLoader)
 
 subprocess.call('rm -rf docs', shell=True)
-subprocess.call('mkdir -p ' + ' '.join(list(map(lambda s: "docs/" + s, dirs))), shell=True)
 
-def copy_code(dirname):
-    subprocess.call('rsync -avq code_template/* docs/{0}/'.format(dirname), shell=True)
-    subprocess.call('rsync -avq {0}/*.{{cc,h}}  docs/{0}/'.format(dirname), shell=True, executable='/bin/bash')
-
-copy_code('toshokan/symbol_resolution')
-copy_code('toshokan/offloading')
-copy_code('toshokan/monitor')
-
-def generate(dirname):
+def generate_dir(dirname):
+    subprocess.call('mkdir -p docs/' + dirname, shell=True)
     tpl = env.get_template('{0}/README.md.tpl'.format(dirname))
 
     with open('settings.yml', encoding='utf_8') as stream:
@@ -34,5 +27,17 @@ def generate(dirname):
     
     subprocess.call('ls {0}/*.svg >/dev/null 2>&1; if [ $? -eq 0 ]; then rsync -avq {0}/*.svg docs/{0}/; fi'.format(dirname), shell=True)
 
-for d in dirs:
-    generate(d)
+def copy_code(dirname):
+    subprocess.call('rsync -avq code_template/* docs/{0}/'.format(dirname), shell=True)
+    subprocess.call('rsync -avq {0}/*.{{cc,h}}  docs/{0}/'.format(dirname), shell=True, executable='/bin/bash')
+
+def generate(pst, prefix):
+    dirname = prefix + pst['name']
+    generate_dir(dirname)
+    if pst.get('code') is True:
+        copy_code(dirname)
+    if 'pages' in pst:
+        for page in pst['pages']:
+            generate(page, dirname + '/')
+
+generate(pstruct, "")
