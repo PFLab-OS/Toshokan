@@ -96,12 +96,14 @@ static void pagetable_init() {
   static const size_t k1GB = 1024UL * 1024 * 1024;
   static const size_t k2MB = 2UL * 1024 * 1024;
 
-  SHARED_SYMBOL(__toshokan_pml4t).entry[(DEPLOY_PHYS_ADDR_START % k256TB) / k512GB] =
-      reinterpret_cast<size_t>(&SHARED_SYMBOL(__toshokan_pdpt)) | (1 << 0) | (1 << 1) |
-      (1 << 2);
-  SHARED_SYMBOL(__toshokan_pdpt).entry[(DEPLOY_PHYS_ADDR_START % k512GB) / k1GB] =
-      reinterpret_cast<size_t>(&SHARED_SYMBOL(__toshokan_pd)) | (1 << 0) | (1 << 1) |
-      (1 << 2);
+  SHARED_SYMBOL(__toshokan_pml4t)
+      .entry[(DEPLOY_PHYS_ADDR_START % k256TB) / k512GB] =
+      reinterpret_cast<size_t>(&SHARED_SYMBOL(__toshokan_pdpt)) | (1 << 0) |
+      (1 << 1) | (1 << 2);
+  SHARED_SYMBOL(__toshokan_pdpt)
+      .entry[(DEPLOY_PHYS_ADDR_START % k512GB) / k1GB] =
+      reinterpret_cast<size_t>(&SHARED_SYMBOL(__toshokan_pd)) | (1 << 0) |
+      (1 << 1) | (1 << 2);
 
   static_assert((DEPLOY_PHYS_ADDR_START % k1GB) == 0, "");
   static_assert(DEPLOY_PHYS_MEM_SIZE <= k1GB, "");
@@ -179,7 +181,7 @@ int boot(int max) {
 
 void offloader_tryreceive() {
   while (SHARED_SYMBOL(__toshokan_offloader).TryReceive()) {
-    asm volatile("pause":::"memory");
+    asm volatile("pause" ::: "memory");
   }
 }
 

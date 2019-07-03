@@ -33,7 +33,8 @@ extern "C" void friend_init() {
   friend_main();
 
   if (__sync_add_and_fetch(&returned_count, 1) == init_count) {
-    for (void (**dtor)() = __fini_array_start; dtor < __fini_array_end; ++dtor) {
+    for (void (**dtor)() = __fini_array_start; dtor < __fini_array_end;
+         ++dtor) {
       (**dtor)();
     }
 

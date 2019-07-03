@@ -14,8 +14,8 @@ int test_main() {
 
   boot(0);
 
-  while(!is_friend_stopped()) {
-    asm volatile("pause":::"memory");
+  while (!is_friend_stopped()) {
+    asm volatile("pause" ::: "memory");
   }
 
   return (SHARED_SYMBOL(notify) == &hakase_var);
