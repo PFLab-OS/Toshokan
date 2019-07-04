@@ -1,0 +1,3 @@
+#!/bin/sh
+CMD="$(dirname "$0")/base hakase $(basename "$0") $*"
+${CMD}
