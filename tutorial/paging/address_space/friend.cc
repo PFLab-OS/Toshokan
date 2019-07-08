@@ -26,7 +26,7 @@ void friend_main() {
   SHARED_SYMBOL(__toshokan_pdpt).entry[(vaddr % k512GB) / k1GB] =
       v2p(reinterpret_cast<virt_addr_t>(&pd)) | (1 << 0) | (1 << 1) | (1 << 2);
   pd.entry[(vaddr % k1GB) / k2MB] =
-      v2p(vaddr) | (1 << 0) | (1 << 1) | (1 << 2) | (1 << 7);
+      0x40000000 | (1 << 0) | (1 << 1) | (1 << 2) | (1 << 7);
 
   OFFLOAD({
     EXPORTED_SYMBOL(printf)
