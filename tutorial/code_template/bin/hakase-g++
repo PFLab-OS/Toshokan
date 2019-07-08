@@ -1,3 +1,2 @@
 #!/bin/sh
-CMD="$(dirname "$0")/base hakase g++ $*"
-${CMD}
+exec "$(dirname "$0")/base" hakase g++ "$@"

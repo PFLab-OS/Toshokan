@@ -191,11 +191,10 @@ AlwaysBuild(env.Alias('push', list(map(push_container, output_containers)), []))
 ###############################################################################
 # automatic generation
 ###############################################################################
-def build_binscript(env, name, target_env, binname = "$$(basename \"$$0\")"):
+def build_binscript(env, name, target_env, binname = "\"$$(basename \"$$0\")\""):
   return env.Command(name, [], [
     "echo '#!/bin/sh' > $FNAME",
-    "echo 'CMD=\"$$(dirname \"$$0\")/base $TARGET_ENV $BIN_NAME $$*\"' >> $FNAME",
-    "echo '$${CMD}' >> $FNAME",
+    "echo 'exec \"$$(dirname \"$$0\")/base\" $TARGET_ENV $BIN_NAME \"$$@\"' >> $FNAME",
     "chmod +x $FNAME",
   ], FNAME=name, TARGET_ENV=target_env, BIN_NAME=binname)
 def build_basescript(env, name, test):
@@ -211,8 +210,7 @@ def build_basescript(env, name, test):
     "echo 'BINNAME=$$2' >> $FNAME",
     "echo 'shift 2' >> $FNAME",
     "echo 'PROJECT_ROOT=$$(cd \"$${PROJECT_ROOT:=$${PWD}}\" && pwd)' >> $FNAME",
-    "echo 'CMD=\"docker run $DOCKER_FLAG --rm -v $${PROJECT_ROOT}:$${PROJECT_ROOT} -w $${PROJECT_ROOT} livadk/toshokan_build_$${CONTAINER_TYPE}$VERSION $${BINNAME} $$*\"' >> $FNAME",
-    "echo '$${CMD}' >> $FNAME",
+    "echo 'exec docker run $DOCKER_FLAG --rm -v $${PROJECT_ROOT}:$${PROJECT_ROOT} -w $${PROJECT_ROOT} livadk/toshokan_build_$${CONTAINER_TYPE}$VERSION $${BINNAME} \"$$@\"' >> $FNAME",
     "chmod +x $FNAME",
   ], FNAME=name, DOCKER_FLAG=docker_flag, VERSION=version)
 env.AddMethod(build_binscript, "BuildBinScript")
