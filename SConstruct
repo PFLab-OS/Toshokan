@@ -244,6 +244,8 @@ AlwaysBuild(env.Alias('generate', [
   env.BuildBinScript('tutorial/code_template/bin/friend-g++', 'friend', 'g++'),
 ], []))
 
+AlwaysBuild(env.Alias('tutorial', ['generate'], 'cd tutorial; ./build.py'))
+
 ###############################################################################
 # support functions
 ###############################################################################
