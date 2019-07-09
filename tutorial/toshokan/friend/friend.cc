@@ -8,20 +8,20 @@ void friend_main() {
   /*
    * do not run these code on friend
    *
-   
+
    printf("hello world\n");
-   
+
    */
   asm volatile("cli;");
   OFFLOAD({
-      /*
-       * do not run these code in offloading section
-       *
-   
-       asm volatile("cli;");
-   
-      */
-      EXPORTED_SYMBOL(printf)("Hello World!\n");
+    /*
+     * do not run these code in offloading section
+     *
+
+     asm volatile("cli;");
+
+    */
+    EXPORTED_SYMBOL(printf)("Hello World!\n");
   });
   SHARED_SYMBOL(variable) = 1;
 }

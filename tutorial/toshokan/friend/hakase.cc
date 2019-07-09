@@ -18,11 +18,11 @@ int test_main() {
   /*
    * do not run these code on hakase
    *
-   
+
    asm volatile("cli;");
-   
+
   */
-  
+
   while (!is_friend_stopped()) {
     offloader_tryreceive();
     usleep(1000);
