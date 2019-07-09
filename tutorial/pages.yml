@@ -3,6 +3,8 @@ pages:
 - name: toshokan
   pages:
     - name: architecture
+    - name: friend
+      code: True
     - name: symbol_resolution
       code: True
     - name: offloading
