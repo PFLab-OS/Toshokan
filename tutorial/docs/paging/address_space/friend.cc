@@ -7,7 +7,7 @@ struct Page {
   uint64_t entry[512];
 } __attribute__((aligned(4096)));
 
-Page SHARED_SYMBOL(__toshokan_pdpt);
+extern Page SHARED_SYMBOL(__toshokan_pdpt);
 Page pd;
 using virt_addr_t = uint64_t;
 using phys_addr_t = uint64_t;
