@@ -153,7 +153,7 @@ AlwaysBuild(env.Alias('format', [],
     'echo "Done."']))
 
 AlwaysBuild(env.Alias('doccheck', [], 
-    ['cd tutorial; ./build.py',
+    ['cd tutorial_template; ./build.py',
      'git diff && git diff | wc -l | xargs test 0 -eq']))
 
 # common tests
@@ -217,7 +217,7 @@ env.AddMethod(build_binscript, "BuildBinScript")
 env.AddMethod(build_basescript, "BuildBaseScript")
 
 AlwaysBuild(env.Alias('generate', [
-  Command('tutorial/code_template/Makefile', 'sample/Makefile', Copy("$TARGET", "$SOURCE")),
+  Command('tutorial_template/code_template/Makefile', 'sample/Makefile', Copy("$TARGET", "$SOURCE")),
   env.BuildBaseScript('bin/base', True),
   env.BuildBinScript('bin/ar', 'intermediate'),
   env.BuildBinScript('bin/g++', 'intermediate'),
@@ -236,15 +236,15 @@ AlwaysBuild(env.Alias('generate', [
   env.BuildBinScript('sample/bin/objdump', 'hakase'),
   env.BuildBinScript('sample/bin/hakase-g++', 'hakase', 'g++'),
   env.BuildBinScript('sample/bin/friend-g++', 'friend', 'g++'),
-  env.BuildBaseScript('tutorial/code_template/bin/base', False),
-  env.BuildBinScript('tutorial/code_template/bin/addr2line', 'hakase'),
-  env.BuildBinScript('tutorial/code_template/bin/objcopy', 'hakase'),
-  env.BuildBinScript('tutorial/code_template/bin/objdump', 'hakase'),
-  env.BuildBinScript('tutorial/code_template/bin/hakase-g++', 'hakase', 'g++'),
-  env.BuildBinScript('tutorial/code_template/bin/friend-g++', 'friend', 'g++'),
+  env.BuildBaseScript('tutorial_template/code_template/bin/base', False),
+  env.BuildBinScript('tutorial_template/code_template/bin/addr2line', 'hakase'),
+  env.BuildBinScript('tutorial_template/code_template/bin/objcopy', 'hakase'),
+  env.BuildBinScript('tutorial_template/code_template/bin/objdump', 'hakase'),
+  env.BuildBinScript('tutorial_template/code_template/bin/hakase-g++', 'hakase', 'g++'),
+  env.BuildBinScript('tutorial_template/code_template/bin/friend-g++', 'friend', 'g++'),
 ], []))
 
-AlwaysBuild(env.Alias('tutorial', ['generate'], 'cd tutorial; ./build.py'))
+AlwaysBuild(env.Alias('tutorial', ['generate'], 'cd tutorial_template; ./build.py'))
 
 ###############################################################################
 # support functions
