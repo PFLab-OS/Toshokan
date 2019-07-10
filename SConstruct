@@ -200,7 +200,7 @@ def build_binscript(env, name, target_env, binname = "\"$$(basename \"$$0\")\"")
 def build_basescript(env, name, test):
   if not test:
     version = ':v0.04a'
-    docker_flag = '-it'
+    docker_flag = '-i'
   else:
     version = ''
     docker_flag = '-i'

@@ -13,7 +13,7 @@ endef
 else
 $(info Silent mode is enabled by default. You can turn it off with 'make V=1'.)
 define SILENT_EXEC
-	@$(if $2,echo INFO: $2)
+	@$(if $2,echo ">>>" $2)
 	@$1
 endef
 endif
@@ -32,12 +32,12 @@ define PREPARE_REMOTE
 	$(call SILENT_EXEC,docker network rm $(CONTAINER_NETWORK) > /dev/null 2>&1 || :,)
 	$(call SILENT_EXEC,docker network create --driver bridge $(CONTAINER_NETWORK) > /dev/null 2>&1,create docker network)
 	$(call SILENT_EXEC,docker run -d --name $(TOSHOKAN_CONTAINER) --network $(CONTAINER_NETWORK) --net-alias $(HOST) livadk/toshokan_qemu:$(TAG_VERSION) qemu-system-x86_64 $(QEMU_OPTION) > /dev/null 2>&1,start a QEMU container)
-	$(call SILENT_EXEC,docker run -it --rm -v $(CURDIR):$(CURDIR) -w $(CURDIR) --network $(CONTAINER_NETWORK) livadk/toshokan_ssh:$(TAG_VERSION) wait-for-rsync $(HOST),wait until the QEMU container is ready)
+	$(call SILENT_EXEC,docker run -i --rm -v $(CURDIR):$(CURDIR) -w $(CURDIR) --network $(CONTAINER_NETWORK) livadk/toshokan_ssh:$(TAG_VERSION) wait-for-rsync $(HOST),wait until the QEMU container is ready)
 endef
 
 define CLEANUP_REMOTE
-	$(call SILENT_EXEC,docker rm -f $(TOSHOKAN_CONTAINER),clean up the envrionment)
-	$(call SILENT_EXEC,docker network rm $(CONTAINER_NETWORK))
+	$(call SILENT_EXEC,docker rm -f $(TOSHOKAN_CONTAINER) > /dev/null 2>&1,clean up the envrionment)
+	$(call SILENT_EXEC,docker network rm $(CONTAINER_NETWORK) > /dev/null 2>&1)
 endef
 else
 define CALL_REMOTE
@@ -62,11 +62,17 @@ friend.sym: friend.bin
 hakase.bin: shared.h hakase.cc friend_bin.o friend.sym
 	$(call SILENT_EXEC,bin/hakase-g++ friend_bin.o hakase.cc $(HAKASE_CXXFLAGS) -o $@ -Wl$(comma)-R$(comma)friend.sym,build hakase binary \& combine friend binary with it)
 
-run: hakase.bin
+.FORCE:
+
+.remote: .FORCE
 	$(PREPARE_REMOTE)
-	$(call CALL_REMOTE,rsync $^ $(HOST):,send the binary to remote)
-	$(call CALL_REMOTE,ssh $(HOST) sudo ./$^,run $^ on remote)
+	$(call CALL_REMOTE,touch .remote)
+
+run: hakase.bin .remote
+	$(call CALL_REMOTE,rsync hakase.bin $(HOST):,send the binary to remote)
+	$(call CALL_REMOTE,ssh $(HOST) sudo ./hakase.bin,run hakase.bin on remote)
 	$(CLEANUP_REMOTE)
+	$(call SILENT_EXEC,rm .remote)
 
 clean:
 	$(call SILENT_EXEC,rm -rf friend.bin friend_bin.o friend.sym hakase.bin,delete all intermediate files)
