@@ -17,6 +17,7 @@ int test_main() {
 
   while (!is_friend_stopped()) {
     offloader_tryreceive();
+    fflush(stdout);
     usleep(1000);
   }
   return 1;
