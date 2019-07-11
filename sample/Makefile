@@ -66,7 +66,7 @@ hakase.bin: shared.h hakase.cc friend_bin.o friend.sym
 
 .remote: .FORCE
 	$(PREPARE_REMOTE)
-	$(call CALL_REMOTE,touch .remote)
+	$(call SILENT_EXEC,touch .remote)
 
 run: hakase.bin .remote
 	$(call CALL_REMOTE,rsync hakase.bin $(HOST):,send the binary to remote)
