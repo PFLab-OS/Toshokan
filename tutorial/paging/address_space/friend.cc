@@ -24,11 +24,15 @@ void friend_main() {
 
   static const virt_addr_t vaddr = 0x80000000;
   SHARED_SYMBOL(__toshokan_pdpt).entry[(vaddr % k512GB) / k1GB] =
-      v2p(reinterpret_cast<virt_addr_t>(&pd)) | (1 << 0) | (1 << 1) | (1 << 2);
+      v2p((virt_addr_t)(&pd)) | (1 << 0) | (1 << 1) | (1 << 2);
   pd.entry[(vaddr % k1GB) / k2MB] =
       0x40000000 | (1 << 0) | (1 << 1) | (1 << 2) | (1 << 7);
 
+  uint64_t x = *((uint64_t *)vaddr);
+
   OFFLOAD({
+    EXPORTED_SYMBOL(printf)
+    ("%lx: %lx\n", vaddr, x);
     EXPORTED_SYMBOL(printf)
     ("ready\n");
   });
