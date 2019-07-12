@@ -1,7 +1,7 @@
 #!python
-# c code
+# remote function call
 Import('hakase_test_env')
 
-test_binary = hakase_test_env.TestProgram('offload', ["../main.o", "hakase.cc"], ['friend.cc'])
+test_binary = hakase_test_env.TestProgram(["../main.o", "hakase.cc"], ['friend.cc'])
 
 Return('test_binary')

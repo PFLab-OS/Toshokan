@@ -75,6 +75,7 @@ build/
 hakase/tests/simple_loader/raw
 common/tests/cpputest
 FriendLoader/friend_loader.ko
+FriendLoader_local/
 .docker_tmp/
 
 # Kernel Module Compile Results

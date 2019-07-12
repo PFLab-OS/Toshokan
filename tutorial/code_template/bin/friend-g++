@@ -1,3 +1,0 @@
-#!/bin/sh
-CMD="$(dirname "$0")/base friend g++ $*"
-${CMD}

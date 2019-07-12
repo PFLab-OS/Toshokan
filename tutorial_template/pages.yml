@@ -1,0 +1,21 @@
+name: .
+pages:
+- name: toshokan
+  pages:
+    - name: architecture
+    - name: friend
+      code: True
+    - name: symbol_resolution
+      code: True
+    - name: offloading
+      code: True
+    - name: makefile
+    - name: monitor
+      code: True
+    - name: physical_machine
+    - name: q_and_a
+- name: paging
+  pages:
+    - name: address_space
+      code: True
+  

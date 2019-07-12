@@ -11,6 +11,7 @@
 #include <toshokan/memory.h>
 #include <toshokan/offload.h>
 #include <toshokan/symbol.h>
+#include <toshokan/version.h>
 #include <unistd.h>
 #include <iostream>
 
@@ -18,9 +19,11 @@ struct Page {
   uint64_t entry[512];
 } __attribute__((aligned(4096)));
 
-extern Page SHARED_SYMBOL(pml4t);
-extern Page SHARED_SYMBOL(pdpt);
-extern Page SHARED_SYMBOL(pd);
+extern Page SHARED_SYMBOL(__toshokan_pml4t);
+extern Page SHARED_SYMBOL(__toshokan_pdpt);
+extern Page SHARED_SYMBOL(__toshokan_pd);
+
+extern int SHARED_SYMBOL(__toshokan_sync_hakase_and_friend);
 
 static int check_bootparam() {
   FILE *cmdline_fp = fopen("/proc/cmdline", "r");
@@ -38,6 +41,24 @@ static int check_bootparam() {
   }
 
   fclose(cmdline_fp);
+
+  return 0;
+}
+
+static int check_version() {
+  FILE *version_fp = fopen("/sys/module/friend_loader/info/version", "r");
+  if (!version_fp) {
+    perror("failed to open `version`");
+    return -1;
+  }
+
+  char buf[256];
+  buf[fread(buf, 1, 255, version_fp)] = '\0';
+  if (!strstr(buf, kmod_version_string)) {
+    std::cerr << "error: version mismatched" << std::endl;
+    return -1;
+  }
+  fclose(version_fp);
 
   return 0;
 }
@@ -75,18 +96,20 @@ static void pagetable_init() {
   static const size_t k1GB = 1024UL * 1024 * 1024;
   static const size_t k2MB = 2UL * 1024 * 1024;
 
-  SHARED_SYMBOL(pml4t).entry[(DEPLOY_PHYS_ADDR_START % k256TB) / k512GB] =
-      reinterpret_cast<size_t>(&SHARED_SYMBOL(pdpt)) | (1 << 0) | (1 << 1) |
-      (1 << 2);
-  SHARED_SYMBOL(pdpt).entry[(DEPLOY_PHYS_ADDR_START % k512GB) / k1GB] =
-      reinterpret_cast<size_t>(&SHARED_SYMBOL(pd)) | (1 << 0) | (1 << 1) |
-      (1 << 2);
+  SHARED_SYMBOL(__toshokan_pml4t)
+      .entry[(DEPLOY_PHYS_ADDR_START % k256TB) / k512GB] =
+      reinterpret_cast<size_t>(&SHARED_SYMBOL(__toshokan_pdpt)) | (1 << 0) |
+      (1 << 1) | (1 << 2);
+  SHARED_SYMBOL(__toshokan_pdpt)
+      .entry[(DEPLOY_PHYS_ADDR_START % k512GB) / k1GB] =
+      reinterpret_cast<size_t>(&SHARED_SYMBOL(__toshokan_pd)) | (1 << 0) |
+      (1 << 1) | (1 << 2);
 
   static_assert((DEPLOY_PHYS_ADDR_START % k1GB) == 0, "");
   static_assert(DEPLOY_PHYS_MEM_SIZE <= k1GB, "");
   for (size_t addr = DEPLOY_PHYS_ADDR_START; addr < DEPLOY_PHYS_ADDR_END;
        addr += k2MB) {
-    SHARED_SYMBOL(pd).entry[(addr % k1GB) / k2MB] =
+    SHARED_SYMBOL(__toshokan_pd).entry[(addr % k1GB) / k2MB] =
         addr | (1 << 0) | (1 << 1) | (1 << 2) | (1 << 7);
   }
 }
@@ -100,6 +123,7 @@ static void export_init() {
   }
 }
 
+// @return: if success, return 0. if not, return minus value.
 int setup() {
   extern uint8_t __start_friend_bin, __stop_friend_bin;
   size_t friend_bin_size =
@@ -107,6 +131,10 @@ int setup() {
 
   Loader16 loader16;
   ElfLoader elfloader(&__start_friend_bin, friend_bin_size);
+
+  if (check_version() < 0) {
+    return -1;
+  }
 
   if (check_bootparam() < 0) {
     return -1;
@@ -153,5 +181,10 @@ int boot(int max) {
 
 void offloader_tryreceive() {
   while (SHARED_SYMBOL(__toshokan_offloader).TryReceive()) {
+    asm volatile("pause" ::: "memory");
   }
+}
+
+bool is_friend_stopped() {
+  return (SHARED_SYMBOL(__toshokan_sync_hakase_and_friend) == 1);
 }

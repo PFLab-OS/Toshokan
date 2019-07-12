@@ -14,7 +14,9 @@ int test_main() {
 
   int cpunum = boot(0);
 
-  sleep(1);
+  while (!is_friend_stopped()) {
+    asm volatile("pause" ::: "memory");
+  }
 
   return (SHARED_SYMBOL(sync_flag) == cpunum);
 }

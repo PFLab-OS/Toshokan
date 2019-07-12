@@ -1,5 +1,4 @@
 #include <stdio.h>
-#include <toshokan/hakase/export.h>
 #include <toshokan/hakase/hakase.h>
 #include <unistd.h>
 #include "shared.h"
@@ -21,11 +20,11 @@ int test_main() {
   printf("done\n");
   fflush(stdout);
 
-  while (SHARED_SYMBOL(sync_flag) != cpunum) {
+  while (!is_friend_stopped()) {
     offloader_tryreceive();
     usleep(1000);
   }
-  return 1;
+  return (SHARED_SYMBOL(sync_flag) == cpunum);
 }
 
 int main(int argc, const char **argv) {

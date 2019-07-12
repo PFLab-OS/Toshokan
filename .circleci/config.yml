@@ -63,5 +63,6 @@ jobs:
             pip install scons jinja2 pyyaml
       - run:
           command: |
+            scons generate
             scons doccheck
 #TODO: should be refactored using YAML anchor & alias
