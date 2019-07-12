@@ -17,4 +17,4 @@ $ scons -j12
 ```
 
 ## How To Use (in Japanese)
-[here](tutorial/docs/toshokan/)
+[here](tutorial/toshokan/)
