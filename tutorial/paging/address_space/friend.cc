@@ -28,11 +28,13 @@ void friend_main() {
   pd.entry[(vaddr % k1GB) / k2MB] =
       0x40000000 | (1 << 0) | (1 << 1) | (1 << 2) | (1 << 7);
 
+  // you have to use INVLPG if you want to run this on a physical machine.
+
   uint64_t x = *((uint64_t *)vaddr);
 
   OFFLOAD({
     EXPORTED_SYMBOL(printf)
-    ("%lx: %lx\n", vaddr, x);
+    ("0x%lx: %lx\n", vaddr, x);
     EXPORTED_SYMBOL(printf)
     ("ready\n");
   });
