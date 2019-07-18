@@ -2,9 +2,8 @@ ifdef SIGNATURE
 SIGNATURE := _$(SIGNATURE)
 endif
 
-CONTAINER_NETWORK := toshokan_net$(SIGNATURE)
 TOSHOKAN_CONTAINER := toshokan_qemu$(SIGNATURE)
-TAG_VERSION := v0.04a
+TAG_VERSION := v0.04b
 
 ifeq ($(V),1)
 define SILENT_EXEC
@@ -24,23 +23,20 @@ comma := ,
 ifndef HOST
 HOST := toshokan_qemu
 define CALL_REMOTE
-	$(call SILENT_EXEC,docker run -it --rm -v $(CURDIR):$(CURDIR) -w $(CURDIR) --network $(CONTAINER_NETWORK) livadk/toshokan_ssh:$(TAG_VERSION) $1,$2)
+	$(call SILENT_EXEC,docker exec -it $(TOSHOKAN_CONTAINER) $1,$2)
 endef
 QEMU_OPTION := -cpu Haswell -s -d cpu_reset -no-reboot -smp 5 -m 4G -D /qemu.log -loadvm snapshot1 -hda /backing.qcow2 -net nic -net user,hostfwd=tcp::2222-:22 -serial telnet::4444,server,nowait -monitor telnet::4445,server,nowait -nographic -global hpet.msi=true
 define PREPARE_REMOTE
 	$(call SILENT_EXEC,docker rm -f $(TOSHOKAN_CONTAINER) > /dev/null 2>&1 || :,clean up old environments)
-	$(call SILENT_EXEC,docker network rm $(CONTAINER_NETWORK) > /dev/null 2>&1 || :,)
-	$(call SILENT_EXEC,docker network create --driver bridge $(CONTAINER_NETWORK) > /dev/null 2>&1,create docker network)
-	$(call SILENT_EXEC,docker run -d --name $(TOSHOKAN_CONTAINER) --network $(CONTAINER_NETWORK) --net-alias $(HOST) livadk/toshokan_qemu:$(TAG_VERSION) qemu-system-x86_64 $(QEMU_OPTION) > /dev/null 2>&1,start a QEMU container)
+	$(call SILENT_EXEC,docker run -d --name $(TOSHOKAN_CONTAINER) -v $(CURDIR):$(CURDIR) -w $(CURDIR) livadk/toshokan_qemu:$(TAG_VERSION) qemu-system-x86_64 $(QEMU_OPTION) > /dev/null 2>&1,start a QEMU container)
 endef
 
 define WAIT_REMOTE
-	$(call SILENT_EXEC,docker run -i --rm -v $(CURDIR):$(CURDIR) -w $(CURDIR) --network $(CONTAINER_NETWORK) livadk/toshokan_ssh:$(TAG_VERSION) wait-for-rsync $(HOST),wait until the QEMU container is ready)
+	$(call CALL_REMOTE,wait-for-rsync $(HOST),wait until the QEMU container is ready)
 endef
 
 define CLEANUP_REMOTE
 	$(call SILENT_EXEC,docker rm -f $(TOSHOKAN_CONTAINER) > /dev/null 2>&1,clean up the envrionment)
-	$(call SILENT_EXEC,docker network rm $(CONTAINER_NETWORK) > /dev/null 2>&1)
 endef
 else
 define CALL_REMOTE

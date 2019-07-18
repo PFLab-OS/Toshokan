@@ -54,8 +54,9 @@ friend_test_elf_env = friend_test_env.Clone(ASFLAGS=friend_elf_flag, CXXFLAGS=fr
 
 cleanup_containers = AlwaysBuild(hakase_test_env.Alias('cleanup_containers', [], [
   'docker ps -a -f name=toshokan_qemu_ -q | xargs -L 1 docker rm -f || :',
-  'docker network ls -f name=toshokan_net_ -q | xargs -L 1 docker network rm || :',
 ]))
+
+rootdir = Dir('#').abspath
 
 def generate_test_alias(env, name, depends):
   random_str = ''.join(random.choice(string.ascii_letters) for i in range(10))
@@ -76,12 +77,11 @@ def generate_test_alias(env, name, depends):
     '-nographic',
     '-global hpet.msi=true',
   ])
-  return hakase_test_env.AlwaysBuild(hakase_test_env.Alias('test_' + name, [cleanup_containers, containers["qemu"], containers["ssh"]] + depends, [
-    'docker network create --driver bridge toshokan_net_{0}'.format(random_str),
-    'docker run -d --name toshokan_qemu_{0} --network toshokan_net_{0} --net-alias toshokan_qemu livadk/toshokan_qemu qemu-system-x86_64 {1}'.format(random_str, qemu_option),
-    env.GenerateDockerCommand('--network toshokan_net_{0} livadk/toshokan_ssh'.format(random_str), 'wait-for-rsync toshokan_qemu'),
-    env.GenerateDockerCommand('--network toshokan_net_{0} livadk/toshokan_ssh'.format(random_str), 'rsync build/{0} toshokan_qemu:build/'.format(name)),
-    env.GenerateDockerCommand('--network toshokan_net_{0} livadk/toshokan_ssh'.format(random_str), 'ssh toshokan_qemu sudo build/' + name),
+  return hakase_test_env.AlwaysBuild(hakase_test_env.Alias('test_' + name, [cleanup_containers, containers["qemu"]] + depends, [
+    'docker run -d --name toshokan_qemu_{0} -v {2}:{2} -w {2} livadk/toshokan_qemu qemu-system-x86_64 {1}'.format(random_str, qemu_option, rootdir),
+    'docker exec -i toshokan_qemu_{0} wait-for-rsync toshokan_qemu'.format(random_str),
+    'docker exec -i toshokan_qemu_{0} rsync build/{1} toshokan_qemu:build/'.format(random_str, name),
+    'docker exec -i toshokan_qemu_{0} ssh toshokan_qemu sudo build/{1}'.format(random_str, name),
     'docker rm -f toshokan_qemu_{0}'.format(random_str)]))
 hakase_test_env.AddMethod(generate_test_alias, "GenerateTestAlias")
 
