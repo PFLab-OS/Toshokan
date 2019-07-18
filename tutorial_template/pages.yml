@@ -18,4 +18,6 @@ pages:
   pages:
     - name: address_space
       code: True
+    - name: mapping
+      code: True
   
