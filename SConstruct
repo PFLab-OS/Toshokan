@@ -14,7 +14,7 @@ def gen_docker_cmd(env, container, arg):
   return 'docker run -i --rm -v {0}:{0} -w {0} {1} {2}'.format(curdir, container, arg)
 base_env.AddMethod(gen_docker_cmd, "GenerateDockerCommand")
 
-tag_version = "v0.04a"
+tag_version = "v0.04b"
 
 curdir = Dir('.').abspath
 ci = True if int(ARGUMENTS.get('CI', 0)) == 1 else False
@@ -199,7 +199,7 @@ def build_binscript(env, name, target_env, binname = "\"$$(basename \"$$0\")\"")
   ], FNAME=name, TARGET_ENV=target_env, BIN_NAME=binname)
 def build_basescript(env, name, test):
   if not test:
-    version = ':v0.04a'
+    version = ':' + tag_version
     docker_flag = '-i'
   else:
     version = ''
