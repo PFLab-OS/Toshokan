@@ -23,7 +23,7 @@ comma := ,
 ifndef HOST
 HOST := toshokan_qemu
 define CALL_REMOTE
-	$(call SILENT_EXEC,docker exec -it $(TOSHOKAN_CONTAINER) $1,$2)
+	$(call SILENT_EXEC,docker exec -i $(TOSHOKAN_CONTAINER) $1,$2)
 endef
 QEMU_OPTION := -cpu Haswell -s -d cpu_reset -no-reboot -smp 5 -m 4G -D /qemu.log -loadvm snapshot1 -hda /backing.qcow2 -net nic -net user,hostfwd=tcp::2222-:22 -serial telnet::4444,server,nowait -monitor telnet::4445,server,nowait -nographic -global hpet.msi=true
 define PREPARE_REMOTE

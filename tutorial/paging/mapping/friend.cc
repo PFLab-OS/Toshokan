@@ -35,20 +35,29 @@ void friend_main() {
 
   OFFLOAD({
     EXPORTED_SYMBOL(printf)
-    ("press any key to go to the next step:");
-    EXPORTED_SYMBOL(getchar)
+    ("press Enter key to go to the next step:");
+        do 
+    {
+    c = EXPORTED_SYMBOL(getchar)
     ();
+    } while (c != '\n');
   });
   OFFLOAD({
     EXPORTED_SYMBOL(printf)
-    ("press any key to go to the next step:");
-    EXPORTED_SYMBOL(getchar)
+    ("press Enter key to go to the next step:");
+        do 
+    {
+    c = EXPORTED_SYMBOL(getchar)
     ();
+    } while (c != '\n');
   });
   OFFLOAD({
     EXPORTED_SYMBOL(printf)
-    ("press any key to go to the next step:");
-    EXPORTED_SYMBOL(getchar)
+    ("press Enter key to go to the next step:");
+        do 
+    {
+    c = EXPORTED_SYMBOL(getchar)
     ();
+    } while (c != '\n');
   });
 }
