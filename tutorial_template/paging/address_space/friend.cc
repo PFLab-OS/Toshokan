@@ -25,10 +25,10 @@ void friend_main() {
   static const virt_addr_t vaddr = 0x80000000;
   SHARED_SYMBOL(__toshokan_pdpt).entry[(vaddr % k512GB) / k1GB] =
       v2p((virt_addr_t)(&pd)) | (1 << 0) | (1 << 1) | (1 << 2);
+
+  // setup a page
   pd.entry[(vaddr % k1GB) / k2MB] =
       0x40000000 | (1 << 0) | (1 << 1) | (1 << 2) | (1 << 7);
-
-  // you have to use INVLPG if you want to run this on a physical machine.
 
   uint64_t x = *((uint64_t *)vaddr);
 
