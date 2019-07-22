@@ -4,4 +4,3 @@
 #include <toshokan/symbol.h>
 
 extern int (*EXPORTED_SYMBOL(printf))(const char *format, ...);
-
