@@ -6,6 +6,11 @@ workflows:
       - build_python2
       - build_python3
       - doccheck
+      - check_dockerimage:
+          filters:
+            branches:
+              only:
+                - master
   nightly_workflow:
     triggers:
       - schedule:
@@ -52,17 +57,33 @@ jobs:
           command: |
             scons test -j3
   doccheck:
-    machine: true
+    docker:
+      - image: circleci/python:3.5
     steps:
       - checkout
       - run:
           command: |
-            sudo apt install -y make bash rsync git
-            pyenv install -s 3.5.2
-            pyenv global 3.5.2
-            pip install scons jinja2 pyyaml
+            sudo apt install -y rsync
+            sudo pip install scons jinja2 pyyaml
       - run:
           command: |
             scons generate
             scons doccheck
+  check_dockerimage:
+    docker:
+      - image: circleci/python:3.5
+    steps:
+      - checkout
+      - setup_remote_docker
+      - run:
+          command: |
+            sudo pip install scons
+      - run:
+          command: |
+            if [[ $CIRCLE_SHELL_ENV =~ "localbuild" ]]; then
+               sudo scons imagecheck
+            else
+               scons imagecheck
+            fi 
+      
 #TODO: should be refactored using YAML anchor & alias
