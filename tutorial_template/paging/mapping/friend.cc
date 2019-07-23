@@ -31,8 +31,6 @@ void wait_input(int i) {
   OFFLOAD({
     int c;
     EXPORTED_SYMBOL(printf)
-    ("0x%lx: %lx\n", vaddr1, x1);
-    EXPORTED_SYMBOL(printf)
     ("press Enter key to go to the next step(%d/3):", i);
     do {
       c = EXPORTED_SYMBOL(getchar)();
