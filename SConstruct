@@ -182,11 +182,19 @@ def push_container(name):
     'docker push {0}:{1}'.format(container_name, tag_version),
   ]))
 
+def pull_container(name):
+  container_name = 'livadk/toshokan_' + name
+  return AlwaysBuild(env.Alias('pull_' + name, [], [
+    'docker pull {0}:{1}'.format(container_name, tag_version),
+  ]))
+
 output_containers = ['qemu', 'build_hakase', 'build_friend'] #, 'ssh'
 
 AlwaysBuild(env.Alias('tag', list(map(tag_container, output_containers)), []))
 
 AlwaysBuild(env.Alias('push', list(map(push_container, output_containers)), []))
+
+AlwaysBuild(env.Alias('imagecheck', list(map(pull_container, output_containers)), []))
 
 ###############################################################################
 # automatic generation
@@ -245,6 +253,7 @@ AlwaysBuild(env.Alias('generate', [
 ], []))
 
 AlwaysBuild(env.Alias('tutorial', ['generate'], 'cd tutorial_template; ./build.py'))
+
 
 ###############################################################################
 # support functions
