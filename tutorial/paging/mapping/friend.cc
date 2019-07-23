@@ -31,7 +31,7 @@ void wait_input(int i) {
   OFFLOAD({
     int c;
     EXPORTED_SYMBOL(printf)
-    ("press Enter key to go to the next step(%d/3):", i);
+    ("[%d/3] press Enter key to go to the next step:", i);
     do {
       c = EXPORTED_SYMBOL(getchar)();
     } while (c != '\n');
