@@ -1,5 +1,6 @@
 Host toshokan_qemu
   User hakase
+  HostName localhost
   Port 2222
   IdentityFile ~/.ssh/id_rsa
   ConnectTimeout 3

@@ -125,6 +125,8 @@ static void export_init() {
 
 // @return: if success, return 0. if not, return minus value.
 int setup() {
+  setbuf(stdout, NULL);
+
   extern uint8_t __start_friend_bin, __stop_friend_bin;
   size_t friend_bin_size =
       static_cast<size_t>(&__stop_friend_bin - &__start_friend_bin);
