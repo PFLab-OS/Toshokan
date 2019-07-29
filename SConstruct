@@ -225,7 +225,7 @@ env.AddMethod(build_binscript, "BuildBinScript")
 env.AddMethod(build_basescript, "BuildBaseScript")
 
 AlwaysBuild(env.Alias('generate', [
-  Command('tutorial_template/code_template/Makefile', 'sample/Makefile', Copy("$TARGET", "$SOURCE")),
+  Command('tutorial_template/code_template/build_rules.mk', 'sample/build_rules.mk', Copy("$TARGET", "$SOURCE")),
   env.BuildBaseScript('bin/base', True),
   env.BuildBinScript('bin/ar', 'intermediate'),
   env.BuildBinScript('bin/g++', 'intermediate'),

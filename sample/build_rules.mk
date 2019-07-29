@@ -49,8 +49,8 @@ HAKASE_CXXFLAGS := -g -O0 -Wall -Werror=unused-result --std=c++14 -static -fno-p
 
 DEFAULT: run
 
-friend.bin: shared.h friend.cc
-	$(call SILENT_EXEC,bin/friend-g++ friend.cc $(FRIEND_CXXFLAGS) -o $@,build friend binary)
+friend.bin: $(FRIEND_SOURCE)
+	$(call SILENT_EXEC,bin/friend-g++ $(filter-out %.h,$(FRIEND_SOURCE)) $(FRIEND_CXXFLAGS) -o $@,build friend binary)
 
 friend_bin.o: friend.bin
 	$(call SILENT_EXEC,bin/objcopy -I binary -O elf64-x86-64 -B i386:x86-64 --rename-section .data=friend_bin $^ $@,convert friend binary to embedded format)
@@ -58,8 +58,8 @@ friend_bin.o: friend.bin
 friend.sym: friend.bin
 	$(call SILENT_EXEC,bin/objcopy --prefix-symbols=friendsymbol_ $^ $@,generate symbol tables)
 
-hakase.bin: shared.h hakase.cc friend_bin.o friend.sym
-	$(call SILENT_EXEC,bin/hakase-g++ friend_bin.o hakase.cc $(HAKASE_CXXFLAGS) -o $@ -Wl$(comma)-R$(comma)friend.sym,build hakase binary \& combine friend binary with it)
+hakase.bin: $(HAKASE_SOURCE) friend_bin.o friend.sym
+	$(call SILENT_EXEC,bin/hakase-g++ $(filter-out %.h,$(HAKASE_SOURCE)) friend_bin.o $(HAKASE_CXXFLAGS) -o $@ -Wl$(comma)-R$(comma)friend.sym,build hakase binary \& combine friend binary with it)
 
 .PHONY: prepare_remote wait_remote run clean
 
