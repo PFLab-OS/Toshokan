@@ -218,7 +218,7 @@ def build_basescript(env, name, test):
     "echo 'BINNAME=$$2' >> $FNAME",
     "echo 'shift 2' >> $FNAME",
     "echo 'PROJECT_ROOT=$$(cd \"$${PROJECT_ROOT:=$${PWD}}\" && pwd)' >> $FNAME",
-    "echo 'exec docker run $DOCKER_FLAG --rm -v $${PROJECT_ROOT}:$${PROJECT_ROOT} -w $${PROJECT_ROOT} livadk/toshokan_build_$${CONTAINER_TYPE}$VERSION $${BINNAME} \"$$@\"' >> $FNAME",
+    "echo 'exec docker run $DOCKER_FLAG --rm --network host -v $${PROJECT_ROOT}:$${PROJECT_ROOT} -w $${PROJECT_ROOT} livadk/toshokan_build_$${CONTAINER_TYPE}$VERSION $${BINNAME} \"$$@\"' >> $FNAME",
     "chmod +x $FNAME",
   ], FNAME=name, DOCKER_FLAG=docker_flag, VERSION=version)
 env.AddMethod(build_binscript, "BuildBinScript")

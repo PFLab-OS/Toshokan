@@ -3,4 +3,4 @@ CONTAINER_TYPE=$1
 BINNAME=$2
 shift 2
 PROJECT_ROOT=$(cd "${PROJECT_ROOT:=${PWD}}" && pwd)
-exec docker run -i --rm -v ${PROJECT_ROOT}:${PROJECT_ROOT} -w ${PROJECT_ROOT} livadk/toshokan_build_${CONTAINER_TYPE}:v0.04b ${BINNAME} "$@"
+exec docker run -i --rm --network host -v ${PROJECT_ROOT}:${PROJECT_ROOT} -w ${PROJECT_ROOT} livadk/toshokan_build_${CONTAINER_TYPE}:v0.04b ${BINNAME} "$@"
