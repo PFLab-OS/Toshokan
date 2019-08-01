@@ -8,8 +8,6 @@ int func(int i, int j) {
   return 100;
 }
 
-EXPORT_SYMBOL(func);
-
 int test_main() {
   int r;
   r = setup();

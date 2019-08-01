@@ -1,9 +1,6 @@
 #include <toshokan/friend/offload.h>
 #include "shared.h"
 
-int (*EXPORTED_SYMBOL(printf))(const char *format, ...);
-int (*EXPORTED_SYMBOL(getchar))();
-
 struct Page {
   uint64_t entry[512];
 } __attribute__((aligned(4096)));

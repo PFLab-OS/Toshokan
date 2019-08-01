@@ -4,7 +4,7 @@
 #include <unistd.h>
 #include "shared.h"
 
-EXPORT_SYMBOL(printf);
+int func() { return 1; }
 
 int test_main() {
   int r;

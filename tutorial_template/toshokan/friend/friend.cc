@@ -1,7 +1,6 @@
 #include <toshokan/friend/offload.h>
 #include "shared.h"
 
-int (*EXPORTED_SYMBOL(printf))(const char *format, ...);
 int SHARED_SYMBOL(variable) = 0;
 
 void friend_main() {

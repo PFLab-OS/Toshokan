@@ -1,8 +1,7 @@
 #include <toshokan/friend/offload.h>
 #include "shared.h"
 
-int (*EXPORTED_SYMBOL(printf))(const char *format, ...);
-int64_t SHARED_SYMBOL(sync_flag);
+int64_t SHARED_SYMBOL(sync_flag) = 0;
 
 int cnt = 0;
 

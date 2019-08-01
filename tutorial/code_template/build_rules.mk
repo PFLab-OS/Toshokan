@@ -3,7 +3,7 @@ SIGNATURE := _$(SIGNATURE)
 endif
 
 TOSHOKAN_CONTAINER := toshokan_qemu$(SIGNATURE)
-TAG_VERSION := v0.04b
+TAG_VERSION := v0.04c
 
 ifeq ($(V),1)
 define SILENT_EXEC

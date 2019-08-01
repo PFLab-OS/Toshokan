@@ -7,7 +7,7 @@ hakase上でのみ実行できるコードや関数（例：libc関数）をfrie
 
 ## シンタックス　
 ### OFFLOAD
-friend上で`<toshokan/friend/export.h>`をincludeし、offloadしたいコードブロックを`OFFLOAD({ <コード> });`と記述してください。
+friend上で`<toshokan/friend/offload.h>`をincludeし、offloadしたいコードブロックを`OFFLOAD({ <コード> });`と記述してください。
 
 hakase側では、初期化処理終了後に`offloader_tryreceive()`を呼び出し続けてください。
 
@@ -43,21 +43,24 @@ void func() {
 `OFFLOAD({})`ブロック内では、friendコードのスコープ内の変数、関数に自由にアクセスする事ができます。
 
 ### EXPORT_SYMBOL
-`OFFLOAD({})`ブロック内でhakaseの関数を呼び出すためには、別途EXPORT_SYMBOLという仕組みが必要になります。friendはコンパイル時にhakaseの関数を参照する事ができないため、hakaseの関数は関数ポインタ経由で呼び出す事になります。そのための一連の処理を簡略化する仕組みがEXPORT_SYMBOLです。
+`OFFLOAD({})`ブロック内でhakaseの関数を呼び出すためには、別途EXPORT_SYMBOLという仕組みが必要になります。
 
-まず、hakaseとfriendの双方で`<toshokan/export.h>`をincludeし、`EXPORTED_SYMBOL()`を用いて関数ポインタを宣言してください。
-
-hakase側では関数の宣言後、或いは定義後に`EXPORT_SYMBOL()`を記述してください。標準ライブラリ関数の場合は、該当するヘッダを事前にincludeしてください。
-
-friend側では、`EXPORTED_SYMBOL()`を用いて関数ポインタを定義してください。関数呼び出し時も、`EXPORTED_SYMBOL()`を用いてください。
+まず、hakaseとfriendの双方で`<toshokan/export.h>`をincludeし、対象関数を宣言後に`EXPORT_SYMBOL()`を記述してください。friend上から対象関数を呼び出す際は、`EXPORTED_SYMBOL()`を使用してください。
 
 ```cc
 // hakase
 #include <toshokan/export.h>
 #include <stdio.h>
 
-extern int (*EXPORTED_SYMBOL(printf))(const char *format, ...);
+int printf(const char *format, ...);
 EXPORT_SYMBOL(printf);
+
+int func();
+EXPORT_SYMBOL(func);
+
+int func() {
+  return 0;
+}
 
 ```
 
@@ -66,15 +69,21 @@ EXPORT_SYMBOL(printf);
 #include <toshokan/export.h>
 #include <toshokan/friend/offload.h>
 
-extern int (*EXPORTED_SYMBOL(printf))(const char *format, ...);
-int (*EXPORTED_SYMBOL(printf))(const char *format, ...);
+int printf(const char *format, ...);
+EXPORT_SYMBOL(printf);
+
+int func();
+EXPORT_SYMBOL(func);
 
 void func() {
   OFFLOAD({
+    EXPORTED_SYMBOL(func)();
     EXPORTED_SYMBOL(printf)("%s\n", "Hello World!");
   });
 }
 ```
+
+`OFFLOAD({})`ブロック外では`EXPORTED_SYMBOL()`を呼び出さないでください。
 
 ## ベタープラクティス
 `SHARED_SYMBOL()`と同様、`shared.h`を作成し、hakaseとfriendの双方からインクルードする事によって、hakaseとfriend間での型の不一致を防ぐ事ができます。
@@ -84,8 +93,11 @@ void func() {
 #pragma once
 #include <toshokan/export.h>
 
-extern int (*EXPORTED_SYMBOL(printf))(const char *format, ...);
+int printf(const char *format, ...);
+EXPORT_SYMBOL(printf);
 ```
+
+libc関数をエクスポートする際、shared.hにlibcヘッダをincludeするのでは無く、*明示的に関数宣言を記述してください*。friend上において、多くのlibcヘッダが未サポートなためです。
 
 ## offloader_tryreceive()
 offloader_tryreceive()は、offloadリクエストがfriendから発行されている際に、それをキャッチして実行するための関数です。friend側がoffloadリクエストを出しても、offloader_tryreceive()が実行されていなければ関数はオフロードされません。offloadリクエストが存在しない場合は、offloader_tryreceive()は即座に終了します。
@@ -112,7 +124,8 @@ EXPORT_SYMBOL(hakase_func);
 
 ```cc
 // friend
-int *(*EXPORTED_SYMBOL(hakase_func))();
+int *hakase_func();
+EXPORT_SYMBOL(hakase_func);
 
 void func() {
   int *i;

@@ -10,8 +10,6 @@ int test_main() {
     return r;
   }
 
-  SHARED_SYMBOL(sync_flag) = 0;
-
   int cpunum = boot(0);
 
   sleep(1);
