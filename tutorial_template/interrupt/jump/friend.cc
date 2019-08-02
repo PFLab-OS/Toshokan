@@ -11,6 +11,24 @@ struct idt_entity {
 
 extern "C" void int_handler();
 
+void wait_input(int i) {
+  OFFLOAD({
+    int i;
+    EXPORTED_SYMBOL(printf)
+    ("1) just do division by 0\n");
+    EXPORTED_SYMBOL(printf)
+    ("2) retry without doing anything\n");
+    EXPORTED_SYMBOL(printf)
+    ("3) recover from 0div exception\n");
+    do {
+    EXPORTED_SYMBOL(printf)
+    ("choose one sample [1-3]:");
+    i = atoi(EXPORTED_SYMBOL(getchar)());
+    } while (i < 0 || i > 3);
+  });
+}
+
+
 void setup_inthandler() {
   // do not try to understand this.
   // it's off-topic at this sample.
