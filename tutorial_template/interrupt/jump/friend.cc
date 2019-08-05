@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include <toshokan/friend/offload.h>
 #include "shared.h"
 
 typedef uint64_t virt_addr;
@@ -9,31 +10,39 @@ struct idt_entity {
   uint32_t entry[4];
 } __attribute__((aligned(8))) idt_def[64];
 
-extern "C" void int_handler();
+extern "C" void int_handler1();
+extern "C" void int_handler2();
+extern "C" void int_handler3();
+extern "C" void int_handler4();
 
-void wait_input(int i) {
+int wait_input() {
+  int i;
   OFFLOAD({
-    int i;
     EXPORTED_SYMBOL(printf)
-    ("1) just do division by 0\n");
+    ("1) divide without exception\n");
     EXPORTED_SYMBOL(printf)
-    ("2) retry without doing anything\n");
+    ("2) divide by 0 and raise exception\n");
     EXPORTED_SYMBOL(printf)
-    ("3) recover from 0div exception\n");
+    ("3) retry without doing anything\n");
+    EXPORTED_SYMBOL(printf)
+    ("4) recover from 0div exception\n");
     do {
-    EXPORTED_SYMBOL(printf)
-    ("choose one sample [1-3]:");
-    i = atoi(EXPORTED_SYMBOL(getchar)());
-    } while (i < 0 || i > 3);
+      EXPORTED_SYMBOL(printf)
+      ("choose one sample [1-4]:");
+      char buf[2];
+      buf[0] = EXPORTED_SYMBOL(getchar)();
+      buf[1] = '\0';
+      i = EXPORTED_SYMBOL(atoi)(buf);
+    } while (i < 0 || i > 4);
   });
+  return i;
 }
 
-
-void setup_inthandler() {
+void setup_inthandler(void (*handler)()) {
   // do not try to understand this.
   // it's off-topic at this sample.
 
-  virt_addr vaddr = reinterpret_cast<virt_addr>(int_handler);
+  virt_addr vaddr = reinterpret_cast<virt_addr>(handler);
   idt_def[0].entry[0] = (vaddr & 0xFFFF) | (0x10 << 16);
   idt_def[0].entry[1] = (vaddr & 0xFFFF0000) | (0xE << 8) | (1 << 15);
   idt_def[0].entry[2] = vaddr >> 32;
@@ -47,8 +56,21 @@ void setup_inthandler() {
   _idtr[4] = (idt_addr >> 48) & 0xffff;
 }
 
+int interrupt_count = 0;  // used in int.S
+int zero = 0;             // may be updated in int.S
+
 void friend_main() {
-  setup_inthandler();
+  void (*int_handlers[])() = {
+      int_handler1,
+      int_handler2,
+      int_handler3,
+      int_handler4,
+  };
+  int input = wait_input();
+  setup_inthandler(int_handlers[input - 1]);
   asm volatile("lidt (%0)" ::"r"(_idtr));
-  volatile int i = 3 / 0;
+  if (input == 1) {
+    zero = 1;
+  }
+  asm volatile("divl %2" ::"a"(1), "d"(0), "m"(zero));  // 1 / zero
 }

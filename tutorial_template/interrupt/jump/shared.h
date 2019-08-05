@@ -18,9 +18,9 @@
 //    if it's a function from libc, write it down explicitly
 //    FRIEND CANNOT READ LIBC HEADERS
 // 2. export it with EXPORT_SYMBOL prefix
-int printf(const char *format, ...);
+extern "C" int printf(const char *format, ...);
 EXPORT_SYMBOL(printf);
-int getchar();
+extern "C" int getchar();
 EXPORT_SYMBOL(getchar);
-int atoi(const char *nptr);
+extern "C" int atoi(const char *nptr);
 EXPORT_SYMBOL(atoi);
