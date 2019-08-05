@@ -50,7 +50,7 @@ void setup_inthandler(void (*handler)()) {
   _idtr[4] = (idt_addr >> 48) & 0xffff;
 }
 
-int zero = 0;             // may be updated in int.S
+int zero = 0;  // may be updated in int.S
 
 void friend_main() {
   void (*int_handlers[])() = {
