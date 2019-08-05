@@ -10,10 +10,7 @@ struct idt_entity {
   uint32_t entry[4];
 } __attribute__((aligned(8))) idt_def[64];
 
-extern "C" void int_handler1();
-extern "C" void int_handler2();
-extern "C" void int_handler3();
-extern "C" void int_handler4();
+extern "C" void int_handler();
 
 int wait_input() {
   int i;
@@ -22,18 +19,14 @@ int wait_input() {
     ("1) divide without exception\n");
     EXPORTED_SYMBOL(printf)
     ("2) divide by 0 and raise exception\n");
-    EXPORTED_SYMBOL(printf)
-    ("3) retry without doing anything\n");
-    EXPORTED_SYMBOL(printf)
-    ("4) recover from 0div exception\n");
     do {
       EXPORTED_SYMBOL(printf)
-      ("choose one sample [1-4]:");
+      ("choose one sample [1-2]:");
       char buf[2];
       buf[0] = EXPORTED_SYMBOL(getchar)();
       buf[1] = '\0';
       i = EXPORTED_SYMBOL(atoi)(buf);
-    } while (i < 0 || i > 4);
+    } while (i < 1 || i > 2);
   });
   return i;
 }
@@ -56,21 +49,18 @@ void setup_inthandler(void (*handler)()) {
   _idtr[4] = (idt_addr >> 48) & 0xffff;
 }
 
-int interrupt_count = 0;  // used in int.S
-int zero = 0;             // may be updated in int.S
-
 void friend_main() {
-  void (*int_handlers[])() = {
-      int_handler1,
-      int_handler2,
-      int_handler3,
-      int_handler4,
-  };
-  int input = wait_input();
-  setup_inthandler(int_handlers[input - 1]);
+  int num = 0;
+  setup_inthandler(int_handler);
   asm volatile("lidt (%0)" ::"r"(_idtr));
-  if (input == 1) {
-    zero = 1;
+  switch (wait_input()) {
+    case 1:
+      num = 1;
+      asm volatile("divl %2" ::"a"(1), "d"(0), "m"(num));  // 1 / 1
+      break;
+    case 2:
+      num = 0;
+      asm volatile("divl %2" ::"a"(1), "d"(0), "m"(num));  // 1 / 0
+      break;
   }
-  asm volatile("divl %2" ::"a"(1), "d"(0), "m"(zero));  // 1 / zero
 }

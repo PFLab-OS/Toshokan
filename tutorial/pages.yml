@@ -24,5 +24,7 @@ pages:
   pages:
     - name: jump
       code: True
+    - name: exception_recovery
+      code: True
   
   
