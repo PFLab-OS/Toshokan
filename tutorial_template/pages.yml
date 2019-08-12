@@ -22,6 +22,8 @@ pages:
       code: True
     - name: hierarchy
       code: True
+    - name: pagefault
+      code: True
 - name: interrupt
   pages:
     - name: jump
