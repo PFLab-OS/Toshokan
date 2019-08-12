@@ -14,7 +14,7 @@ def gen_docker_cmd(env, container, arg):
   return 'docker run -i --rm -v {0}:{0} -w {0} {1} {2}'.format(curdir, container, arg)
 base_env.AddMethod(gen_docker_cmd, "GenerateDockerCommand")
 
-tag_version = "v0.04b"
+tag_version = "v0.04c"
 
 curdir = Dir('.').abspath
 ci = True if int(ARGUMENTS.get('CI', 0)) == 1 else False
@@ -218,14 +218,14 @@ def build_basescript(env, name, test):
     "echo 'BINNAME=$$2' >> $FNAME",
     "echo 'shift 2' >> $FNAME",
     "echo 'PROJECT_ROOT=$$(cd \"$${PROJECT_ROOT:=$${PWD}}\" && pwd)' >> $FNAME",
-    "echo 'exec docker run $DOCKER_FLAG --rm -v $${PROJECT_ROOT}:$${PROJECT_ROOT} -w $${PROJECT_ROOT} livadk/toshokan_build_$${CONTAINER_TYPE}$VERSION $${BINNAME} \"$$@\"' >> $FNAME",
+    "echo 'exec docker run $DOCKER_FLAG --rm --network host -v $${PROJECT_ROOT}:$${PROJECT_ROOT} -w $${PROJECT_ROOT} livadk/toshokan_build_$${CONTAINER_TYPE}$VERSION $${BINNAME} \"$$@\"' >> $FNAME",
     "chmod +x $FNAME",
   ], FNAME=name, DOCKER_FLAG=docker_flag, VERSION=version)
 env.AddMethod(build_binscript, "BuildBinScript")
 env.AddMethod(build_basescript, "BuildBaseScript")
 
 AlwaysBuild(env.Alias('generate', [
-  Command('tutorial_template/code_template/Makefile', 'sample/Makefile', Copy("$TARGET", "$SOURCE")),
+  Command('tutorial_template/code_template/build_rules.mk', 'sample/build_rules.mk', Copy("$TARGET", "$SOURCE")),
   env.BuildBaseScript('bin/base', True),
   env.BuildBinScript('bin/ar', 'intermediate'),
   env.BuildBinScript('bin/g++', 'intermediate'),

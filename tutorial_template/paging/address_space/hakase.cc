@@ -4,8 +4,6 @@
 #include <unistd.h>
 #include "shared.h"
 
-EXPORT_SYMBOL(printf);
-
 int test_main() {
   int r;
   r = setup();

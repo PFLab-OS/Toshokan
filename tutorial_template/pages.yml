@@ -20,9 +20,13 @@ pages:
       code: True
     - name: mapping
       code: True
+    - name: hierarchy
+      code: True
 - name: interrupt
   pages:
     - name: jump
+      code: True
+    - name: exception_recovery
       code: True
   
   

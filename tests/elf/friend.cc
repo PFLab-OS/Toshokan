@@ -1,6 +1,6 @@
 #include "shared.h"
 
-int64_t SHARED_SYMBOL(sync_flag);
+int64_t SHARED_SYMBOL(sync_flag) = 0;
 
 struct Page {
   uint64_t entry[512];
