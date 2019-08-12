@@ -62,7 +62,7 @@ void setup_inthandler(void (*handler)()) {
   _idtr[4] = (idt_addr >> 48) & 0xffff;
 }
 
-uint64_t *pt_entry; // for int.S
+uint64_t *pt_entry;  // for int.S
 
 void friend_main() {
   void (*int_handlers[])() = {
@@ -72,7 +72,7 @@ void friend_main() {
   int input = wait_input();
   setup_inthandler(int_handlers[input - 1]);
   asm volatile("lidt (%0)" ::"r"(_idtr));
-  
+
   static const size_t k512GB = 512UL * 1024 * 1024 * 1024;
   static const size_t k1GB = 1024UL * 1024 * 1024;
   static const size_t k2MB = 2UL * 1024 * 1024;
@@ -86,9 +86,9 @@ void friend_main() {
 
   // clear page table entry on purpose
   pt.entry[(vaddr % k2MB) / k4KB] = 0;
-  pt_entry = &pt.entry[(vaddr % k2MB) / k4KB]; // set page table entry address
+  pt_entry = &pt.entry[(vaddr % k2MB) / k4KB];  // set page table entry address
 
-  uint64_t x = *((uint64_t *)vaddr); // page fault may happen
+  uint64_t x = *((uint64_t *)vaddr);  // page fault may happen
 
   OFFLOAD({
     EXPORTED_SYMBOL(printf)
