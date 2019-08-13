@@ -27,13 +27,14 @@ void friend_main() {
   pml4t.entry[0] = v2p((virt_addr_t)&pdpt) | (1 << 0) | (1 << 1) | (1 << 2);
   pdpt.entry[1] = v2p((virt_addr_t)&pd) | (1 << 0) | (1 << 1) | (1 << 2);
 
-  for(int i = 0; i < 512; i++) {
+  for (int i = 0; i < 512; i++) {
     pd.entry[i] = v2p((virt_addr_t)&pt[i]) | (1 << 0) | (1 << 1) | (1 << 2);
-    for(int j = 0; j < 512; j++) {
-      pt[i].entry[j] = (0x40000000 + i * 0x200000 + j * 0x1000) | (1 << 0) | (1 << 1) | (1 << 2);
+    for (int j = 0; j < 512; j++) {
+      pt[i].entry[j] = (0x40000000 + i * 0x200000 + j * 0x1000) | (1 << 0) |
+                       (1 << 1) | (1 << 2);
     }
   }
-  asm volatile("movq %0, %%cr3":: "r"(v2p((virt_addr_t)&pml4t)));
+  asm volatile("movq %0, %%cr3" ::"r"(v2p((virt_addr_t)&pml4t)));
   uint64_t x = *((uint64_t *)0x40000000);
 
   OFFLOAD({

@@ -26,7 +26,7 @@ void friend_main() {
 
   // write your code here
 
-  asm volatile("movq %0, %%cr3":: "r"(v2p((virt_addr_t)&pml4t)));
+  asm volatile("movq %0, %%cr3" ::"r"(v2p((virt_addr_t)&pml4t)));
   uint64_t x = *((uint64_t *)0x40000000);
 
   OFFLOAD({
