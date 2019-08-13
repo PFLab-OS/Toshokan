@@ -53,13 +53,14 @@ jobs:
           command: |
             scons test -j3
   format:
-    docker:
-      - image: circleci/python:3.5
+    machine: true
     steps:
       - checkout
       - run:
           command: |
-            sudo pip install scons
+            pyenv install -s 3.5.2
+            pyenv global 3.5.2
+            pip install scons
       - run:
           command: |
             scons CI=1 format
