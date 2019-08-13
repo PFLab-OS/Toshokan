@@ -3,6 +3,7 @@ workflows:
   version: 2
   build_and_test:
     jobs:
+      - format
       - build_python2
       - build_python3
       - doccheck
@@ -20,6 +21,7 @@ workflows:
               only:
                 - master
     jobs:
+      - format
       - build_python2
       - build_python3
       - doccheck
@@ -36,9 +38,6 @@ jobs:
             pip install scons
       - run:
           command: |
-            scons CI=1 format
-      - run:
-          command: |
             scons test -j3
   build_python3:
     machine: true
@@ -52,10 +51,18 @@ jobs:
             pip install scons
       - run:
           command: |
-            scons CI=1 format
+            scons test -j3
+  format:
+    docker:
+      - image: circleci/python:3.5
+    steps:
+      - checkout
       - run:
           command: |
-            scons test -j3
+            sudo pip install scons
+      - run:
+          command: |
+            scons CI=1 format
   doccheck:
     docker:
       - image: circleci/python:3.5
