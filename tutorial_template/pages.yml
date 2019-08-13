@@ -24,6 +24,8 @@ pages:
       code: True
     - name: pagefault
       code: True
+    - name: generate_pagetable
+      code: True
 - name: interrupt
   pages:
     - name: jump
