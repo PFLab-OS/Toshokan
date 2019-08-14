@@ -26,6 +26,8 @@ pages:
       code: True
     - name: generate_pagetable
       code: True
+    - name: copy_on_write
+      code: True
 - name: interrupt
   pages:
     - name: jump
