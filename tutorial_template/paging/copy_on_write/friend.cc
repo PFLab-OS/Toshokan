@@ -30,11 +30,13 @@ void friend_main() {
   static const size_t k4KB = 4UL * 1024;
 
   static const virt_addr_t vaddr1 = 0x80000000;
-  static const virt_addr_t vaddr2 = 0x80001000;
+  static const virt_addr_t vaddr2 = 0x80100000;
   SHARED_SYMBOL(__toshokan_pdpt).entry[(vaddr1 % k512GB) / k1GB] =
       v2p((virt_addr_t)(&pd)) | (1 << 0) | (1 << 1) | (1 << 2);
   pd.entry[(vaddr1 % k1GB) / k2MB] =
       v2p((virt_addr_t)(&pt)) | (1 << 0) | (1 << 1) | (1 << 2);
-  pt.entry[(vaddr1 % k2MB) / k4KB] =
-      0x40000000 | (1 << 0) | (1 << 1) | (1 << 2);
+  for (int i = 0; i < 256; i++) {
+    pt.entry[(vaddr1 % k2MB) / k4KB] =
+        (0x50000000 + i * 0x1000) | (1 << 0) | (1 << 1) | (1 << 2);
+  }
 }
