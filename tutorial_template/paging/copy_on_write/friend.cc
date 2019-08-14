@@ -18,8 +18,8 @@ static inline phys_addr_t v2p(virt_addr_t vaddr) {
 
 static inline uint64_t rdtscp() {
   uint32_t aux;
-  uint64_t rax,rdx;
-  asm volatile ( "rdtscp\n": "=a"(rax), "=d"(rdx), "=c"(aux));
+  uint64_t rax, rdx;
+  asm volatile("rdtscp\n" : "=a"(rax), "=d"(rdx), "=c"(aux));
   return (rdx << 32) + rax;
 }
 
