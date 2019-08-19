@@ -72,7 +72,7 @@ wait_remote: prepare_remote
 	$(WAIT_REMOTE)
 
 run: prepare_remote hakase.bin wait_remote
-	$(call CALL_REMOTE,rsync hakase.bin $(HOST):,send the binary to remote)
+	$(call CALL_REMOTE,rsync -z hakase.bin $(HOST):,send the binary to remote)
 	$(call CALL_REMOTE,ssh $(HOST) sudo ./hakase.bin,run hakase.bin on remote)
 	$(CLEANUP_REMOTE)
 
