@@ -84,8 +84,8 @@ gdt_desc:
 	.quad 0                   // null descriptor
 	.quad 0x00209a0000000000  // kernel code descriptor
 	.quad 0x0000920000000000  // kernel data descriptor
-	.quad 0x0020fa0000000000  // user code descriptor
 	.quad 0x0000f20000000000  // user data descriptor
+	.quad 0x0020fa0000000000  // user code descriptor
 
 	.word 0
 gdtr:
