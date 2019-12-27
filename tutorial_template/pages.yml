@@ -20,11 +20,13 @@ pages:
       code: True
     - name: mapping
       code: True
+    - name: mapping_exercise
+      code: True
     - name: hierarchy
       code: True
-    - name: pagefault
-      code: True
     - name: generate_pagetable
+      code: True
+    - name: pagefault
       code: True
     - name: copy_on_write
       code: True
