@@ -111,6 +111,11 @@ env.BuildContainer('build_friend', 'livadk/toshokan_build_intermediate', [contai
 
 SConscript(dirs=['common/tests'])
 
+cloned_qemu = Command('.docker_tmp/qemu', [], 
+    ['rm -rf .docker_tmp/.qemu',
+     'git clone -b v4.2.0 --depth=1 https://github.com/qemu/qemu.git .docker_tmp/.qemu',
+     'mv .docker_tmp/.qemu .docker_tmp/qemu'])
+
 ###############################################################################
 # build FriendLoader & qemu container
 ###############################################################################
@@ -136,6 +141,7 @@ env.BuildContainer('qemu_intermediate', 'livadk/toshokan_ssh_intermediate', [
   ])
 Clean(containers["qemu_intermediate"], 'build')
 env.BuildContainer('qemu', 'livadk/toshokan_ssh_intermediate', [containers["ssh_intermediate"], containers["qemu_intermediate"]])
+env.BuildContainer('qemu_debug', 'ubuntu:16.04', [cloned_qemu, containers["qemu_intermediate"]])
 
 # local circleci
 AlwaysBuild(env.Alias('circleci', [], 
@@ -191,6 +197,7 @@ def pull_container(name):
 output_containers = ['qemu', 'build_hakase', 'build_friend'] #, 'ssh'
 
 AlwaysBuild(env.Alias('tag', list(map(tag_container, output_containers)), []))
+AlwaysBuild(env.Alias('tag_debug', list(map(tag_container, ['qemu_debug'])), []))
 
 AlwaysBuild(env.Alias('push', list(map(push_container, output_containers)), []))
 
