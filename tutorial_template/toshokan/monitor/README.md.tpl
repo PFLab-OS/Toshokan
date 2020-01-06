@@ -1,4 +1,4 @@
-{% import 'macro.tpl' as helper %}
+{% import 'build_misc/macro.tpl' as helper %}
 # QEMUモニタを用いたデバッグ
 
 {{ helper.sample_info() }}

@@ -1,4 +1,4 @@
-{% import 'macro.tpl' as helper %}
+{% import 'build_misc/macro.tpl' as helper %}
 # CPUによるインストラクションポインタ変更
 
 {{ helper.sample_info() }}

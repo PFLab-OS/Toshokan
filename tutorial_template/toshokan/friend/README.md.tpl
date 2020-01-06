@@ -1,4 +1,4 @@
-{% import 'macro.tpl' as helper %}
+{% import 'build_misc/macro.tpl' as helper %}
 
 # friend上でできる事、できない事
 Toshokanでコードを書く際の基礎事項をざっくりと解説します。

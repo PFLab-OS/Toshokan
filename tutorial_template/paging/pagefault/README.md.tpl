@@ -1,4 +1,4 @@
-{% import 'macro.tpl' as helper %}
+{% import 'build_misc/macro.tpl' as helper %}
 # ページフォルト
 
 今回は、[割り込み、例外](../../interrupt/)の知識が必要です。割り込みの基本を簡単に理解してから読んでください。

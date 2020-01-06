@@ -1,3 +1,3 @@
-{% import 'macro.tpl' as helper %}
+{% import 'build_misc/macro.tpl' as helper %}
 # ０からのページテーブルの作成
 

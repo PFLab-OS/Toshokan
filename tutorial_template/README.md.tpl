@@ -1,5 +1,5 @@
 # ベアメタルプログラミングを通して学ぶx86アーキテクチャ
-base version: {{ version }}
+Toshokan version: {{ version }}
 
 ## 始める前に
 ### 環境について

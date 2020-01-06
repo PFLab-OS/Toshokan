@@ -1,4 +1,4 @@
-{% import 'macro.tpl' as helper %}
+{% import 'build_misc/macro.tpl' as helper %}
 # 仮想メモリと物理メモリ
 
 {{ helper.sample_info() }}

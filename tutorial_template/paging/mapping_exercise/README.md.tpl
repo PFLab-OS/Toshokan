@@ -1,4 +1,4 @@
-{% import 'macro.tpl' as helper %}
+{% import 'build_misc/macro.tpl' as helper %}
 # 演習：ページの割当て
 
 {{ helper.exercise_info() }}

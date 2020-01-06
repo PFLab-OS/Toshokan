@@ -1,0 +1,4 @@
+version: v0.05a
+misccode_for_makefile: |
+  $(shell docker run --rm -v $(CURDIR):$(CURDIR) livadk/toshokan_build_hakase:$(TOSHOKAN_VERSION) cp -r /usr/local/share/misc/toshokan $(CURDIR)/.misc)
+  include .misc/build_rules.mk

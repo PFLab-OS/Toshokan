@@ -8,13 +8,13 @@ import errno
 import stat
 from functools import reduce
 
-base_env = DefaultEnvironment().Clone()
+base_env = DefaultEnvironment().Clone(tools = ['textfile'])
 
 def gen_docker_cmd(env, container, arg):
   return 'docker run -i --rm -v {0}:{0} -w {0} {1} {2}'.format(curdir, container, arg)
 base_env.AddMethod(gen_docker_cmd, "GenerateDockerCommand")
 
-tag_version = "v0.04c"
+tag_version = "v0.05a"
 
 curdir = Dir('.').abspath
 ci = True if int(ARGUMENTS.get('CI', 0)) == 1 else False
@@ -103,7 +103,10 @@ Export('common_lib')
 
 hakase_lib = SConscript(dirs=['hakase'])
 hakase_ldscript = Command('.docker_tmp/$SOURCE', 'hakase/hakase.ld', Copy("$TARGET", "$SOURCE"))
-env.BuildContainer('build_hakase', 'livadk/toshokan_build_intermediate', [containers["build_intermediate"], hakase_headers, hakase_lib, hakase_ldscript, common_lib])
+build_tools = [Install('.docker_tmp/tools/wrapper/', Glob('tools/wrapper/*')),
+               Install('.docker_tmp/tools/', 'tools/build_rules.mk')]
+
+env.BuildContainer('build_hakase', 'livadk/toshokan_build_intermediate', [containers["build_intermediate"], hakase_headers, hakase_lib, hakase_ldscript, common_lib] + build_tools)
 
 friend_lib = SConscript(dirs=['friend'])
 friend_ldscript = Command('.docker_tmp/$SOURCE', 'friend/friend.ld', Copy("$TARGET", "$SOURCE"))
@@ -231,8 +234,8 @@ def build_basescript(env, name, test):
 env.AddMethod(build_binscript, "BuildBinScript")
 env.AddMethod(build_basescript, "BuildBaseScript")
 
-AlwaysBuild(env.Alias('generate', [
-  Command('tutorial_template/code_template/build_rules.mk', 'sample/build_rules.mk', Copy("$TARGET", "$SOURCE")),
+# always run this when you release new version
+AlwaysBuild(env.Alias('generate_tools', [
   env.BuildBaseScript('bin/base', True),
   env.BuildBinScript('bin/ar', 'intermediate'),
   env.BuildBinScript('bin/g++', 'intermediate'),
@@ -245,22 +248,15 @@ AlwaysBuild(env.Alias('generate', [
   env.BuildBinScript('tests/bin/objdump', 'hakase'),
   env.BuildBinScript('tests/bin/hakase-g++', 'hakase', 'g++'),
   env.BuildBinScript('tests/bin/friend-g++', 'friend', 'g++'),
-  env.BuildBaseScript('sample/bin/base', False),
-  env.BuildBinScript('sample/bin/addr2line', 'hakase'),
-  env.BuildBinScript('sample/bin/objcopy', 'hakase'),
-  env.BuildBinScript('sample/bin/objdump', 'hakase'),
-  env.BuildBinScript('sample/bin/hakase-g++', 'hakase', 'g++'),
-  env.BuildBinScript('sample/bin/friend-g++', 'friend', 'g++'),
-  env.BuildBaseScript('tutorial_template/code_template/bin/base', False),
-  env.BuildBinScript('tutorial_template/code_template/bin/addr2line', 'hakase'),
-  env.BuildBinScript('tutorial_template/code_template/bin/objcopy', 'hakase'),
-  env.BuildBinScript('tutorial_template/code_template/bin/objdump', 'hakase'),
-  env.BuildBinScript('tutorial_template/code_template/bin/hakase-g++', 'hakase', 'g++'),
-  env.BuildBinScript('tutorial_template/code_template/bin/friend-g++', 'friend', 'g++'),
+  env.BuildBaseScript('tools/wrapper/base', False),
+  env.BuildBinScript('tools/wrapper/addr2line', 'hakase'),
+  env.BuildBinScript('tools/wrapper/objcopy', 'hakase'),
+  env.BuildBinScript('tools/wrapper/objdump', 'hakase'),
+  env.BuildBinScript('tools/wrapper/hakase-g++', 'hakase', 'g++'),
+  env.BuildBinScript('tools/wrapper/friend-g++', 'friend', 'g++'),
 ], []))
 
-AlwaysBuild(env.Alias('tutorial', ['generate'], 'cd tutorial_template; ./build.py'))
-
+AlwaysBuild(env.Alias('tutorial', ['generate_tools'], 'cd tutorial_template; ./build.py'))
 
 ###############################################################################
 # support functions

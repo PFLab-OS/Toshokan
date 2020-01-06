@@ -1,5 +1,5 @@
 # ベアメタルプログラミングを通して学ぶx86アーキテクチャ
-base version: v0.04
+Toshokan version: v0.05a
 
 ## 始める前に
 ### 環境について

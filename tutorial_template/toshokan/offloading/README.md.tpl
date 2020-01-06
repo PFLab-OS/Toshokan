@@ -1,4 +1,4 @@
-{% import 'macro.tpl' as helper %}
+{% import 'build_misc/macro.tpl' as helper %}
 # friendからhakaseへのfunction offloading
 
 hakase上でのみ実行できるコードや関数（例：libc関数）をfriendコード上で呼び出したかのように記述する事ができます。ただし、実際には関数はhakase上で実行されます。
