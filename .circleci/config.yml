@@ -78,7 +78,7 @@ jobs:
             sudo pip install scons jinja2 pyyaml
       - run:
           command: |
-            scons generate
+            scons generate_tools
             scons doccheck
   dockerimagecheck:
     docker:
@@ -101,6 +101,9 @@ jobs:
       - image: circleci/python:3.5
     steps:
       - checkout
+      - run:
+          command: |
+            sudo pip install scons
       - run:
           command: |
             scons versioncheck

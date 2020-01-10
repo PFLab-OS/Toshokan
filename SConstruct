@@ -197,10 +197,9 @@ def pull_container(name):
     'docker pull {0}:{1}'.format(container_name, tag_version),
   ]))
 
-output_containers = ['qemu', 'build_hakase', 'build_friend'] #, 'ssh'
+output_containers = ['qemu', 'qemu_debug', 'build_hakase', 'build_friend'] #, 'ssh'
 
 AlwaysBuild(env.Alias('tag', list(map(tag_container, output_containers)), []))
-AlwaysBuild(env.Alias('tag_debug', list(map(tag_container, ['qemu_debug'])), []))
 
 AlwaysBuild(env.Alias('push', list(map(push_container, output_containers)), []))
 
