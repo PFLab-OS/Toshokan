@@ -7,11 +7,12 @@ workflows:
       - build_python2
       - build_python3
       - doccheck
-      - check_dockerimage:
+      - dockerimagecheck:
           filters:
             branches:
               only:
                 - master
+      - versioncheck
   nightly_workflow:
     triggers:
       - schedule:
@@ -25,6 +26,8 @@ workflows:
       - build_python2
       - build_python3
       - doccheck
+      - dockerimagecheck
+      - versioncheck
 jobs:
   build_python2:
     machine: true
@@ -77,7 +80,7 @@ jobs:
           command: |
             scons generate
             scons doccheck
-  check_dockerimage:
+  dockerimagecheck:
     docker:
       - image: circleci/python:3.5
     steps:
@@ -93,5 +96,13 @@ jobs:
             else
                scons imagecheck
             fi 
+  versioncheck:
+    docker:
+      - image: circleci/python:3.5
+    steps:
+      - checkout
+      - run:
+          command: |
+            scons versioncheck
       
 #TODO: should be refactored using YAML anchor & alias

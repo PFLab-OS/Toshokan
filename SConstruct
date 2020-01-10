@@ -206,6 +206,13 @@ AlwaysBuild(env.Alias('push', list(map(push_container, output_containers)), []))
 
 AlwaysBuild(env.Alias('imagecheck', list(map(pull_container, output_containers)), []))
 
+# sample version & tutorial version should be updated manually
+# It is because their version update often requires source code changes.
+# If these version information is updated automatically, no one will care about the changes anymore and samples & tutorials will be ruined.
+# To prevent this, we should update them by hand, and check it with CI.
+AlwaysBuild(env.Alias('versioncheck', [], 
+                      'grep {0} sample/Makefile | wc -l | xargs test 0 -ne && grep {0} tutorial_template/build_misc/settings.yml | wc -l | xargs test 0 -ne'.format(tag_version)))
+
 ###############################################################################
 # automatic generation
 ###############################################################################
