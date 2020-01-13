@@ -34,7 +34,7 @@ def build_container(env, name, base, source):
   containers[name] = env.Command('.docker_tmp/sha1_' + name, ['docker/' + script] + source, [
     'docker rm -f $CONTAINER_NAME > /dev/null 2>&1 || :',
     Chmod('docker/' + script, '755'),
-    'docker run --name=$CONTAINER_NAME -v {0}/docker:/mnt -v {0}/.docker_tmp:/share -w / {1} mnt/{2}'.format(curdir, base, script),
+    'docker run --network host --name=$CONTAINER_NAME -v {0}/docker:/mnt -v {0}/.docker_tmp:/share -w / {1} mnt/{2}'.format(curdir, base, script),
     'docker commit -c "CMD sh" $CONTAINER_NAME $IMG_NAME',
     'docker rm -f $CONTAINER_NAME',
     'docker images --digests -q --no-trunc $IMG_NAME > $TARGET'
@@ -136,15 +136,22 @@ AlwaysBuild(env.Alias('insmod', [local_friendLoader],
 AlwaysBuild(env.Alias('rmmod', [], 
     ['sudo rmmod friend_loader.ko']))
 
+env.Command(".docker_tmp/friend_loader.ko", "FriendLoader/friend_loader.ko", Copy("$TARGET", "$SOURCE"))
+
 env.BuildContainer('qemu_intermediate', 'livadk/toshokan_ssh_intermediate', [
   containers["ssh_intermediate"],
   containers["qemu_kernel_image"],
   containers["rootfs"],
-  env.Command(".docker_tmp/friend_loader.ko", "FriendLoader/friend_loader.ko", Copy("$TARGET", "$SOURCE"))
+  ".docker_tmp/friend_loader.ko",
   ])
-Clean(containers["qemu_intermediate"], 'build')
 env.BuildContainer('qemu', 'livadk/toshokan_ssh_intermediate', [containers["ssh_intermediate"], containers["qemu_intermediate"]])
-env.BuildContainer('qemu_debug', 'ubuntu:16.04', [cloned_qemu, containers["qemu_intermediate"]])
+env.BuildContainer('qemu_debug', 'ubuntu:16.04', [
+  cloned_qemu,
+  containers["ssh_intermediate"],
+  containers["qemu_kernel_image"],
+  containers["rootfs"],
+  ".docker_tmp/friend_loader.ko",
+  ])
 
 # local circleci
 AlwaysBuild(env.Alias('circleci', [], 
@@ -267,5 +274,5 @@ AlwaysBuild(env.Alias('tutorial', ['generate_tools'], 'cd tutorial_template; ./b
 ###############################################################################
 # support functions
 ###############################################################################
-AlwaysBuild(env.Alias('monitor', '', 'docker exec -it toshokan_qemu_{0} nc localhost 4445'.format(ARGUMENTS.get('SIGNATURE'))))
+AlwaysBuild(env.Alias('monitor', '', 'docker exec -it toshokan_qemu_{0} busybox nc localhost 4445'.format(ARGUMENTS.get('SIGNATURE'))))
 AlwaysBuild(env.Alias('ssh', '', 'docker exec -it toshokan_qemu_{0} ssh toshokan_qemu'.format(ARGUMENTS.get('SIGNATURE'))))
