@@ -9,12 +9,15 @@ chmod 700 /root/.ssh
 chmod 600 /root/.ssh/config
 chmod 600 /root/.ssh/id_rsa
 
-mkdir -p /share/.qemu-build
-pushd /share/.qemu-build
-/share/qemu/configure --target-list=x86_64-softmmu --enable-debug --disable-pie
+mkdir -p /usr/local/src/
+cp -r /share/qemu /usr/local/src/
+mkdir -p /tmp/qemu-build
+pushd /tmp/qemu-build
+/usr/local/src/qemu/configure --target-list=x86_64-softmmu --enable-debug --disable-pie
 make -j8
 make install
 popd
+rm -rf /tmp/qemu-build
 
 cp -r /share/vmlinuz-4.13.0-45-generic /
 cp -r /share/rootfs /
