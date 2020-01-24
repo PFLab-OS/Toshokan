@@ -81,3 +81,9 @@ clean:
 monitor:
 	$(call SILENT_EXEC,docker exec $(TOSHOKAN_CONTAINER) sh -c "echo 'cpu 1' | nc localhost 4445 > /dev/zero")
 	$(call SILENT_EXEC,docker exec -it $(TOSHOKAN_CONTAINER) nc localhost 4445,connecting to QEMU monitor)
+
+debug_qemu:
+	$(call CALL_REMOTE,gdb -p 1,debug qemu with gdb)
+
+attach_gdb:
+	$(call CALL_REMOTE,gdb -ex "target remote localhost:1234" -ex "thread 2",attach gdb to qemu)
