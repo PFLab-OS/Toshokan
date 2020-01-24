@@ -1,8 +1,8 @@
 ifdef SIGNATURE
-SIGNATURE := _$(SIGNATURE)
+SIGNATURE:=_$(SIGNATURE)
 endif
 
-TOSHOKAN_CONTAINER := toshokan_qemu$(SIGNATURE)
+TOSHOKAN_CONTAINER:=toshokan_qemu$(SIGNATURE)
 
 ifeq ($(V),1)
 define SILENT_EXEC
@@ -16,18 +16,24 @@ define SILENT_EXEC
 endef
 endif
 
-comma := ,
+comma:=,
 
 # if HOST is not defined, run on docker container
 ifndef HOST
-HOST := toshokan_qemu
+HOST:=toshokan_qemu
 define CALL_REMOTE
 	$(call SILENT_EXEC,docker exec -it $(TOSHOKAN_CONTAINER) $1,$2)
 endef
-QEMU_OPTION := -cpu Haswell -s -d cpu_reset -no-reboot -smp 5 -m 4G -D /qemu.log -loadvm snapshot1 -hda /backing.qcow2 -net nic -net user,hostfwd=tcp::2222-:22 -serial telnet::4444,server,nowait -monitor telnet::4445,server,nowait -nographic -global hpet.msi=true
+QEMU_OPTION:=-cpu Haswell -s -d cpu_reset -no-reboot -smp 5 -m 4G -D /qemu.log -loadvm snapshot1 -hda /backing.qcow2 -net nic -net user,hostfwd=tcp::2222-:22 -serial telnet::4444,server,nowait -monitor telnet::4445,server,nowait -nographic -global hpet.msi=true
+TOSHOKAN_CONTAINER_IMAGE:=livadk/toshokan_qemu
+ifeq ($(DEBUGQEMU),1)
+DOCKER_OPTION+=--cap-add=SYS_PTRACE
+TOSHOKAN_CONTAINER_IMAGE:=$(TOSHOKAN_CONTAINER_IMAGE)_debug
+endif
+
 define PREPARE_REMOTE
 	$(call SILENT_EXEC,docker rm -f $(TOSHOKAN_CONTAINER) > /dev/null 2>&1 || :,clean up old environments)
-	$(call SILENT_EXEC,docker run -d --cap-add=SYS_PTRACE --name $(TOSHOKAN_CONTAINER) -v $(CURDIR):$(CURDIR) -w $(CURDIR) livadk/toshokan_qemu:$(TOSHOKAN_VERSION) qemu-system-x86_64 $(QEMU_OPTION) > /dev/null 2>&1,start a QEMU container)
+	$(call SILENT_EXEC,docker run -d $(DOCKER_OPTION) --name $(TOSHOKAN_CONTAINER) -v $(CURDIR):$(CURDIR) -w $(CURDIR) $(TOSHOKAN_CONTAINER_IMAGE):$(TOSHOKAN_VERSION) qemu-system-x86_64 $(QEMU_OPTION) > /dev/null 2>&1,start a QEMU container)
 endef
 
 define WAIT_REMOTE
@@ -43,8 +49,8 @@ define CALL_REMOTE
 endef
 endif
 
-FRIEND_CXXFLAGS := -g -O0 -Wall -Werror=unused-result --std=c++14 -nostdinc -nostdlib -fno-pie -no-pie -D__FRIEND__ -T /usr/local/etc/friend.ld -I/usr/local/include -L/usr/local/lib64 -lfriend -lcommon
-HAKASE_CXXFLAGS := -g -O0 -Wall -Werror=unused-result --std=c++14 -static -fno-pie -no-pie -D__HAKASE__ -T /usr/local/etc/hakase.ld -lhakase -lcommon
+FRIEND_CXXFLAGS:=-g -O0 -Wall -Werror=unused-result --std=c++14 -nostdinc -nostdlib -fno-pie -no-pie -D__FRIEND__ -T /usr/local/etc/friend.ld -I/usr/local/include -L/usr/local/lib64 -lfriend -lcommon
+HAKASE_CXXFLAGS:=-g -O0 -Wall -Werror=unused-result --std=c++14 -static -fno-pie -no-pie -D__HAKASE__ -T /usr/local/etc/hakase.ld -lhakase -lcommon
 
 DEFAULT: run
 
@@ -79,8 +85,8 @@ clean:
 	$(call SILENT_EXEC,rm -rf friend.bin friend_bin.o friend.sym hakase.bin,delete all intermediate files)
 
 monitor:
-	$(call SILENT_EXEC,docker exec $(TOSHOKAN_CONTAINER) sh -c "echo 'cpu 1' | nc localhost 4445 > /dev/zero")
-	$(call SILENT_EXEC,docker exec -it $(TOSHOKAN_CONTAINER) nc localhost 4445,connecting to QEMU monitor)
+	$(call SILENT_EXEC,docker exec $(TOSHOKAN_CONTAINER) sh -c "echo 'cpu 1' | busybox nc localhost 4445 > /dev/zero")
+	$(call SILENT_EXEC,docker exec -it $(TOSHOKAN_CONTAINER) busybox nc localhost 4445,connecting to QEMU monitor)
 
 debug_qemu:
 	$(call CALL_REMOTE,gdb -p 1,debug qemu with gdb)
