@@ -58,10 +58,10 @@ cleanup_containers = AlwaysBuild(hakase_test_env.Alias('cleanup_containers', [],
 
 rootdir = Dir('#').abspath
 
-def generate_test_alias(env, name, depends):
+def generate_test_alias(env, container, name, depends):
   random_str = ''.join(random.choice(string.ascii_letters) for i in range(10))
   qemu_option = ' '.join([
-    '-cpu Haswell',
+    '-enable-kvm -cpu Haswell,+vmx,kvm,-kvm-pv-eoi,-kvm-asyncpf,-kvm-steal-time,-kvmclock' if "kvm" in name else '-cpu Haswell',
     '-s',
     '-d cpu_reset',
     '-no-reboot',
@@ -77,8 +77,8 @@ def generate_test_alias(env, name, depends):
     '-nographic',
     '-global hpet.msi=true',
   ])
-  return hakase_test_env.AlwaysBuild(hakase_test_env.Alias('test_' + name, [cleanup_containers, containers["qemu"]] + depends, [
-    'docker run -d --name toshokan_qemu_{0} -v {2}:{2} -w {2} livadk/toshokan_qemu qemu-system-x86_64 {1}'.format(random_str, qemu_option, rootdir),
+  return hakase_test_env.AlwaysBuild(hakase_test_env.Alias('test_' + name, [cleanup_containers, containers[container]] + depends, [
+    'docker run {3} -d --name toshokan_qemu_{0} -v {2}:{2} -w {2} livadk/toshokan_qemu qemu-system-x86_64 {1}'.format(random_str, qemu_option, rootdir, "--device /dev/kvm:/dev/kvm" if "kvm" in name else ""),
     'docker exec -i toshokan_qemu_{0} wait-for-rsync toshokan_qemu'.format(random_str),
     'docker exec -i toshokan_qemu_{0} rsync build/{1} toshokan_qemu:build/'.format(random_str, name),
     'docker exec -i toshokan_qemu_{0} ssh toshokan_qemu sudo build/{1}'.format(random_str, name),
@@ -96,8 +96,7 @@ def generate_test_program(env, hakase_source, friend_source):
   target = env.Program(target='#build/' + name, source=[friend_obj] + hakase_source, LIBS=['hakase', 'common'], LINKFLAGS=env['LINKFLAGS'] + ' -Wl,-R,' + friend_symbols[0].path)
   env.Depends(target, friend_symbols)
 
-  test_binary = env.GenerateTestAlias(name, target)
-  return test_binary
+  return (env.GenerateTestAlias("qemu", name, target), env.GenerateTestAlias("qemu_with_kvm", name, target))
 
 hakase_test_env.AddMethod(generate_test_program, "TestProgram")
 hakase_test_env.Object('main.o', 'main.cc')
