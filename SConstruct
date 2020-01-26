@@ -8,7 +8,8 @@ import errno
 import stat
 from functools import reduce
 
-base_env = DefaultEnvironment().Clone(tools = ['textfile'])
+
+base_env = DefaultEnvironment().Clone(tools = ['textfile'], CONTAINER_PREFIX=ARGUMENTS.get("container_prefix", "toshokan_"))
 
 def gen_docker_cmd(env, container, arg):
   return 'docker run -i --rm -v {0}:{0} -w {0} {1} {2}'.format(curdir, container, arg)
@@ -38,7 +39,7 @@ def build_container(env, name, base, source):
     'docker commit -c "CMD sh" $CONTAINER_NAME $IMG_NAME',
     'docker rm -f $CONTAINER_NAME',
     'docker images --digests -q --no-trunc $IMG_NAME > $TARGET'
-  ], CONTAINER_NAME='toshokan_containerbuild_' + name, IMG_NAME='livadk/toshokan_' + name)
+  ], CONTAINER_NAME='toshokan_containerbuild_' + name, IMG_NAME=base_env['CONTAINER_PREFIX'] + name)
 env.AddMethod(build_container, "BuildContainer")
 
 env.BuildContainer('build_intermediate', 'alpine:3.8', [])
@@ -68,7 +69,7 @@ FriendLoader_headers = env.Alias('FriendLoader_headers', [
 headers=[hakase_headers, friend_headers, cpputest_headers, FriendLoader_headers]
 
 def container_emitter(target, source, env):
-  env.Depends(target, [containers["build_intermediate"], headers])
+  env.Depends(target, [containers["build_intermediate"], headers, Alias("generate_tools")])
   return (target, source)
 
 from SCons.Tool import createObjBuilders
@@ -106,11 +107,11 @@ hakase_ldscript = Command('.docker_tmp/$SOURCE', 'hakase/hakase.ld', Copy("$TARG
 build_tools = [Install('.docker_tmp/tools/wrapper/', Glob('tools/wrapper/*')),
                Install('.docker_tmp/tools/', 'tools/build_rules.mk')]
 
-env.BuildContainer('build_hakase', 'livadk/toshokan_build_intermediate', [containers["build_intermediate"], hakase_headers, hakase_lib, hakase_ldscript, common_lib] + build_tools)
+env.BuildContainer('build_hakase', base_env['CONTAINER_PREFIX'] + 'build_intermediate', [containers["build_intermediate"], hakase_headers, hakase_lib, hakase_ldscript, common_lib] + build_tools)
 
 friend_lib = SConscript(dirs=['friend'])
 friend_ldscript = Command('.docker_tmp/$SOURCE', 'friend/friend.ld', Copy("$TARGET", "$SOURCE"))
-env.BuildContainer('build_friend', 'livadk/toshokan_build_intermediate', [containers["build_intermediate"], friend_headers, friend_lib, friend_ldscript, common_lib])
+env.BuildContainer('build_friend', base_env['CONTAINER_PREFIX'] + 'build_intermediate', [containers["build_intermediate"], friend_headers, friend_lib, friend_ldscript, common_lib])
 
 SConscript(dirs=['common/tests'])
 
@@ -122,7 +123,7 @@ cloned_qemu = Command('.docker_tmp/qemu', [],
 ###############################################################################
 # build FriendLoader & qemu container
 ###############################################################################
-AlwaysBuild(env.Command('FriendLoader/friend_loader.ko', [containers["qemu_kernel"], Glob('FriendLoader/*.h'), Glob('FriendLoader/*.c'), FriendLoader_headers], env.GenerateDockerCommand('livadk/toshokan_qemu_kernel', 'sh -c "cd FriendLoader; KERN_VER=4.13.0-45-generic make all"')))
+AlwaysBuild(env.Command('FriendLoader/friend_loader.ko', [containers["qemu_kernel"], Glob('FriendLoader/*.h'), Glob('FriendLoader/*.c'), FriendLoader_headers], env.GenerateDockerCommand(base_env['CONTAINER_PREFIX'] + 'qemu_kernel', 'sh -c "cd FriendLoader; KERN_VER=4.13.0-45-generic make all"')))
 
 local_friendLoader = AlwaysBuild(env.Command('FriendLoader_local/friend_loader.ko', [Glob('FriendLoader/*.h'), Glob('FriendLoader/*.c'), FriendLoader_headers], [
   'rm -rf FriendLoader_local',
@@ -138,13 +139,13 @@ AlwaysBuild(env.Alias('rmmod', [],
 
 env.Command(".docker_tmp/friend_loader.ko", "FriendLoader/friend_loader.ko", Copy("$TARGET", "$SOURCE"))
 
-env.BuildContainer('qemu_intermediate', 'livadk/toshokan_ssh_intermediate', [
+env.BuildContainer('qemu_intermediate', base_env['CONTAINER_PREFIX'] + 'ssh_intermediate', [
   containers["ssh_intermediate"],
   containers["qemu_kernel_image"],
   containers["rootfs"],
   ".docker_tmp/friend_loader.ko",
   ])
-env.BuildContainer('qemu', 'livadk/toshokan_ssh_intermediate', [containers["ssh_intermediate"], containers["qemu_intermediate"]])
+env.BuildContainer('qemu', base_env['CONTAINER_PREFIX'] + 'ssh_intermediate', [containers["ssh_intermediate"], containers["qemu_intermediate"]])
 env.BuildContainer('qemu_debug', 'ubuntu:16.04', [
   cloned_qemu,
   containers["ssh_intermediate"],
@@ -173,7 +174,7 @@ AlwaysBuild(env.Alias('doccheck', [],
      'git diff && git diff | wc -l | xargs test 0 -eq']))
 
 # common tests
-AlwaysBuild(env.Alias('common_test', [containers["build_intermediate"], 'common/tests/cpputest'], env.GenerateDockerCommand('livadk/toshokan_build_intermediate', './common/tests/cpputest -c -v')))
+AlwaysBuild(env.Alias('common_test', [containers["build_intermediate"], 'common/tests/cpputest'], env.GenerateDockerCommand(base_env['CONTAINER_PREFIX'] + 'build_intermediate', './common/tests/cpputest -c -v')))
 
 Export('containers')
 test = SConscript(dirs=['tests'])
@@ -186,20 +187,20 @@ AlwaysBuild(env.Alias('doc', '', 'find . \( -name \*.cc -or -name \*.c -or -name
 
 # push containers
 def tag_container(name):
-  container_name = 'livadk/toshokan_' + name
+  container_name = base_env['CONTAINER_PREFIX'] + name
   return AlwaysBuild(env.Alias('tag_' + name, ['test', containers[name]], [
     'docker tag {0} {0}:{1}'.format(container_name, tag_version),
   ]))
 
 def push_container(name):
-  container_name = 'livadk/toshokan_' + name
+  container_name = base_env['CONTAINER_PREFIX'] + name
   return AlwaysBuild(env.Alias('push_' + name, ['test', 'tag_' + name], [
     'docker push {0}'.format(container_name),
     'docker push {0}:{1}'.format(container_name, tag_version),
   ]))
 
 def pull_container(name):
-  container_name = 'livadk/toshokan_' + name
+  container_name = base_env['CONTAINER_PREFIX'] + name
   return AlwaysBuild(env.Alias('pull_' + name, [], [
     'docker pull {0}:{1}'.format(container_name, tag_version),
   ]))
@@ -241,9 +242,9 @@ def build_basescript(env, name, test):
     "echo 'BINNAME=$$2' >> $FNAME",
     "echo 'shift 2' >> $FNAME",
     "echo 'PROJECT_ROOT=$$(cd \"$${PROJECT_ROOT:=$${PWD}}\" && pwd)' >> $FNAME",
-    "echo 'exec docker run $DOCKER_FLAG --rm --network host -v $${PROJECT_ROOT}:$${PROJECT_ROOT} -w $${PROJECT_ROOT} livadk/toshokan_build_$${CONTAINER_TYPE}$VERSION $${BINNAME} \"$$@\"' >> $FNAME",
+    "echo 'exec docker run $DOCKER_FLAG --rm --network host -v $${PROJECT_ROOT}:$${PROJECT_ROOT} -w $${PROJECT_ROOT} ${CONTAINER_PREFIX}build_$${CONTAINER_TYPE}$VERSION $${BINNAME} \"$$@\"' >> $FNAME",
     "chmod +x $FNAME",
-  ], FNAME=name, DOCKER_FLAG=docker_flag, VERSION=version)
+  ], FNAME=name, DOCKER_FLAG=docker_flag, VERSION=version, CONTAINER_PREFIX = base_env['CONTAINER_PREFIX'])
 env.AddMethod(build_binscript, "BuildBinScript")
 env.AddMethod(build_basescript, "BuildBaseScript")
 
