@@ -26,7 +26,7 @@ define CALL_REMOTE
 endef
 QEMU_OPTION:=-cpu Haswell -s -d cpu_reset -no-reboot -smp 5 -m 4G -D /qemu.log -loadvm snapshot1 -hda /backing.qcow2 -net nic -net user,hostfwd=tcp::2222-:22 -serial telnet::4444,server,nowait -monitor telnet::4445,server,nowait -nographic -global hpet.msi=true
 TOSHOKAN_CONTAINER_IMAGE:=livadk/toshokan_qemu
-ifeq ($(DEBUGQEMU),1)
+ifeq ($(DEBUG),1)
 DOCKER_OPTION+=--cap-add=SYS_PTRACE
 TOSHOKAN_CONTAINER_IMAGE:=$(TOSHOKAN_CONTAINER_IMAGE)_debug
 endif

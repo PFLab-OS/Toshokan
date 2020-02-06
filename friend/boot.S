@@ -75,7 +75,7 @@ start:
 	call friend_init
 	
 stop:	
-	hlt
+	pause
 	jmp stop
 
 	.balign 8
