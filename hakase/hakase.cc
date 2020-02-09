@@ -175,7 +175,7 @@ int boot(int max) {
     if (open(buf, O_RDONLY) < 0) {
       return i - 1;
     }
-    if (max > 0 && i <= max) {
+    if (i == max) {
       return i;
     }
   }
