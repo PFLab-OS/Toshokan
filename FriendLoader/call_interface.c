@@ -1,6 +1,7 @@
 #include <linux/cdev.h>
 #include <linux/kernel.h>
 #include <linux/mm.h>
+#include <linux/device.h> // class_create
 
 #include <toshokan/memory.h>
 #include "call_interface.h"

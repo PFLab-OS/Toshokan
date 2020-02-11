@@ -7,6 +7,7 @@
 #include <linux/mc146818rtc.h>  // spin_lock_irqsave
 #include <linux/slab.h>
 #include <linux/spinlock.h>  // spin_lock_irqsave, spin_unlock_irqrestore
+#include <linux/delay.h>     // udelay
 
 #include <toshokan/memory.h>
 #include "cpu_hotplug.h"
