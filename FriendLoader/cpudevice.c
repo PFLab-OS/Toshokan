@@ -1,8 +1,8 @@
 #include <linux/cdev.h>
+#include <linux/device.h>  // class_create
+#include <linux/fs.h>      // iminor
 #include <linux/kernel.h>
 #include <linux/types.h>
-#include <linux/fs.h>     // iminor
-#include <linux/device.h> // class_create
 
 #include <toshokan/memory.h>
 #include "cpu_hotplug.h"
