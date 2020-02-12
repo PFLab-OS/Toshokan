@@ -14,7 +14,9 @@ def gen_docker_cmd(env, container, arg):
   return 'docker run -i --rm -v {0}:{0} -w {0} {1} {2}'.format(curdir, container, arg)
 base_env.AddMethod(gen_docker_cmd, "GenerateDockerCommand")
 
-# run `scons generate_tools` after you change the version
+# after you change the version,
+# 1. run `scons generate_tools` 
+# 2. update sample/Makefile
 tag_version = "v0.05b"
 
 curdir = Dir('.').abspath
@@ -101,7 +103,7 @@ Export('base_env hakase_env friend_env friend_elf_env cpputest_env')
 
 build_tools = [Install('.docker_tmp/tools/wrapper/', Glob('tools/wrapper/*')),
                Install('.docker_tmp/tools/', 'tools/build_rules.mk')]
-env.BuildContainer('tools', 'tianon/true', build_tools)
+env.BuildContainer('tools', 'alpine:3.8', build_tools)
 
 common_lib = SConscript(dirs=['common'])
 Export('common_lib')
