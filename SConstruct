@@ -14,7 +14,8 @@ def gen_docker_cmd(env, container, arg):
   return 'docker run -i --rm -v {0}:{0} -w {0} {1} {2}'.format(curdir, container, arg)
 base_env.AddMethod(gen_docker_cmd, "GenerateDockerCommand")
 
-tag_version = "v0.05a"
+# run `scons generate_tools` after you change the version
+tag_version = "v0.05b"
 
 curdir = Dir('.').abspath
 ci = True if int(ARGUMENTS.get('CI', 0)) == 1 else False
@@ -98,15 +99,17 @@ cpputest_env = env.Clone(ASFLAGS=cpputest_flag, CXXFLAGS=cpputest_flag, LINKFLAG
 
 Export('base_env hakase_env friend_env friend_elf_env cpputest_env')
 
+build_tools = [Install('.docker_tmp/tools/wrapper/', Glob('tools/wrapper/*')),
+               Install('.docker_tmp/tools/', 'tools/build_rules.mk')]
+env.BuildContainer('tools', 'tianon/true', build_tools)
+
 common_lib = SConscript(dirs=['common'])
 Export('common_lib')
 
 hakase_lib = SConscript(dirs=['hakase'])
 hakase_ldscript = Command('.docker_tmp/$SOURCE', 'hakase/hakase.ld', Copy("$TARGET", "$SOURCE"))
-build_tools = [Install('.docker_tmp/tools/wrapper/', Glob('tools/wrapper/*')),
-               Install('.docker_tmp/tools/', 'tools/build_rules.mk')]
 
-env.BuildContainer('build_hakase', 'livadk/toshokan_build_intermediate', [containers["build_intermediate"], hakase_headers, hakase_lib, hakase_ldscript, common_lib] + build_tools)
+env.BuildContainer('build_hakase', 'livadk/toshokan_build_intermediate', [containers["build_intermediate"], hakase_headers, hakase_lib, hakase_ldscript, common_lib])
 
 friend_lib = SConscript(dirs=['friend'])
 friend_ldscript = Command('.docker_tmp/$SOURCE', 'friend/friend.ld', Copy("$TARGET", "$SOURCE"))
@@ -204,7 +207,7 @@ def pull_container(name):
     'docker pull {0}:{1}'.format(container_name, tag_version),
   ]))
 
-output_containers = ['qemu', 'qemu_debug', 'build_hakase', 'build_friend'] #, 'ssh'
+output_containers = ['qemu', 'qemu_debug', 'tools', 'build_hakase', 'build_friend'] #, 'ssh'
 
 AlwaysBuild(env.Alias('tag', list(map(tag_container, output_containers)), []))
 
