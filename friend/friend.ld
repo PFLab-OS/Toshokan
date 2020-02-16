@@ -3,7 +3,7 @@ DOC START
 
 # friend/binary
 ## limitations
-- It must be placed into friend region.(0x40000000 - 0x80000000)
+- It must be placed into friend region.(0x100000000 - 0x140000000)
 - It has to switch the mode from protected mode to long mode by itself
 
 # friend/elf_binary
@@ -13,7 +13,7 @@ DOC START
 
 ## linker script
 friend/friend.ld can be used for linker script.
-It specifies entry symbol(entry32) and start address(0x40000000).
+It specifies entry symbol(entry32) and start address(0x100000000).
 
 ## compile flags
 To resolve symbols between hakase binary and friend binary at compile time,
@@ -26,10 +26,10 @@ DOC END
 
 OUTPUT_FORMAT(elf64-x86-64)
 
-ENTRY (entry32)
+ENTRY (entry64)
 
 SECTIONS{
-  . = SEGMENT_START("text-segment", 0x40000000) + SIZEOF_HEADERS;
+  . = SEGMENT_START("text-segment", 0x100000000) + SIZEOF_HEADERS;
   .text : {
     *(.text*)
     *(.gnu.linkonce.t*)

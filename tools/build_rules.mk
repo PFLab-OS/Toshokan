@@ -31,8 +31,8 @@ define CALL_QEMU
 	$(call SILENT_EXEC,docker exec -it $(TOSHOKAN_CONTAINER) $1,$2)
 endef
 
-FRIEND_CXXFLAGS:=-O2 -Wall -Werror=unused-result --std=c++14 -nostdinc -nostdlib -fno-pie -no-pie -D__FRIEND__ -T /usr/local/etc/friend.ld -I/usr/local/include -L/usr/local/lib64 -lfriend -lcommon
-HAKASE_CXXFLAGS:=-O0 -Wall -Werror=unused-result --std=c++14 -static -fno-pie -no-pie -D__HAKASE__ -T /usr/local/etc/hakase.ld -lhakase -lcommon
+FRIEND_CXXFLAGS:=-O2 -Wall -Werror=unused-result --std=c++14 -mcmodel=large -nostdinc -nostdlib -fno-pie -no-pie -D__FRIEND__ -T /usr/local/etc/friend.ld -I/usr/local/include -L/usr/local/lib64 -lfriend -lcommon
+HAKASE_CXXFLAGS:=-O0 -Wall -Werror=unused-result --std=c++14 -mcmodel=large -static -fno-pie -no-pie -D__HAKASE__ -T /usr/local/etc/hakase.ld -lhakase -lcommon
 
 DEFAULT: run
 
