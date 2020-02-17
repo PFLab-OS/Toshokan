@@ -199,7 +199,7 @@ def tag_container(name):
 def push_container(name):
   container_name = 'livadk/toshokan_' + name
   return AlwaysBuild(env.Alias('push_' + name, ['test', 'tag_' + name], [
-    'docker push {0}'.format(container_name),
+    'docker push {0}:latest'.format(container_name),
     'docker push {0}:{1}'.format(container_name, tag_version),
   ]))
 
