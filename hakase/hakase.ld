@@ -233,10 +233,10 @@ SECTIONS
   .gnu.attributes 0 : { KEEP (*(.gnu.attributes)) }
   /DISCARD/ : { *(.note.GNU-stack) *(.gnu_debuglink) *(.gnu.lto_*) }
 
-/*  . = 0x100000000;
+  . = 0x100000000;
   .friend_mem  : {
     friend_mem_start = .;
     . += 0x40000000;
     friend_mem_end = .;
-  }*/
+  }
 }
