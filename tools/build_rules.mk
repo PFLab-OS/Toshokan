@@ -69,13 +69,7 @@ qemu_run: prepare_qemu hakase.bin wait_qemu
 ifdef HOST
 run: remote_run
 
-hakase.phys.bin: hakase.bin
-	@echo ""
-	@echo "Error:"
-	@echo "Before running your hakase binary on a physical machine, please test it on QEMU."
-	@echo "Without this step, the hakase binary might cause severe problems, including system crush."
-	@echo ""
-	@exit 1
+hakase.phys.bin: qemu_run
 
 remote_run: hakase.phys.bin
 	$(call SILENT_EXEC,rsync -z hakase.phys.bin $(HOST):,sending the binary to remote)
