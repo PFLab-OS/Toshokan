@@ -15,6 +15,7 @@ DOC END
 class Loader16 {
  public:
   int Init(uint64_t entry);
-private:
+
+ private:
   void InitPageTables(char *pt_addr);
 };

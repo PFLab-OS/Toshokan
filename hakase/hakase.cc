@@ -58,7 +58,8 @@ static int check_version() {
 /*extern char friend_mem_start[];
 extern char friend_mem_end[];
 static uint64_t *const mem = reinterpret_cast<uint64_t *>(friend_mem_start);*/
-static uint64_t *const mem = reinterpret_cast<uint64_t *>(DEPLOY_PHYS_ADDR_START);
+static uint64_t *const mem =
+    reinterpret_cast<uint64_t *>(DEPLOY_PHYS_ADDR_START);
 
 static int mmap_friend_mem() {
   int mem_fd = open("/dev/friend_mem", O_RDWR);
@@ -111,8 +112,9 @@ int setup() {
     return -1;
   }
 
-  //  assert(friend_mem_start == reinterpret_cast<char *>(DEPLOY_PHYS_ADDR_START));
-  //  assert(friend_mem_end == reinterpret_cast<char *>(DEPLOY_PHYS_ADDR_END));
+  //  assert(friend_mem_start == reinterpret_cast<char
+  //  *>(DEPLOY_PHYS_ADDR_START)); assert(friend_mem_end ==
+  //  reinterpret_cast<char *>(DEPLOY_PHYS_ADDR_END));
 
   if (mmap_friend_mem() < 0) {
     return -1;

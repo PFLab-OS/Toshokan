@@ -71,8 +71,8 @@ static int bootmemdevice_mmap(struct file *file, struct vm_area_struct *vma) {
 
   vma->vm_ops = &mmap_vm_ops;
 
-  if (remap_pfn_range(vma, vma->vm_start, TRAMPOLINE_ADDR >> PAGE_SHIFT,
-                      size, vma->vm_page_prot)) {
+  if (remap_pfn_range(vma, vma->vm_start, TRAMPOLINE_ADDR >> PAGE_SHIFT, size,
+                      vma->vm_page_prot)) {
     return -EAGAIN;
   }
 
@@ -94,7 +94,11 @@ struct file_operations s_bootmemdevice_fops = {
 static struct class *memdevice_class = NULL;
 static struct class *bootmemdevice_class = NULL;
 
-int __init generic_memdevice_init(dev_t *memdevice_dev, struct class **memdevice_class, struct cdev *memdevice_cdev, struct file_operations *s_memdevice_fops, const char *cname, const char *fname) {
+int __init generic_memdevice_init(dev_t *memdevice_dev,
+                                  struct class **memdevice_class,
+                                  struct cdev *memdevice_cdev,
+                                  struct file_operations *s_memdevice_fops,
+                                  const char *cname, const char *fname) {
   if (alloc_chrdev_region(memdevice_dev, 0, 1, DRIVER_NAME) != 0) {
     pr_err("friend_loader_init: failed to alloc_chrdev_regionn");
     return -ENXIO;
@@ -116,21 +120,25 @@ int __init generic_memdevice_init(dev_t *memdevice_dev, struct class **memdevice
   }
   return 0;
 
- device_destroy:
-    device_destroy(*memdevice_class, *memdevice_dev);
- class_destroy:
-    class_destroy(*memdevice_class);
- unregister_chrdev:
-    unregister_chrdev_region(*memdevice_dev, 1);
-    return -ENXIO;
+device_destroy:
+  device_destroy(*memdevice_class, *memdevice_dev);
+class_destroy:
+  class_destroy(*memdevice_class);
+unregister_chrdev:
+  unregister_chrdev_region(*memdevice_dev, 1);
+  return -ENXIO;
 }
 
 int __init memdevice_init(void) {
   // for mem
-  generic_memdevice_init(&memdevice_dev, &memdevice_class, &memdevice_cdev, &s_memdevice_fops, "friend_mem", "friend_mem");
+  generic_memdevice_init(&memdevice_dev, &memdevice_class, &memdevice_cdev,
+                         &s_memdevice_fops, "friend_mem", "friend_mem");
 
   // for bootmem
-  generic_memdevice_init(&bootmemdevice_dev, &bootmemdevice_class, &bootmemdevice_cdev, &s_bootmemdevice_fops, "friend_bootmem", "friend_bootmem" TRAMPOLINE_ADDR_STR);
+  generic_memdevice_init(&bootmemdevice_dev, &bootmemdevice_class,
+                         &bootmemdevice_cdev, &s_bootmemdevice_fops,
+                         "friend_bootmem",
+                         "friend_bootmem" TRAMPOLINE_ADDR_STR);
 
   return 0;
 }
