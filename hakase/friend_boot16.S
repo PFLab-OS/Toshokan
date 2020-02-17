@@ -11,7 +11,7 @@ required because of the limitation at x86 boot sequence: x86 can only boot from
 low memory (< 0x100000).
 
 The address 0x70000 is reserved by the boot parameter of Linux kernel.
-(memmap=0x70000\$8K)
+(memmap=8K\$0x70000)
 
 DOC END
 */

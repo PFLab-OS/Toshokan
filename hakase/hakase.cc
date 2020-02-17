@@ -26,7 +26,7 @@ static int check_bootparam() {
 
   char buf[256];
   buf[fread(buf, 1, 255, cmdline_fp)] = '\0';
-  if (!strstr(buf, "memmap=0x70000$8K memmap=0x100000000$0x40000000")) {
+  if (!strstr(buf, "memmap=8K$0x70000 memmap=1G$4G")) {
     std::cerr << "error: physical memory is not isolated for toshokan."
               << std::endl;
     return -1;

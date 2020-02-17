@@ -1,4 +1,4 @@
-TOSHOKAN_VERSION:=v0.05b
+TOSHOKAN_VERSION:=v0.05c
 HAKASE_SOURCE:=shared.h hakase.cc
 FRIEND_SOURCE:=shared.h friend.cc
 
