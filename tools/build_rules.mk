@@ -22,7 +22,7 @@ QEMU_OPTION:=-cpu Haswell -s -d cpu_reset -no-reboot -smp 5 -m 4G -D /qemu.log -
 TOSHOKAN_CONTAINER_IMAGE:=livadk/toshokan_qemu
 TOSHOKAN_QEMU_HOST:=toshokan_qemu
 
-ifeq ($(DEBUGQEMU),1)
+ifeq ($(DEBUG),1)
 DOCKER_OPTION+=--cap-add=SYS_PTRACE
 TOSHOKAN_CONTAINER_IMAGE:=$(TOSHOKAN_CONTAINER_IMAGE)_debug
 endif
