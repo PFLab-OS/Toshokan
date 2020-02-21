@@ -52,6 +52,7 @@ env.BuildContainer('ssh_intermediate', 'alpine:3.8', ['docker/config', 'docker/i
 #env.BuildContainer('ssh', 'livadk/toshokan_ssh_intermediate', [containers["ssh_intermediate"], 'docker/wait-for', 'docker/wait-for-rsync'])
 env.BuildContainer('qemu_kernel_image', 'ubuntu:16.04', [])
 env.BuildContainer('rootfs', 'alpine:3.8', [containers["qemu_kernel_image"]])
+env.BuildContainer('rootfs_debug', 'alpine:3.8', [containers["qemu_kernel_image"]])
 
 hakase_headers = env.Alias('hakase_headers', [
   Install('.docker_tmp/hakase_include/toshokan/', Glob('common/*.h')),
@@ -154,7 +155,7 @@ env.BuildContainer('qemu_debug', 'ubuntu:16.04', [
   cloned_qemu,
   containers["ssh_intermediate"],
   containers["qemu_kernel_image"],
-  containers["rootfs"],
+  containers["rootfs_debug"],
   ".docker_tmp/friend_loader.ko",
   ])
 

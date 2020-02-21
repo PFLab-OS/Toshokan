@@ -14,16 +14,10 @@ static dev_t memdevice_dev;
 static struct cdev bootmemdevice_cdev;
 static dev_t bootmemdevice_dev;
 
-static void mmap_open(struct vm_area_struct *vma) {}
-
-static int mmap_fault(struct vm_fault *vmf) {
-  pr_err("frined_loader:mmap_fault\n");
-  return -ENOSYS;
-}
-
 struct vm_operations_struct mmap_vm_ops = {
-    .open = mmap_open,
-    .fault = mmap_fault,
+#ifdef CONFIG_HAVE_IOREMAP_PROT
+  .access = generic_access_phys
+#endif
 };
 
 static int memdevice_open(struct inode *inode, struct file *file) { return 0; }
