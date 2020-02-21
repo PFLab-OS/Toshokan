@@ -86,7 +86,7 @@ monitor:
 	$(call SILENT_EXEC,docker exec -it $(TOSHOKAN_CONTAINER) busybox nc localhost 4445,connecting to QEMU monitor)
 
 debug_qemu:
-	$(call CALL_REMOTE,gdb -p 1,debugging qemu with gdb)
+	$(call CALL_QEMU,gdb -p 1,debugging qemu with gdb)
 
 attach_gdb:
-	$(call CALL_REMOTE,gdb -ex "target remote localhost:1234" -ex "thread 2",attaching gdb to qemu)
+	$(call CALL_QEMU,gdb -ex "target remote localhost:1234" -ex "thread 2",attaching gdb to qemu)
