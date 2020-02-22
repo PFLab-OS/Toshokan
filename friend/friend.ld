@@ -73,6 +73,11 @@ SECTIONS{
   . = ALIGN(0x1000);
   friend_binary_end = .;
 
+  /*
+   * following area will be used for stacks
+   * see friend/boot.S
+   */
+
   .debug_info    0 : { *(.debug_info) }
   .debug_abbrev  0 : { *(.debug_abbrev) }
   .debug_aranges 0 : { *(.debug_aranges) }
@@ -80,3 +85,4 @@ SECTIONS{
   .debug_line    0 : { *(.debug_line) }
   .debug_str     0 : { *(.debug_str) }
 }
+
