@@ -40,10 +40,19 @@ toshokan_setjmp_with_wait:
   movq    %rax, 56 (%rdi)
   movq    $1,   64(%rdi)	
 1:
+  pause
   cmpq    $0,   72(%rdi)
   je      1b
+  movq     8 (%rdi), %rbp
+  movq    48 (%rdi), %rsp
+  pushq   56 (%rdi)
+  movq     0 (%rdi), %rbx
+  movq    16 (%rdi), %r12
+  movq    24 (%rdi), %r13
+  movq    32 (%rdi), %r14
+  movq    40 (%rdi), %r15
   movq    $0,   72(%rdi)
-  movq    $0, %rax
+  movq    $1, %rax
   ret
 
 toshokan_longjmp:  
