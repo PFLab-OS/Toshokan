@@ -16,7 +16,7 @@ static dev_t bootmemdevice_dev;
 
 struct vm_operations_struct mmap_vm_ops = {
 #ifdef CONFIG_HAVE_IOREMAP_PROT
-  .access = generic_access_phys
+    .access = generic_access_phys
 #endif
 };
 

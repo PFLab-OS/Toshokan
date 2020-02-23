@@ -46,13 +46,13 @@ class Offloader {
            !__sync_bool_compare_and_swap(&(c)._lock, 0, 1)) { \
       asm volatile("pause" ::: "memory");                     \
     }                                                         \
-    if (toshokan_setjmp_with_wait((c)._friend_ctx) != 0) { \
+    if (toshokan_setjmp_with_wait((c)._friend_ctx) != 0) {    \
       asm volatile("" ::: "memory");                          \
       code;                                                   \
-      asm volatile("" ::: "memory");			      \
+      asm volatile("" ::: "memory");                          \
       if (toshokan_setjmp((c)._friend_ctx) == 0) {            \
-         toshokan_longjmp((c)._hakase_ctx, 1);		      \
-      }							      \
+        toshokan_longjmp((c)._hakase_ctx, 1);                 \
+      }                                                       \
     }                                                         \
     (c)._lock = 0;                                            \
   } while (0);
