@@ -59,8 +59,7 @@ hakase.bin: hakase.debug.bin
 .FORCE:
 
 prepare_qemu: .FORCE
-	$(call SILENT_EXEC,docker rm -f $(TOSHOKAN_CONTAINER) > /dev/null 2>&1 || :,cleaning up old environments)
-	$(call SILENT_EXEC,docker run -d $(DOCKER_OPTION) --name $(TOSHOKAN_CONTAINER) -v $(CURDIR):$(CURDIR) -w $(CURDIR) $(TOSHOKAN_CONTAINER_IMAGE):$(TOSHOKAN_VERSION) qemu-system-x86_64 $(QEMU_OPTION) > /dev/null 2>&1,starting a QEMU container)
+	$(call SILENT_EXEC,docker unpause $(TOSHOKAN_CONTAINER) > /dev/null 2>&1 || docker run --rm -d $(DOCKER_OPTION) --name $(TOSHOKAN_CONTAINER) -v $(CURDIR):$(CURDIR) -w $(CURDIR) $(TOSHOKAN_CONTAINER_IMAGE):$(TOSHOKAN_VERSION) qemu-system-x86_64 $(QEMU_OPTION) > /dev/null 2>&1,starting a QEMU container)
 
 wait_qemu: prepare_qemu
 	$(call SILENT_EXEC,docker exec -i $(TOSHOKAN_CONTAINER) wait-for-rsync $(TOSHOKAN_QEMU_HOST),waiting until the QEMU container is ready)
@@ -68,7 +67,7 @@ wait_qemu: prepare_qemu
 qemu_run: prepare_qemu $(HAKASE_BIN) wait_qemu
 	$(call CALL_QEMU,rsync -z $(HAKASE_BIN) $(TOSHOKAN_QEMU_HOST):,sending the binary to remote)
 	$(call CALL_QEMU,ssh $(TOSHOKAN_QEMU_HOST) sudo ./$(HAKASE_BIN),running hakase.bin on remote)
-	$(call SILENT_EXEC,docker rm -f $(TOSHOKAN_CONTAINER) > /dev/null 2>&1,cleaning up the environment)
+	$(call SILENT_EXEC,docker pause $(TOSHOKAN_CONTAINER) > /dev/null 2>&1,cleaning up the environment)
 	$(call SILENT_EXEC,cp $(HAKASE_BIN) hakase.phys.bin)
 
 ifdef HOST
@@ -84,6 +83,7 @@ run: qemu_run
 endif
 
 clean:
+	$(call SILENT_EXEC,docker rm -f $(TOSHOKAN_CONTAINER) > /dev/null 2>&1 || :,cleaning up a container)
 	$(call SILENT_EXEC,rm -rf .misc friend.bin friend_bin.o friend.sym hakase.bin hakase.debug.bin hakase.phys.bin,deleting all intermediate files)
 
 monitor:
