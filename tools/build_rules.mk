@@ -52,7 +52,7 @@ hakase.debug.bin: $(HAKASE_SOURCE) friend_bin.o friend.sym
 	$(call SILENT_EXEC,.misc/wrapper/hakase-g++ $(filter-out %.h,$(HAKASE_SOURCE)) friend_bin.o $(HAKASE_CXXFLAGS) -o $@ -Wl$(comma)-R$(comma)friend.sym,building hakase binary \& combining friend binary with it)
 
 hakase.bin: hakase.debug.bin
-	$(call SILENT_EXEC,cp $^ $@,copy && .misc/wrapper/strip --strip-debug $@,stripping debug info)
+	$(call SILENT_EXEC,cp $^ $@ && .misc/wrapper/strip --strip-debug $@,stripping debug info)
 
 .PHONY: prepare_qemu wait_qemu qemu_run remote_run run clean
 
