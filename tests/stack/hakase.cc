@@ -20,6 +20,7 @@ int test_main() {
 
   for (int i = 0; i < 0x10; i++) {
     SHARED_SYMBOL(stack_addr)[i] = (uint64_t)~0x0;
+    SHARED_SYMBOL(code_addr)[i] = (uint64_t)~0x0;
   }
 
   int cpunum = boot(0);
@@ -46,6 +47,12 @@ int test_main() {
   for (int i = 1; i < cpunum; i++) {
     if (pre == SHARED_SYMBOL(stack_addr)[i]) return -1;
     pre = SHARED_SYMBOL(stack_addr)[i];
+  }
+
+  for (int i = 0; i < cpunum; i++) {
+    for (int j = 0; j < cpunum; j++) {
+      if (SHARED_SYMBOL(stack_addr)[i] == SHARED_SYMBOL(code_addr)[j]) return -1;
+    }
   }
 
   return 1;
