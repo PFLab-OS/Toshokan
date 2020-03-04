@@ -45,13 +45,19 @@ int test_main() {
 
   uint64_t pre = SHARED_SYMBOL(stack_addr)[0];
   for (int i = 1; i < cpunum; i++) {
-    if (pre == SHARED_SYMBOL(stack_addr)[i]) return -1;
+    if (pre == SHARED_SYMBOL(stack_addr)[i]){
+      printf("Duplicate stack address\n");
+      return -1;
+    }
     pre = SHARED_SYMBOL(stack_addr)[i];
   }
 
   for (int i = 0; i < cpunum; i++) {
     for (int j = 0; j < cpunum; j++) {
-      if (SHARED_SYMBOL(stack_addr)[i] == SHARED_SYMBOL(code_addr)[j]) return -1;
+      if (SHARED_SYMBOL(stack_addr)[i] == SHARED_SYMBOL(code_addr)[j]) {
+        printf("Invalid stack address or code address\n");
+        return -1;
+      }
     }
   }
 

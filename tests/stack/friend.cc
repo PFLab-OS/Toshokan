@@ -14,9 +14,6 @@ void friend_main() {
   asm volatile("lea (%%rip), %%rax; mov %%rax, %0": "=g"(rip) ::"%rax");
 
   // 0x1000 == PAGE_SIZE
-  rsp = (rsp & ~(0x1000 - 1)) + 0x1000;
-  rip = (rip & ~(0x1000 - 1)) + 0x1000;
-
-  SHARED_SYMBOL(stack_addr)[x] = rsp;
-  SHARED_SYMBOL(code_addr)[x] = rip;
+  SHARED_SYMBOL(stack_addr)[x] = (rsp & ~(0x1000 - 1)) + 0x1000;
+  SHARED_SYMBOL(code_addr)[x] = (rip & ~(0x1000 - 1)) + 0x1000;
 }
