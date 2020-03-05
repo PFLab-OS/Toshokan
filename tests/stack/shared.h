@@ -10,8 +10,8 @@
 // HOWTO
 // 1. write a declaration here with SHARED_SYMBOL prefix
 // 2. define it in a friend source file
-extern uint64_t SHARED_SYMBOL(stack_addr)[0x10];
-extern uint64_t SHARED_SYMBOL(code_addr)[0x10];
+const uint64_t kCoreCountMax = 0x10;
+extern uint64_t SHARED_SYMBOL(stack_addr)[kCoreCountMax];
 
 //
 //   *** EXPORTED HAKASE FUNCTIONS ***

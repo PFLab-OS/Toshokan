@@ -3,11 +3,14 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-int asc(const void *a, const void *b) {
-  uint64_t *A = (uint64_t *)a;
-  uint64_t *B = (uint64_t *)b;
-  if (*A > *B) return 1;
-  if (*A < *B) return -1;
+//friend_binary_end defined at linker script
+extern char friendsymbol_friend_binary_end[];
+
+int sort_ascendant(const void *a, const void *b) {
+  uint64_t *_a = (uint64_t *)a;
+  uint64_t *_b = (uint64_t *)b;
+  if (*_a > *_b) return 1;
+  if (*_a < *_b) return -1;
   return 0;
 }
 
@@ -20,7 +23,6 @@ int test_main() {
 
   for (int i = 0; i < 0x10; i++) {
     SHARED_SYMBOL(stack_addr)[i] = (uint64_t)~0x0;
-    SHARED_SYMBOL(code_addr)[i] = (uint64_t)~0x0;
   }
 
   int cpunum = boot(0);
@@ -41,7 +43,7 @@ int test_main() {
     }
   }
   //sort
-  qsort(SHARED_SYMBOL(stack_addr), cpunum, sizeof(uint64_t), asc);
+  qsort(SHARED_SYMBOL(stack_addr), cpunum, sizeof(uint64_t), sort_ascendant);
 
   uint64_t pre = SHARED_SYMBOL(stack_addr)[0];
   for (int i = 1; i < cpunum; i++) {
@@ -53,11 +55,9 @@ int test_main() {
   }
 
   for (int i = 0; i < cpunum; i++) {
-    for (int j = 0; j < cpunum; j++) {
-      if (SHARED_SYMBOL(stack_addr)[i] == SHARED_SYMBOL(code_addr)[j]) {
-        printf("Invalid stack address or code address\n");
-        return -1;
-      }
+    if (SHARED_SYMBOL(stack_addr)[i] <= (uint64_t)friendsymbol_friend_binary_end) {
+      printf("Invalid stack address\n");
+      return -1;
     }
   }
 
