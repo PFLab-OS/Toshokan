@@ -21,13 +21,13 @@ int test_main() {
     return r;
   }
 
-  for (int i = 0; i < 0x10; i++) {
+  for (int i = 0; i < kCoreCountMax; i++) {
     SHARED_SYMBOL(stack_addr)[i] = (uint64_t)~0x0;
   }
 
   int cpunum = boot(0);
 
-  if (cpunum > 0x10) {
+  if (cpunum > kCoreCountMax) {
     printf("Too many cpunum\n");
     return -1;
   }
@@ -36,7 +36,7 @@ int test_main() {
     asm volatile("pause" ::: "memory");
   }
 
-  for (int i = 0; i < 0x10; i++) {
+  for (int i = 0; i < kCoreCountMax; i++) {
     if (!((i < cpunum && SHARED_SYMBOL(stack_addr)[i] != 0) || (i >= cpunum && SHARED_SYMBOL(stack_addr)[i] == (uint64_t)~0x0))) {
       printf("Invalid entry\n");
       return -1;
