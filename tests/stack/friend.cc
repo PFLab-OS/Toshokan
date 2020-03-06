@@ -12,5 +12,6 @@ void friend_main() {
   asm volatile("mov %%rsp, %0" : "=g"(rsp));
 
   // 0x1000 == PAGE_SIZE
+  // TODO implement stack size value in toshokan, and replace the const value with it
   SHARED_SYMBOL(stack_addr)[x] = (rsp & ~(0x1000 - 1)) + 0x1000;
 }
