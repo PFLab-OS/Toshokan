@@ -14,5 +14,5 @@ friend_obj = friend_test_env.Command('friend_bin.o', [friend],
 target = hakase_test_env.Program(target='#build/elf', source=[friend_obj, "../main.o", "hakase.cc"], LIBS=['hakase', 'common'], LINKFLAGS=hakase_test_env['LINKFLAGS'] + ' -Wl,-R,' + friend_symbols[0].path)
 hakase_test_env.Depends(target, friend_symbols)
 
-test_binary = (hakase_test_env.GenerateTestAlias('qemu', 'elf', target), hakase_test_env.GenerateTestAlias('qemu_with_kvm', 'elf', target))
+test_binary = hakase_test_env.GenerateTestAlias('elf', target)
 Return('test_binary')
