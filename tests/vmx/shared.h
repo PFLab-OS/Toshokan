@@ -4,16 +4,13 @@
 #include <toshokan/export.h>
 #include <toshokan/symbol.h>
 
-#define VMX_AVAILABLE 1;
-#define VMX_NOTAVAILABLE 0;
-
 //
 //   *** SHARED FRIEND VARIABLES ***
 //
 // HOWTO
 // 1. write a declaration here with SHARED_SYMBOL prefix
 // 2. define it in a friend source file
-extern int64_t SHARED_SYMBOL(vmx);
+extern bool SHARED_SYMBOL(is_vmx_available);
 
 //
 //   *** EXPORTED HAKASE FUNCTIONS ***

@@ -7,7 +7,7 @@ int test_main() {
   if (r != 0) {
     return r;
   }
-  SHARED_SYMBOL(vmx) = VMX_NOTAVAILABLE;
+  SHARED_SYMBOL(is_vmx_available) = false;
 
   boot(1);
 
@@ -15,5 +15,5 @@ int test_main() {
     asm volatile("pause" ::: "memory");
   }
 
-  return SHARED_SYMBOL(vmx) == VMX_AVAILABLE;
+  return SHARED_SYMBOL(is_vmx_available);
 }
