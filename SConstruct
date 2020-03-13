@@ -32,12 +32,12 @@ env = base_env.Clone(ENV=os.environ,
 
 containers = {}
 
-def build_container(env, name, base, source):
+def build_container(env, name, base, source, docker_run_option = ""):
   script = name + '.sh'
   containers[name] = env.Command('.docker_tmp/sha1_' + name, ['docker/' + script] + source, [
     'docker rm -f $CONTAINER_NAME > /dev/null 2>&1 || :',
     Chmod('docker/' + script, '755'),
-    'docker run --network host --name=$CONTAINER_NAME -v {0}/docker:/mnt -v {0}/.docker_tmp:/share -w / {1} mnt/{2}'.format(curdir, base, script),
+    'docker run {3} --network host --name=$CONTAINER_NAME -v {0}/docker:/mnt -v {0}/.docker_tmp:/share -w / {1} mnt/{2}'.format(curdir, base, script, docker_run_option),
     'docker commit -c "CMD sh" $CONTAINER_NAME $IMG_NAME',
     'docker rm -f $CONTAINER_NAME',
     'docker images --digests -q --no-trunc $IMG_NAME > $TARGET'
@@ -150,7 +150,18 @@ env.BuildContainer('qemu_intermediate', 'livadk/toshokan_ssh_intermediate', [
   containers["rootfs"],
   ".docker_tmp/friend_loader.ko",
   ])
+
+env.BuildContainer('qemu_intermediate_with_kvm', 'livadk/toshokan_ssh_intermediate', [
+  containers["ssh_intermediate"],
+  containers["qemu_kernel_image"],
+  containers["rootfs"],
+  ".docker_tmp/friend_loader.ko",
+  ], docker_run_option= "--device /dev/kvm:/dev/kvm")
+
+env.BuildContainer('qemu_with_kvm', 'livadk/toshokan_ssh_intermediate', [containers["ssh_intermediate"], containers["qemu_intermediate_with_kvm"]])
+
 env.BuildContainer('qemu', 'livadk/toshokan_ssh_intermediate', [containers["ssh_intermediate"], containers["qemu_intermediate"]])
+
 env.BuildContainer('qemu_debug', 'ubuntu:16.04', [
   cloned_qemu,
   containers["ssh_intermediate"],
@@ -210,7 +221,7 @@ def pull_container(name):
     'docker pull {0}:{1}'.format(container_name, tag_version),
   ]))
 
-output_containers = ['qemu', 'qemu_debug', 'tools', 'build_hakase', 'build_friend'] #, 'ssh'
+output_containers = ['qemu', "qemu_with_kvm", 'qemu_debug', 'tools', 'build_hakase', 'build_friend'] #, 'ssh'
 
 AlwaysBuild(env.Alias('tag', list(map(tag_container, output_containers)), []))
 

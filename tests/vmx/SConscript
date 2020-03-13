@@ -1,0 +1,7 @@
+#!python
+# vmx feature
+Import('hakase_test_env')
+
+test_binary = hakase_test_env.TestProgramWithKVM(["../main.o", "hakase.cc"], ['friend.cc'])
+
+Return('test_binary')
