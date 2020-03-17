@@ -1,7 +1,7 @@
 #include <toshokan/friend/offload.h>
 #include "shared.h"
 
-bool SHARED_SYMBOL(is_vmx_availabled);
+bool SHARED_SYMBOL(is_vmx_available);
 
 void friend_main() {
   uint64_t eax, ebx, ecx, edx;
