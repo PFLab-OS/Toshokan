@@ -102,8 +102,7 @@ cpputest_env = env.Clone(ASFLAGS=cpputest_flag, CXXFLAGS=cpputest_flag, LINKFLAG
 
 Export('base_env hakase_env friend_env friend_elf_env cpputest_env')
 
-build_tools = [Install('.docker_tmp/tools/wrapper/', Glob('tools/wrapper/*')),
-               Install('.docker_tmp/tools/', 'tools/build_rules.mk')]
+build_tools = [Install('.docker_tmp/tools/', Glob('tools/*'))]
 env.BuildContainer('tools', 'alpine:3.8', build_tools)
 
 common_lib = SConscript(dirs=['common'])

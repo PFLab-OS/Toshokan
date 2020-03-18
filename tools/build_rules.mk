@@ -18,8 +18,15 @@ endif
 
 comma:=,
 
+ifeq ($(KVM),1)
+QEMU_OPTION:=-enable-kvm -cpu Haswell,+vmx,+kvm,-kvm-pv-eoi,-kvm-asyncpf,-kvm-steal-time,-kvmclock -s -d cpu_reset -no-reboot -smp 5 -m 4G -D /qemu.log -loadvm snapshot1 -hda /backing.qcow2 -net nic -net user,hostfwd=tcp::2222-:22 -serial telnet::4444,server,nowait -monitor telnet::4445,server,nowait -nographic -global hpet.msi=true
+TOSHOKAN_CONTAINER_IMAGE:=livadk/toshokan_qemu_with_kvm
+DOCKER_OPTION+=--device /dev/kvm
+else
 QEMU_OPTION:=-cpu Haswell -s -d cpu_reset -no-reboot -smp 5 -m 4G -D /qemu.log -loadvm snapshot1 -hda /backing.qcow2 -net nic -net user,hostfwd=tcp::2222-:22 -serial telnet::4444,server,nowait -monitor telnet::4445,server,nowait -nographic -global hpet.msi=true
 TOSHOKAN_CONTAINER_IMAGE:=livadk/toshokan_qemu
+endif
+
 TOSHOKAN_QEMU_HOST:=toshokan_qemu
 
 ifeq ($(DEBUG),1)
@@ -59,7 +66,7 @@ hakase.bin: hakase.debug.bin
 .FORCE:
 
 prepare_qemu: .FORCE
-	$(call SILENT_EXEC,docker rm -f $(TOSHOKAN_CONTAINER) > /dev/null 2>&1; docker run --rm -d $(DOCKER_OPTION) --name $(TOSHOKAN_CONTAINER) -v $(CURDIR):$(CURDIR) -w $(CURDIR) $(TOSHOKAN_CONTAINER_IMAGE):$(TOSHOKAN_VERSION) qemu-system-x86_64 $(QEMU_OPTION) > /dev/null 2>&1,starting a QEMU container)
+	$(call SILENT_EXEC,docker unpause $(TOSHOKAN_CONTAINER) > /dev/null 2>&1 || docker run --rm -d $(DOCKER_OPTION) --name $(TOSHOKAN_CONTAINER) -v $(CURDIR):$(CURDIR) -w $(CURDIR) $(TOSHOKAN_CONTAINER_IMAGE):$(TOSHOKAN_VERSION) qemu-system-x86_64 $(QEMU_OPTION) > /dev/null 2>&1,starting a QEMU container)
 
 wait_qemu: prepare_qemu
 	$(call SILENT_EXEC,docker exec -i $(TOSHOKAN_CONTAINER) wait-for-rsync $(TOSHOKAN_QEMU_HOST),waiting until the QEMU container is ready)
