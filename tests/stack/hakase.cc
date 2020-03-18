@@ -1,9 +1,9 @@
+#include <stdio.h>
+#include <stdlib.h>
 #include <toshokan/hakase/hakase.h>
 #include "shared.h"
-#include <stdlib.h>
-#include <stdio.h>
 
-//friend_binary_end defined at linker script
+// friend_binary_end defined at linker script
 extern char friendsymbol_friend_binary_end[];
 
 int sort_ascendant(const void *a, const void *b) {
@@ -37,17 +37,18 @@ int test_main() {
   }
 
   for (int i = 0; i < kCoreCountMax; i++) {
-    if (!((i < cpunum && SHARED_SYMBOL(stack_addr)[i] != 0) || (i >= cpunum && SHARED_SYMBOL(stack_addr)[i] == (uint64_t)~0x0))) {
+    if (!((i < cpunum && SHARED_SYMBOL(stack_addr)[i] != 0) ||
+          (i >= cpunum && SHARED_SYMBOL(stack_addr)[i] == (uint64_t)~0x0))) {
       printf("Invalid entry\n");
       return -1;
     }
   }
-  //sort
+  // sort
   qsort(SHARED_SYMBOL(stack_addr), cpunum, sizeof(uint64_t), sort_ascendant);
 
   uint64_t pre = SHARED_SYMBOL(stack_addr)[0];
   for (int i = 1; i < cpunum; i++) {
-    if (pre == SHARED_SYMBOL(stack_addr)[i]){
+    if (pre == SHARED_SYMBOL(stack_addr)[i]) {
       printf("Duplicate stack address\n");
       return -1;
     }
@@ -55,7 +56,8 @@ int test_main() {
   }
 
   for (int i = 0; i < cpunum; i++) {
-    if (SHARED_SYMBOL(stack_addr)[i] <= (uint64_t)friendsymbol_friend_binary_end) {
+    if (SHARED_SYMBOL(stack_addr)[i] <=
+        (uint64_t)friendsymbol_friend_binary_end) {
       printf("Invalid stack address\n");
       return -1;
     }
