@@ -31,7 +31,7 @@ HAKASE_BIN:=hakase.bin
 endif
 
 define CALL_QEMU
-	$(call SILENT_EXEC,docker exec -it $(TOSHOKAN_CONTAINER) $1,$2)
+	$(call SILENT_EXEC,docker exec -i $(TOSHOKAN_CONTAINER) $1,$2)
 endef
 
 FRIEND_CXXFLAGS:=-O2 -Wall -Werror=unused-result --std=c++14 -mcmodel=large -nostdinc -nostdlib -fno-pie -no-pie -D__FRIEND__ -T /usr/local/etc/friend.ld -I/usr/local/include -L/usr/local/lib64 -lfriend -lcommon
@@ -59,7 +59,7 @@ hakase.bin: hakase.debug.bin
 .FORCE:
 
 prepare_qemu: .FORCE
-	$(call SILENT_EXEC,docker unpause $(TOSHOKAN_CONTAINER) > /dev/null 2>&1 || docker run --rm -d $(DOCKER_OPTION) --name $(TOSHOKAN_CONTAINER) -v $(CURDIR):$(CURDIR) -w $(CURDIR) $(TOSHOKAN_CONTAINER_IMAGE):$(TOSHOKAN_VERSION) qemu-system-x86_64 $(QEMU_OPTION) > /dev/null 2>&1,starting a QEMU container)
+	$(call SILENT_EXEC,docker unpause $(TOSHOKAN_CONTAINER) > /dev/null 2>&1 || (docker rm -f $(TOSHOKAN_CONTAINER) > /dev/null 2>&1; docker run --rm -d $(DOCKER_OPTION) --name $(TOSHOKAN_CONTAINER) -v $(CURDIR):$(CURDIR) -w $(CURDIR) $(TOSHOKAN_CONTAINER_IMAGE):$(TOSHOKAN_VERSION) qemu-system-x86_64 $(QEMU_OPTION) > /dev/null 2>&1 ),starting a QEMU container)
 
 wait_qemu: prepare_qemu
 	$(call SILENT_EXEC,docker exec -i $(TOSHOKAN_CONTAINER) wait-for-rsync $(TOSHOKAN_QEMU_HOST),waiting until the QEMU container is ready)
@@ -82,8 +82,12 @@ else
 run: qemu_run
 endif
 
-clean:
+clean: clean_container clean_files
+
+clean_container:
 	$(call SILENT_EXEC,docker rm -f $(TOSHOKAN_CONTAINER) > /dev/null 2>&1 || :,cleaning up a container)
+
+clean_files:
 	$(call SILENT_EXEC,rm -rf .misc friend.bin friend_bin.o friend.sym hakase.bin hakase.debug.bin hakase.phys.bin,deleting all intermediate files)
 
 monitor:
