@@ -66,7 +66,7 @@ hakase.bin: hakase.debug.bin
 .FORCE:
 
 prepare_qemu: .FORCE
-	$(call SILENT_EXEC,docker unpause $(TOSHOKAN_CONTAINER) > /dev/null 2>&1 || docker run --rm -d $(DOCKER_OPTION) --name $(TOSHOKAN_CONTAINER) -v $(CURDIR):$(CURDIR) -w $(CURDIR) $(TOSHOKAN_CONTAINER_IMAGE):$(TOSHOKAN_VERSION) qemu-system-x86_64 $(QEMU_OPTION) > /dev/null 2>&1,starting a QEMU container)
+	$(call SILENT_EXEC,docker rm -f $(TOSHOKAN_CONTAINER) > /dev/null 2>&1; docker run --rm -d $(DOCKER_OPTION) --name $(TOSHOKAN_CONTAINER) -v $(CURDIR):$(CURDIR) -w $(CURDIR) $(TOSHOKAN_CONTAINER_IMAGE):$(TOSHOKAN_VERSION) qemu-system-x86_64 $(QEMU_OPTION) > /dev/null 2>&1,starting a QEMU container)
 
 wait_qemu: prepare_qemu
 	$(call SILENT_EXEC,docker exec -i $(TOSHOKAN_CONTAINER) wait-for-rsync $(TOSHOKAN_QEMU_HOST),waiting until the QEMU container is ready)
