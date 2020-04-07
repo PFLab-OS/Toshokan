@@ -151,14 +151,14 @@ env.BuildContainer('qemu_intermediate', 'livadk/toshokan_ssh_intermediate', [
   ".docker_tmp/friend_loader.ko",
   ])
 
-env.BuildContainer('qemu_intermediate_with_kvm', 'livadk/toshokan_ssh_intermediate', [
-  containers["ssh_intermediate"],
-  containers["qemu_kernel_image"],
-  containers["rootfs"],
-  ".docker_tmp/friend_loader.ko",
-  ], docker_run_option= "--device /dev/kvm:/dev/kvm")
+#env.BuildContainer('qemu_intermediate_with_kvm', 'livadk/toshokan_ssh_intermediate', [
+#  containers["ssh_intermediate"],
+#  containers["qemu_kernel_image"],
+#  containers["rootfs"],
+#  ".docker_tmp/friend_loader.ko",
+#  ], docker_run_option= "--device /dev/kvm:/dev/kvm")
 
-env.BuildContainer('qemu_with_kvm', 'livadk/toshokan_ssh_intermediate', [containers["ssh_intermediate"], containers["qemu_intermediate_with_kvm"]])
+#env.BuildContainer('qemu_with_kvm', 'livadk/toshokan_ssh_intermediate', [containers["ssh_intermediate"], containers["qemu_intermediate_with_kvm"]])
 
 env.BuildContainer('qemu', 'livadk/toshokan_ssh_intermediate', [containers["ssh_intermediate"], containers["qemu_intermediate"]])
 
@@ -221,7 +221,7 @@ def pull_container(name):
     'docker pull {0}:{1}'.format(container_name, tag_version),
   ]))
 
-output_containers = ['qemu', "qemu_with_kvm", 'qemu_debug', 'tools', 'build_hakase', 'build_friend'] #, 'ssh'
+output_containers = ['qemu', 'qemu_debug', 'tools', 'build_hakase', 'build_friend'] #, 'qemu_with_kvm', 'ssh'
 
 AlwaysBuild(env.Alias('tag', list(map(tag_container, output_containers)), []))
 
