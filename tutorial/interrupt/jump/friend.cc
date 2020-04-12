@@ -13,7 +13,7 @@ struct idt_entity {
 extern "C" void int_handler();
 
 int wait_input() {
-  int i;
+  int i = 0;
   OFFLOAD({
     EXPORTED_SYMBOL(printf)
     ("1) divide without exception\n");
@@ -50,17 +50,14 @@ void setup_inthandler(void (*handler)()) {
 }
 
 void friend_main() {
-  int num = 0;
   setup_inthandler(int_handler);
   asm volatile("lidt (%0)" ::"r"(_idtr));
   switch (wait_input()) {
     case 1:
-      num = 1;
-      asm volatile("divl %2" ::"a"(1), "d"(0), "m"(num));  // 1 / 1
+      asm volatile("divl %2" ::"a"(1), "d"(0), "b"(1));  // 1 / 1
       break;
     case 2:
-      num = 0;
-      asm volatile("divl %2" ::"a"(1), "d"(0), "m"(num));  // 1 / 0
+      asm volatile("divl %2" ::"a"(1), "d"(0), "b"(0));  // 1 / 0
       break;
   }
 }

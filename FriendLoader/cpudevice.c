@@ -1,4 +1,6 @@
 #include <linux/cdev.h>
+#include <linux/device.h>  // class_create
+#include <linux/fs.h>      // iminor
 #include <linux/kernel.h>
 #include <linux/types.h>
 

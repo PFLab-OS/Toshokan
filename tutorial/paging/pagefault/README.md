@@ -38,23 +38,27 @@
 	// int.S
 int_handler2:
 	pushq %rax
-	movq (pt_entry), %rax
-	movq $(0x40000000 | (1 << 0) | (1 << 1) | (1 << 2)), (%rax)
+	pushq %rbx
+	movabsq $pt_entry, %rax
+	movq (%rax), %rax  // store page table entry address to rax
+	movabsq $(0x100000000UL | (1 << 0) | (1 << 1) | (1 << 2)), %rbx // store page table entry to rbx
+	movq %rbx, (%rax) // set page table entry
 	movq $0x80000000, %rax
-	invlpg (%rax)
+	invlpg (%rax) // clear TLB entry
+	popq %rbx
 	popq %rax
 	add  $8, %rsp // to remove error code
 	iretq
 ```
 
-まず、`pushq %rax`と`popq %rax`では、raxレジスタを一時的に保存、再読み込みしています。割り込みハンドラ内ではレジスタの値を破壊してはいけないからです（破壊してしまうと復帰後に影響が出る）。次に、pt_entryから編集すべきページテーブルエントリのアドレスを取得します。pt_entryの値は以下のように初期化されています。
+まず、`pushq %rax` `pushq %rbx`と`popq %rax` `popq %rbx`では、rax,rbxレジスタを一時的に保存、再読み込みしています。割り込みハンドラ内ではレジスタの値を破壊してはいけないからです（破壊してしまうと復帰後に影響が出る）。次に、pt_entryから編集すべきページテーブルエントリのアドレスを取得します。pt_entryの値は以下のように初期化されています。
 
 ```cc
 // friend.cc
   pt_entry = &pt.entry[(vaddr % k2MB) / k4KB]; // set page table entry address
 ```
 
-pt_entryからエントリアドレスを取得したら、`0x40000000 | (1 << 0) | (1 << 1) | (1 << 2)`（指し示す先のページの物理アドレス＋α）をエントリに設定します。その後、`invlpg`命令でvaddrの仮想アドレスのページキャッシュを更新したらおしまいです。
+pt_entryからエントリアドレスを取得したら、`0x100000000 | (1 << 0) | (1 << 1) | (1 << 2)`（指し示す先のページの物理アドレス＋α）をエントリに設定します。その後、`invlpg`命令でvaddrの仮想アドレスのページキャッシュを更新したらおしまいです。
 
 さあ、今度はページフォルトから復帰し、処理を問題無く続行できるでしょうか？試してみてください。
 

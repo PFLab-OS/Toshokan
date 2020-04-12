@@ -6,9 +6,9 @@ struct Page {
   uint64_t entry[512];
 } __attribute__((aligned(4096)));
 
-Page SHARED_SYMBOL(__toshokan_pml4t);
 Page SHARED_SYMBOL(__toshokan_pdpt);
-Page SHARED_SYMBOL(__toshokan_pd);
+Page SHARED_SYMBOL(__toshokan_pd1);
+Page SHARED_SYMBOL(__toshokan_pd2);
 
 /* dummy */
 #include <toshokan/friend/offload.h>

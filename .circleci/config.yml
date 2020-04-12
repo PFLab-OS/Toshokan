@@ -3,14 +3,16 @@ workflows:
   version: 2
   build_and_test:
     jobs:
+      - format
       - build_python2
       - build_python3
       - doccheck
-      - check_dockerimage:
+      - dockerimagecheck:
           filters:
             branches:
               only:
                 - master
+      - versioncheck
   nightly_workflow:
     triggers:
       - schedule:
@@ -20,9 +22,12 @@ workflows:
               only:
                 - master
     jobs:
+      - format
       - build_python2
       - build_python3
       - doccheck
+      - dockerimagecheck
+      - versioncheck
 jobs:
   build_python2:
     machine: true
@@ -34,9 +39,6 @@ jobs:
             pyenv install -s 2.7.12
             pyenv global 2.7.12
             pip install scons
-      - run:
-          command: |
-            scons CI=1 format
       - run:
           command: |
             scons test -j3
@@ -52,10 +54,19 @@ jobs:
             pip install scons
       - run:
           command: |
-            scons CI=1 format
+            scons test -j3
+  format:
+    machine: true
+    steps:
+      - checkout
       - run:
           command: |
-            scons test -j3
+            pyenv install -s 3.5.2
+            pyenv global 3.5.2
+            pip install scons
+      - run:
+          command: |
+            scons CI=1 format
   doccheck:
     docker:
       - image: circleci/python:3.5
@@ -67,9 +78,9 @@ jobs:
             sudo pip install scons jinja2 pyyaml
       - run:
           command: |
-            scons generate
-            scons doccheck
-  check_dockerimage:
+            scons generate_tools
+            scons CI=1 doccheck
+  dockerimagecheck:
     docker:
       - image: circleci/python:3.5
     steps:
@@ -85,5 +96,16 @@ jobs:
             else
                scons imagecheck
             fi 
+  versioncheck:
+    docker:
+      - image: circleci/python:3.5
+    steps:
+      - checkout
+      - run:
+          command: |
+            sudo pip install scons
+      - run:
+          command: |
+            scons versioncheck
       
 #TODO: should be refactored using YAML anchor & alias

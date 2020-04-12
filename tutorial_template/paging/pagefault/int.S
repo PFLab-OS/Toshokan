@@ -8,10 +8,14 @@ int_handler1:
 
 int_handler2:
 	pushq %rax
-	movq (pt_entry), %rax
-	movq $(0x40000000 | (1 << 0) | (1 << 1) | (1 << 2)), (%rax)
+	pushq %rbx
+	movabsq $pt_entry, %rax
+	movq (%rax), %rax  // store page table entry address to rax
+	movabsq $(0x100000000UL | (1 << 0) | (1 << 1) | (1 << 2)), %rbx // store page table entry to rbx
+	movq %rbx, (%rax) // set page table entry
 	movq $0x80000000, %rax
-	invlpg (%rax)
+	invlpg (%rax) // clear TLB entry
+	popq %rbx
 	popq %rax
 	add  $8, %rsp // to remove error code
 	iretq

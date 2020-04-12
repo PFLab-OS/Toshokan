@@ -15,14 +15,6 @@
 #include <unistd.h>
 #include <iostream>
 
-struct Page {
-  uint64_t entry[512];
-} __attribute__((aligned(4096)));
-
-extern Page SHARED_SYMBOL(__toshokan_pml4t);
-extern Page SHARED_SYMBOL(__toshokan_pdpt);
-extern Page SHARED_SYMBOL(__toshokan_pd);
-
 extern int SHARED_SYMBOL(__toshokan_sync_hakase_and_friend);
 
 static int check_bootparam() {
@@ -34,7 +26,7 @@ static int check_bootparam() {
 
   char buf[256];
   buf[fread(buf, 1, 255, cmdline_fp)] = '\0';
-  if (!strstr(buf, "memmap=0x70000$4K memmap=0x40000000$0x40000000")) {
+  if (!strstr(buf, "memmap=8K$0x70000 memmap=1G$4G")) {
     std::cerr << "error: physical memory is not isolated for toshokan."
               << std::endl;
     return -1;
@@ -63,9 +55,11 @@ static int check_version() {
   return 0;
 }
 
-extern char friend_mem_start[];
+/*extern char friend_mem_start[];
 extern char friend_mem_end[];
-static uint64_t *const mem = reinterpret_cast<uint64_t *>(friend_mem_start);
+static uint64_t *const mem = reinterpret_cast<uint64_t *>(friend_mem_start);*/
+static uint64_t *const mem =
+    reinterpret_cast<uint64_t *>(DEPLOY_PHYS_ADDR_START);
 
 static int mmap_friend_mem() {
   int mem_fd = open("/dev/friend_mem", O_RDWR);
@@ -88,30 +82,6 @@ static int mmap_friend_mem() {
   // zero clear (only 4MB, because it is too slow to clear whole memory)
   memset(mem, 0, 1024 * 4096);
   return 0;
-}
-
-static void pagetable_init() {
-  static const size_t k256TB = 256UL * 1024 * 1024 * 1024 * 1024;
-  static const size_t k512GB = 512UL * 1024 * 1024 * 1024;
-  static const size_t k1GB = 1024UL * 1024 * 1024;
-  static const size_t k2MB = 2UL * 1024 * 1024;
-
-  SHARED_SYMBOL(__toshokan_pml4t)
-      .entry[(DEPLOY_PHYS_ADDR_START % k256TB) / k512GB] =
-      reinterpret_cast<size_t>(&SHARED_SYMBOL(__toshokan_pdpt)) | (1 << 0) |
-      (1 << 1) | (1 << 2);
-  SHARED_SYMBOL(__toshokan_pdpt)
-      .entry[(DEPLOY_PHYS_ADDR_START % k512GB) / k1GB] =
-      reinterpret_cast<size_t>(&SHARED_SYMBOL(__toshokan_pd)) | (1 << 0) |
-      (1 << 1) | (1 << 2);
-
-  static_assert((DEPLOY_PHYS_ADDR_START % k1GB) == 0, "");
-  static_assert(DEPLOY_PHYS_MEM_SIZE <= k1GB, "");
-  for (size_t addr = DEPLOY_PHYS_ADDR_START; addr < DEPLOY_PHYS_ADDR_END;
-       addr += k2MB) {
-    SHARED_SYMBOL(__toshokan_pd).entry[(addr % k1GB) / k2MB] =
-        addr | (1 << 0) | (1 << 1) | (1 << 2) | (1 << 7);
-  }
 }
 
 extern Offloader SHARED_SYMBOL(__toshokan_offloader);
@@ -142,8 +112,9 @@ int setup() {
     return -1;
   }
 
-  assert(friend_mem_start == reinterpret_cast<char *>(DEPLOY_PHYS_ADDR_START));
-  assert(friend_mem_end == reinterpret_cast<char *>(DEPLOY_PHYS_ADDR_END));
+  //  assert(friend_mem_start == reinterpret_cast<char
+  //  *>(DEPLOY_PHYS_ADDR_START)); assert(friend_mem_end ==
+  //  reinterpret_cast<char *>(DEPLOY_PHYS_ADDR_END));
 
   if (mmap_friend_mem() < 0) {
     return -1;
@@ -155,14 +126,12 @@ int setup() {
   }
 
   Elf64_Off entry = elfloader.GetEntry();
-  assert(entry < 0xFFFFFFFF);
   if (loader16.Init(entry) < 0) {
     std::cerr << "error: failed to init friend16 region" << std::endl;
     return -1;
   }
 
   export_init();
-  pagetable_init();
   return 0;
 }
 
@@ -175,7 +144,7 @@ int boot(int max) {
     if (open(buf, O_RDONLY) < 0) {
       return i - 1;
     }
-    if (max > 0 && i <= max) {
+    if (i == max) {
       return i;
     }
   }

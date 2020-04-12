@@ -1,4 +1,4 @@
-{% import 'macro.tpl' as helper %}
+{% import 'build_misc/macro.tpl' as helper %}
 # hakaseとfriend間のsymbol解決
 
 特殊なシンタックスによって記述する事により、hakase上からfriendのグローバル変数を参照する事が可能です。また、この参照はhakaseバイナリのコンパイル時に（静的に）行われます。

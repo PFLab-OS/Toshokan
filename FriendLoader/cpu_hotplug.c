@@ -4,6 +4,7 @@
 #include <asm/uv/uv.h>
 #include <linux/cpu.h>
 #include <linux/cpumask.h>
+#include <linux/delay.h>        // udelay
 #include <linux/mc146818rtc.h>  // spin_lock_irqsave
 #include <linux/slab.h>
 #include <linux/spinlock.h>  // spin_lock_irqsave, spin_unlock_irqrestore
