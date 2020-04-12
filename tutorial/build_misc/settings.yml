@@ -1,4 +1,4 @@
-version: v0.05d
+version: v0.10
 misccode_for_makefile: |
   TOOLS_DIR?=.misc
   $(shell docker run --rm -v $(CURDIR):$(CURDIR) livadk/toshokan_tools:$(TOSHOKAN_VERSION) rsync -av /usr/local/share/misc/toshokan/ $(CURDIR)/.misc/ > /dev/null 2>&1)

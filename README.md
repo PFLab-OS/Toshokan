@@ -20,7 +20,7 @@ $ scons -j12
 [here](tutorial/toshokan/)
 
 ## Release Notes
-v0.05(2020/04)
+v0.10(2020/04)
 - improved the Makefile. Now users do not have to manage the build script.
 - The build script strips your app binary file, and produces smaller image.
 - -O2 flag is automatically set by default.

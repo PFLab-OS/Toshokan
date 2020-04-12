@@ -17,7 +17,7 @@ base_env.AddMethod(gen_docker_cmd, "GenerateDockerCommand")
 # after you change the version,
 # 1. run `scons generate_tools` 
 # 2. update sample/Makefile
-tag_version = "v0.05d"
+tag_version = "v0.10"
 
 curdir = Dir('.').abspath
 ci = True if int(ARGUMENTS.get('CI', 0)) == 1 else False
