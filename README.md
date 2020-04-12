@@ -1,23 +1,26 @@
 # Toshokan
+Toshokan provides core-isolated bare-metal application environment (names friend) which solves major difficulties specific to its programming. With running Linux kernel on the first core (names hakase), and assigning other cores for bare-metal applications (friend apps), bare-metal code can call Linux functionalities without any interference from underlying system software. With Toshokan, programmers can now easily measure low-level hardware characteristics, which would inspire new research ideas or give some hints of performance tuning in their software.
 
-## Requirements
+## How To Use (in Japanese)
+[here](tutorial/toshokan/)
+
+## Install & Test (to build overall Toshokan environment)
+Most users do not need to do this. If you just want to write friend app, see [sample](sample/) or [tutorial](tutorial/toshokan/).
+
+requirements:
 
 * docker (tested on 18.06.0-ce)
 * scons (> 3.0)
 * python (> 2.5)
 
 You can use `pip install scons` to install the latest version of scons.
-OS package managers(e.g. apt, yum) often try to install older versions. Be careful.
+OS package managers(e.g. apt, yum) often try to install older versions. That would not work.
 
-## Install & Test
 ```
 $ git clone https://github.com/PFLab-OS/Toshokan.git
 $ cd Toshokan
 $ scons -j12
 ```
-
-## How To Use (in Japanese)
-[here](tutorial/toshokan/)
 
 ## Release Notes
 v0.10(2020/04)
