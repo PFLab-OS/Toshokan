@@ -79,7 +79,7 @@ jobs:
       - run:
           command: |
             scons generate_tools
-            scons doccheck
+            scons CI=1 doccheck
   dockerimagecheck:
     docker:
       - image: circleci/python:3.5

@@ -185,7 +185,7 @@ AlwaysBuild(env.Alias('format', [],
     'echo "Done."']))
 
 AlwaysBuild(env.Alias('doccheck', [], [
-  env.GenerateDockerCommand('alpine:3.8', 'rm -rf tutorial'),
+  '' if ci else env.GenerateDockerCommand('alpine:3.8', 'rm -rf tutorial'),
   'cd tutorial_template; ./build.py',
   'git diff && git diff | wc -l | xargs test 0 -eq']))
 
