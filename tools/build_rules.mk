@@ -75,16 +75,13 @@ qemu_run: prepare_qemu $(HAKASE_BIN) wait_qemu
 	$(call CALL_QEMU,rsync -z $(HAKASE_BIN) $(TOSHOKAN_QEMU_HOST):,sending the binary to remote)
 	$(call CALL_QEMU,ssh $(TOSHOKAN_QEMU_HOST) sudo ./$(HAKASE_BIN),running hakase.bin on remote)
 	$(call SILENT_EXEC,docker rm -f $(TOSHOKAN_CONTAINER) > /dev/null 2>&1,cleaning up a container)
-	$(call SILENT_EXEC,cp $(HAKASE_BIN) hakase.phys.bin)
 
 ifdef HOST
 run: remote_run
 
-hakase.phys.bin: qemu_run
-
-remote_run: hakase.phys.bin
-	$(call SILENT_EXEC,rsync -z hakase.phys.bin $(HOST):,sending the binary to remote)
-	$(call SILENT_EXEC,ssh $(HOST) sudo ./hakase.phys.bin,running hakase.bin on remote)
+remote_run: hakase.bin
+	$(call SILENT_EXEC,rsync -z hakase.bin $(HOST):,sending the binary to remote)
+	$(call SILENT_EXEC,ssh $(HOST) sudo ./hakase.bin,running hakase.bin on remote)
 else
 run: qemu_run
 endif
@@ -95,7 +92,7 @@ clean_container:
 	$(call SILENT_EXEC,docker rm -f $(TOSHOKAN_CONTAINER) > /dev/null 2>&1 || :,cleaning up a container)
 
 clean_files:
-	$(call SILENT_EXEC,rm -rf .misc friend.bin friend_bin.o friend.sym hakase.bin hakase.debug.bin hakase.phys.bin,deleting all intermediate files)
+	$(call SILENT_EXEC,rm -rf .misc friend.bin friend_bin.o friend.sym hakase.bin hakase.debug.bin,deleting all intermediate files)
 
 monitor:
 	$(call SILENT_EXEC,docker exec $(TOSHOKAN_CONTAINER) sh -c "echo 'cpu 1' | busybox nc localhost 4445 > /dev/zero")
