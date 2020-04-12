@@ -26,7 +26,7 @@ void friend_main() {
 
   // setup a page
   pd.entry[(vaddr % k1GB) / k2MB] =
-      0x40000000 | (1 << 0) | (1 << 1) | (1 << 2) | (1 << 7);
+      0x100000000UL | (1 << 0) | (1 << 1) | (1 << 2) | (1 << 7);
 
   uint64_t x = *((uint64_t *)vaddr);
 

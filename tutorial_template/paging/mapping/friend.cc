@@ -51,14 +51,14 @@ void friend_main() {
 
   // setup a page
   pt.entry[(vaddr1 % k2MB) / k4KB] =
-      0x40000000 | (1 << 0) | (1 << 1) | (1 << 2);
+      0x100000000UL | (1 << 0) | (1 << 1) | (1 << 2);
 
   show_memdata(vaddr1);
   wait_input(1);
 
   // remap the page
   pt.entry[(vaddr1 % k2MB) / k4KB] =
-      0x40001000 | (1 << 0) | (1 << 1) | (1 << 2);
+      0x100001000UL | (1 << 0) | (1 << 1) | (1 << 2);
 
   // flush TLB
   asm volatile("invlpg (%0)" ::"r"(vaddr1) : "memory");
@@ -68,9 +68,9 @@ void friend_main() {
 
   // setup other pages
   pt.entry[(vaddr2 % k2MB) / k4KB] =
-      0x40000000 | (1 << 0) | (1 << 1) | (1 << 2);
+      0x100000000UL | (1 << 0) | (1 << 1) | (1 << 2);
   pt.entry[(vaddr3 % k2MB) / k4KB] =
-      0x40001000 | (1 << 0) | (1 << 1) | (1 << 2);
+      0x100001000UL | (1 << 0) | (1 << 1) | (1 << 2);
 
   show_memdata(vaddr2);
   show_memdata(vaddr3);

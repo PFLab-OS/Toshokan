@@ -18,3 +18,20 @@ $ scons -j12
 
 ## How To Use (in Japanese)
 [here](tutorial/toshokan/)
+
+## Release Notes
+v0.05(2020/04)
+- improved the Makefile. Now users do not have to manage the build script.
+- The build script strips your app binary file, and produces smaller image.
+- -O2 flag is automatically set by default.
+- The physical memory region for friend is moved to 4G-5G to support more physical environment.
+
+v0.04(2019/12)
+- added tutorial
+- fixed some bugs
+
+v0.03(2019/06)
+- simplified the way to run Toshokan apps on physical machine
+
+
+

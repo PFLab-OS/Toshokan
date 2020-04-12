@@ -26,7 +26,7 @@ extern "C" void int_handler1();
 extern "C" void int_handler2();
 
 int wait_input() {
-  int i;
+  int i = 0;
   OFFLOAD({
     EXPORTED_SYMBOL(printf)
     ("1) retry without doing anything\n");

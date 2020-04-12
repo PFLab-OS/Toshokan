@@ -14,7 +14,7 @@ extern "C" void int_handler1();
 extern "C" void int_handler2();
 
 int wait_input() {
-  int i;
+  int i = 0;
   OFFLOAD({
     EXPORTED_SYMBOL(printf)
     ("1) retry without doing anything\n");
@@ -50,8 +50,6 @@ void setup_inthandler(void (*handler)()) {
   _idtr[4] = (idt_addr >> 48) & 0xffff;
 }
 
-int zero = 0;  // may be updated in int.S
-
 void friend_main() {
   void (*int_handlers[])() = {
       int_handler1,
@@ -60,5 +58,5 @@ void friend_main() {
   int input = wait_input();
   setup_inthandler(int_handlers[input - 1]);
   asm volatile("lidt (%0)" ::"r"(_idtr));
-  asm volatile("divl %2" ::"a"(1), "d"(0), "m"(zero));  // 1 / zero
+  asm volatile("divl %2" ::"a"(1), "d"(0), "b"(0));  // eax / ebx
 }

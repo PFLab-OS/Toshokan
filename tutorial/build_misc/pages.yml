@@ -20,8 +20,6 @@ pages:
       code: True
     - name: mapping
       code: True
-    - name: mapping_exercise
-      code: True
     - name: hierarchy
       code: True
     - name: generate_pagetable

@@ -42,7 +42,7 @@ void friend_main() {
 
   // setup a page
   pt1.entry[(vaddr1 % k2MB) / k4KB] =
-      0x40000000 | (1 << 0) | (1 << 1) | (1 << 2);
+      0x100000000UL | (1 << 0) | (1 << 1) | (1 << 2);
 
   wait_input(1);
 
@@ -50,7 +50,7 @@ void friend_main() {
   pd.entry[(vaddr2 % k1GB) / k2MB] =
       v2p((virt_addr_t)(&pt2)) | (1 << 0) | (1 << 1) | (1 << 2);
   pt2.entry[(vaddr2 % k2MB) / k4KB] =
-      0x40000000 | (1 << 0) | (1 << 1) | (1 << 2);
+      0x100000000UL | (1 << 0) | (1 << 1) | (1 << 2);
 
   wait_input(2);
 }

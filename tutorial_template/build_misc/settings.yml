@@ -1,4 +1,5 @@
-version: v0.05a
+version: v0.05d
 misccode_for_makefile: |
-  $(shell docker run --rm -v $(CURDIR):$(CURDIR) livadk/toshokan_build_hakase:$(TOSHOKAN_VERSION) rsync -av /usr/local/share/misc/toshokan/ $(CURDIR)/.misc/ > /dev/null 2>&1)
+  $(shell docker run --rm -v $(CURDIR):$(CURDIR) livadk/toshokan_tools:$(TOSHOKAN_VERSION) rsync -av /usr/local/share/misc/toshokan/ $(CURDIR)/.misc/ > /dev/null 2>&1)
   include .misc/build_rules.mk
+
