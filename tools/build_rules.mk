@@ -92,7 +92,7 @@ clean_container:
 	$(call SILENT_EXEC,docker rm -f $(TOSHOKAN_CONTAINER) > /dev/null 2>&1 || :,cleaning up a container)
 
 clean_files:
-	$(call SILENT_EXEC,rm -rf .misc friend.bin friend_bin.o friend.sym hakase.bin hakase.debug.bin,deleting all intermediate files)
+	$(call SILENT_EXEC,docker run -i --rm -v $(CURDIR):$(CURDIR) -w $(CURDIR) livadk/toshokan_tools:$(TOSHOKAN_VERSION) rm -rf .misc friend.bin friend_bin.o friend.sym hakase.bin hakase.debug.bin,deleting all intermediate files)
 
 monitor:
 	$(call SILENT_EXEC,docker exec $(TOSHOKAN_CONTAINER) sh -c "echo 'cpu 1' | busybox nc localhost 4445 > /dev/zero")

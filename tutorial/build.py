@@ -13,8 +13,6 @@ env = Environment(loader=FileSystemLoader('./', encoding='utf8'))
 with open('build_misc/pages.yml', encoding='utf_8') as stream:
     pstruct = yaml.load(stream, Loader=yaml.FullLoader)
 
-subprocess.call('rm -rf ../tutorial', shell=True)
-
 def generate_dir(dirname):
     subprocess.call('mkdir -p ../tutorial/' + dirname, shell=True)
     tplfile_list = glob.glob('{0}/*.tpl'.format(dirname))
