@@ -77,6 +77,7 @@ common/tests/cpputest
 FriendLoader/friend_loader.ko
 FriendLoader_local/
 .docker_tmp/
+.misc
 
 # Kernel Module Compile Results
 *.mod*
