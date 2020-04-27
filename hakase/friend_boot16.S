@@ -58,6 +58,11 @@ entry32:
 	movw $0x10, %ax
 	movw %ax, %ds
 
+	// set NE bit
+	movl %cr0, %eax
+	orl $(1 << 5), %eax
+	movl %eax, %cr0
+
 	// load cr3
 	movl $INITIAL_PML4T, %edi
 	movl %edi, %cr3
